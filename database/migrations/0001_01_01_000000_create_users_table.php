@@ -15,9 +15,25 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->enum('gender',['male','female'])->nullable();
+            $table->string('image')->nullable();
             $table->rememberToken();
+            $table->timestamps();
+        });
+        Schema::create('roles', function (Blueprint $table) {
+            $table->id();
+            $table->string('name')->unique(); //operator sekolah, guru, staff, siswa
+            $table->string('description')->nullable();
+            $table->timestamps();
+        });
+
+        // migration create_role_user_table
+        Schema::create('role_user', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('role_id')->constrained()->onDelete('cascade');
+            $table->foreignId('assigned_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
 
@@ -42,8 +58,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('role_user');
+        Schema::dropIfExists('roles');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('users');
     }
+
 };
