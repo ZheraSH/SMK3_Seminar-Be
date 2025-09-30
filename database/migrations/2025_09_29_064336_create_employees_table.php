@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('phone_number')->nullable();
             $table->string('address')->nullable();
             $table->string('employment_status')->nullable(); // guru-> guru pengajar(default), wali kelas, bk, staff-> staff TU (default), WakaKurikulum
-            $table->foreignId('religion_id')->constrained('religions')->onDelete('set null')->nullable();
+            $table->foreignId('religion_id')->nullable()->constrained('religions')->nullOnDelete();
             $table->timestamps();
         });
     }

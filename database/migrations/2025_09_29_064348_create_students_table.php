@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('nisn')->unique();
-            $table->foreignId('religion_id')->constrained('religions')->onDelete('set null')->nullable();
+            $table->foreignId('religion_id')->nullable()->constrained('religions')->nullOnDelete();
             $table->date('birthdate')->nullable();
             $table->string('birthplace')->nullable();
             $table->string('address')->nullable();

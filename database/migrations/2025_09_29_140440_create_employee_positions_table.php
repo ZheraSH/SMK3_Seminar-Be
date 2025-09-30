@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('employee_positions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade ');
-            $table->foreignId('positions_id')->constrained('positions')->onDelete('cascade ');
+            $table->foreignId('position_id')->constrained('positions')->onDelete('cascade ');
             $table->timestamps();
 
             $table->unique(['employee_id','position_id']);

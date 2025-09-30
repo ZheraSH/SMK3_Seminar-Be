@@ -17,7 +17,7 @@ return new class extends Migration
             $table->integer('point')->nullable();
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
-            $table->boolean('is_approved')->default('false');
+            $table->boolean('is_approved')->default(false);
             $table->timestamps();
         });
     }

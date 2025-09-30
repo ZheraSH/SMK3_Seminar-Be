@@ -58,11 +58,15 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::disableForeignKeyConstraints();
+        
         Schema::dropIfExists('role_user');
-        Schema::dropIfExists('roles');
         Schema::dropIfExists('sessions');
         Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('roles');
         Schema::dropIfExists('users');
+        
+        Schema::disableForeignKeyConstraints();
     }
 
 };

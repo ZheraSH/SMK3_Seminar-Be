@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('level_class_id')->constrained('level_classes')->onDelete('cascade');
             $table->foreignId('school_year')->constrained('school_years')->onDelete('cascade');
             $table->string('name');
-            $table->foreignId('teacher_id')->constrained('employee')->onDelete('set null')->nullable();
+            $table->foreignId('teacher_id')->nullable()->constrained('employees')->nullOnDelete();
             $table->string('slug')->unique();
             $table->foreignId('major_id')->constrained('majors')->onDelete('cascade');
             $table->timestamps();

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('student_id')->constrained('students')->onDelete('cascade');
             $table->foreignId('repair_id')->constrained('repairs')->onDelete('cascade');
-            $table->boolean('is_approved')->default('false');
+            $table->boolean('is_approved')->default(false);
             $table->timestamps();
         });
     }
