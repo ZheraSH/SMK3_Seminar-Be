@@ -6,11 +6,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
-        'http://localhost:5173', // FE lokal (Vite)
-        'http://127.0.0.1:5173',
-        'http://vue.test'
-    ],
+    'allowed_origins' => ['*'],
 
     'allowed_origins_patterns' => [],
 

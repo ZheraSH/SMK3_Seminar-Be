@@ -46,3 +46,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 });
 
+
+//Test fetching data
+Route::get ('/nando',action: function():JsonResponse{
+    return response()->json(data: ['message' => 'nando anjay']);
+});
+//Test fetching data
