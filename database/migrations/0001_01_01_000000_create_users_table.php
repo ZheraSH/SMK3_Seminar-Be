@@ -23,12 +23,10 @@ return new class extends Migration
         });
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique(); //operator sekolah, guru, staff, siswa
+            $table->string('name')->unique(); //operator sekolah, siswa, guru, staff TU
             $table->string('description')->nullable();
             $table->timestamps();
         });
-
-        // migration create_role_user_table
         Schema::create('role_user', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');

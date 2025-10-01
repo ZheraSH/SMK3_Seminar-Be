@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('model_has_rfid', function (Blueprint $table) {
+        Schema::create('sub_roles', function (Blueprint $table) {
             $table->id();
-            $table->string('rfid')->unique();
-            $table->enum('model_type',['School','Student','Employee']);
-            $table->unsignedBigInteger('model_id');
+            $table->string('name');
+            $table->string('description')->nullable();
+            $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
+            $table->boolean('is_default')->default(false);
             $table->timestamps();
         });
     }
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('model_has_rfid');
+        Schema::dropIfExists('sub_roles');
     }
 };

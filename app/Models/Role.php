@@ -20,4 +20,9 @@ class Role extends Model
                     ->withPivot('assigned_by')
                     ->withTimestamps();
     }
+
+    public function subRoles()
+    {
+        return $this->hasMany(SubRole::class);
+    }
 }

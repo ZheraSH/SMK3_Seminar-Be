@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, HasApiTokens, Notifiable;
 
     protected $fillable = [
         'name',
@@ -56,5 +57,22 @@ class User extends Authenticatable
     public function hasAnyRole(array $roleNames): bool
     {
         return $this->roles()->whereIn('name', $roleNames)->exists();
+    }
+
+    public function subRoles()
+    {
+        return $this->belongsToMany(SubRole::class, 'user_sub_roles')
+                    ->withPivot('assigned_by')
+                    ->withTimestamps();
+    }
+
+    public function hasSubRole($subRoleName): bool
+    {
+        return $this->subRoles()->where('name', $subRoleName)->exists();
+    }
+
+    public function hasAnySubRole(array $subRoleNames): bool
+    {
+        return $this->subRoles()->whereIn('name', $subRoleNames)->exists();
     }
 }
