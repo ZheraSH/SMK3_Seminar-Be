@@ -6,7 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Religion;
 
-class RelegionsSeeder extends Seeder
+class RelegionSeeder extends Seeder
 {
     /**
      * Run the database seeds.

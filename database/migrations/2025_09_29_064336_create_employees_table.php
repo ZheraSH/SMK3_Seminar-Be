@@ -3,6 +3,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Enums\GenderEnum;
+use App\Enums\RoleEnum;
 
 return new class extends Migration
 {
@@ -13,15 +15,18 @@ return new class extends Migration
     {
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('NIP')->unique();
-            $table->string('NIK')->nullable();
-            $table->foreignId('religion_id')->nullable()->constrained('religions')->nullOnDelete();
-            $table->date('birthdate')->nullable();
-            $table->string('birthplace')->nullable();
+            $table->string('image')->nullable();
+            $table->string('NIP', 18)->unique();
+            $table->string('NIK', 16)->nullable();
+            $table->date('birth_date')->nullable();
+            $table->string('birth_place')->nullable();
+            $table->enum('gender',[GenderEnum::MALE->value, GenderEnum::FEMALE->value])->nullable();
             $table->string('phone_number')->nullable();
             $table->string('address')->nullable();
-            $table->string('employment_status')->nullable(); // staffTu, guru-> guru pengajar(default), walikelas, bk, WakaKurikulum,
+            $table->enum('employment_status',[RoleEnum::TEACHER->value, RoleEnum::STAFF->value]); // staffTu, guru-> guru pengajar(default), walikelas, bk, WakaKurikulum,
+            $table->boolean('active')->default(true);
+            $table->foreignId('religion_id')->nullable()->constrained('religions')->nullOnDelete();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
     }

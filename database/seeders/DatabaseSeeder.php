@@ -17,7 +17,10 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             SubRoleSeeder::class,
-            RelegionsSeeder::class,
+            RelegionSeeder::class,
+            SchoolYearSeeder::class,
+            LevelClassSeeder::class,
+            MapelSeeder::class,
         ]);
 
         // Create 4 default users with specific IDs
