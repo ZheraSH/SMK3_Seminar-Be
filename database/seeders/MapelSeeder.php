@@ -32,7 +32,10 @@ class MapelSeeder extends Seeder
         ];
 
         foreach ($mapels as $mapel) {
-            Mapel::firstOrCreate(['name' => $mapel]);
-        };
+            Mapel::firstOrCreate([
+                'name' => $mapel,
+                'religion_id' => 1,
+            ]);
+        }
     }
 }

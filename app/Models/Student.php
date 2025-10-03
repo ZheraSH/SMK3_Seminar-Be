@@ -15,8 +15,8 @@ class Student extends Model
         'user_id',
         'nisn',
         'religion_id',
-        'birthplace',
-        'birthdate',
+        'birth_date',
+        'birth_place',
         'address',
         'nik',
         'no_kk',
@@ -24,6 +24,7 @@ class Student extends Model
         'order_child',
         'count_siblings',
         'point',
+        'gender',
     ];
 
     protected $casts = [

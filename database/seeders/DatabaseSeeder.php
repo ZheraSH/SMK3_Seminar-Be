@@ -70,7 +70,6 @@ class DatabaseSeeder extends Seeder
                 'name' => $userData['name'],
                 'email' => $userData['email'],
                 'password' => $userData['password'],
-                'gender' => $userData['gender'],
             ]);
 
             // Assign role
