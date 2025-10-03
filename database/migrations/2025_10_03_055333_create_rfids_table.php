@@ -11,13 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('teacher_journals', function (Blueprint $table) {
+        Schema::create('rfids', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('lesson_schedule_id')->constrained('lesson_schedules')->onDelete('cascade');
-            $table->text('title')->nullable();
-            $table->longText('description')->nullable();
-            $table->string('photo')->nullable();
-            $table->date('date');
+            $table->string('rfid')->unique();
             $table->timestamps();
         });
     }
@@ -27,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('teacher_journals');
+        Schema::dropIfExists('rfids');
     }
 };
