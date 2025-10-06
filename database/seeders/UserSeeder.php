@@ -2,19 +2,26 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\User;
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     */
     public function run(): void
     {
-        $admin = User::create([
-            'name' => 'Admin Sekolah',
-            'email' => 'admin@sekolah.com',
-            'password' => bcrypt('password'),
-        ]);
-
-        $admin->assignRole('admin'); // dari Spatie Permission
+        foreach (Role::all() as $role) {
+            $email = str_replace(' ', '', $role->name) . '@example.com';
+            $user = User::create([
+                'name' => ucfirst($role->name),
+                'email' => $email,
+                'password' => Hash::make('password123'),
+            ]);
+            $user->assignRole($role);
+        }
     }
 }

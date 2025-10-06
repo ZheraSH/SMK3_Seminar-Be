@@ -8,8 +8,10 @@ use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\ReligionController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\RoleController;
-use App\Http\Controllers\Api\SubRoleController;
+use App\Http\Controllers\Api\AttendanceController;
+use App\Http\Controllers\Api\RfidAttendanceController;
+use App\Http\Controllers\Api\LessonAttendanceController;
+use App\Http\Controllers\SchoolYearController;
 
 // Authentication routes (public)
 Route::post('/register', [AuthController::class, 'register']);
@@ -18,8 +20,6 @@ Route::post('/register-employee', [AuthController::class, 'registerEmployee']);
 Route::post('/login', [AuthController::class, 'login']);
 
 // Public routes
-Route::apiResource('roles', RoleController::class);
-Route::apiResource('sub-roles', SubRoleController::class);
 
 // Protected routes
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -41,8 +41,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
     
     // Student management (admin, staff TU, and teachers can access)
-    Route::middleware(['role:operator sekolah,staff TU,guru'])->group(function () {
+    Route::middleware(['role:operator sekolah|staff TU|guru'])->group(function () {
         Route::apiResource('students', StudentController::class);
+        Route::apiResource('attendances', AttendanceController::class);
+        Route::post('attendance/rfid-tap', [RfidAttendanceController::class, 'tap']);
+        Route::get('attendance/lesson', [LessonAttendanceController::class, 'index']);
+        Route::post('attendance/lesson/mark', [LessonAttendanceController::class, 'mark']);
     });
 });
 
@@ -52,3 +56,8 @@ Route::get ('/nando',action: function():JsonResponse{
     return response()->json(data: ['message' => 'nando anjay']);
 });
 //Test fetching data
+
+
+
+//tahun ajaran
+Route::apiResource('school-years', SchoolYearController::class);

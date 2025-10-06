@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, HasApiTokens, Notifiable;
+    use HasFactory, HasApiTokens, Notifiable, HasRoles;
 
     protected $fillable = [
         'name',
@@ -40,37 +41,5 @@ class User extends Authenticatable
         return $this->hasOne(Employee::class);
     }
 
-    public function roles()
-    {
-        return $this->belongsToMany(Role::class)
-                    ->withPivot('assigned_by')
-                    ->withTimestamps();
-    }
-
-    public function hasRole($roleName): bool
-    {
-        return $this->roles()->where('name', $roleName)->exists();
-    }
-
-    public function hasAnyRole(array $roleNames): bool
-    {
-        return $this->roles()->whereIn('name', $roleNames)->exists();
-    }
-
-    public function subRoles()
-    {
-        return $this->belongsToMany(SubRole::class, 'user_sub_roles')
-                    ->withPivot('assigned_by')
-                    ->withTimestamps();
-    }
-
-    public function hasSubRole($subRoleName): bool
-    {
-        return $this->subRoles()->where('name', $subRoleName)->exists();
-    }
-
-    public function hasAnySubRole(array $subRoleNames): bool
-    {
-        return $this->subRoles()->whereIn('name', $subRoleNames)->exists();
-    }
+    // Roles and permissions are handled via Spatie HasRoles
 }

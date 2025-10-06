@@ -4,7 +4,10 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Student;
+use App\Models\User;
 use App\Enums\GenderEnum;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class StudentSeeder extends Seeder
 {
@@ -13,100 +16,43 @@ class StudentSeeder extends Seeder
      */
     public function run(): void
     {
-        Student::create([
-            'id' => '1',
-            'user_id' => '1',
-            'nisn' => '1234567890',
-            'nik' => '12345678910123',
-            'religion_id' => '1',
-            'gender' => GenderEnum::MALE->value,
-            'birth_date' => now(),
-            'birth_place' => 'Sumenep',
-            'address' => 'Pamekasan',
-            'number_kk' => '123456789101234',
-            'number_akta' => '1234567891012',
-            'order_child' => '5',
-            'count_siblings' => '5'
-        ]);
+        $faker = \Faker\Factory::create('id_ID');
 
-        Student::create([
-            'id' => '2',
-            'user_id' => '2',
-            'nisn' => '2234567890',
-            'nik' => '22345678910123',
-            'religion_id' => '2',
-            'gender' => GenderEnum::FEMALE->value,
-            'birth_date' => '2007-05-12',
-            'birth_place' => 'Pamekasan',
-            'address' => 'Jl. Raya Galis',
-            'number_kk' => '223456789101234',
-            'number_akta' => '2234567891012',
-            'order_child' => '2',
-            'count_siblings' => '3'
-        ]);
+        for ($i = 1; $i <= 108; $i++) {
+            $name = 'Siswa ' . $i;
+            $email = 'siswa' . $i . '@example.com';
 
-        Student::create([
-            'id' => '3',
-            'user_id' => '3',
-            'nisn' => '3234567890',
-            'nik' => '32345678910123',
-            'religion_id' => '1',
-            'gender' => GenderEnum::MALE->value,
-            'birth_date' => '2006-09-21',
-            'birth_place' => 'Bangkalan',
-            'address' => 'Jl. Trunojoyo',
-            'number_kk' => '323456789101234',
-            'number_akta' => '3234567891012',
-            'order_child' => '1',
-            'count_siblings' => '1'
-        ]);
+            $user = User::create([
+                'name' => $name,
+                'email' => $email,
+                'password' => Hash::make('password123'),
+            ]);
 
-        Student::create([
-            'id' => '4',
-            'user_id' => '4',
-            'nisn' => '4234567890',
-            'nik' => '42345678910123',
-            'religion_id' => '3',
-            'gender' => GenderEnum::FEMALE->value,
-            'birth_date' => '2008-02-10',
-            'birth_place' => 'Sampang',
-            'address' => 'Jl. KH Hasyim Asyari',
-            'number_kk' => '423456789101234',
-            'number_akta' => '4234567891012',
-            'order_child' => '3',
-            'count_siblings' => '4'
-        ]);
+            try {
+                $user->assignRole('siswa');
+            } catch (\Throwable $e) {
+                // role may not exist yet; ignore
+            }
 
-        Student::create([
-            'id' => '5',
-            'user_id' => '5',
-            'nisn' => '5234567890',
-            'nik' => '52345678910123',
-            'religion_id' => '1',
-            'gender' => GenderEnum::MALE->value,
-            'birth_date' => '2007-07-07',
-            'birth_place' => 'Sumenep',
-            'address' => 'Jl. Merdeka',
-            'number_kk' => '523456789101234',
-            'number_akta' => '5234567891012',
-            'order_child' => '4',
-            'count_siblings' => '6'
-        ]);
+            $nisn = '99' . str_pad((string) $i, 8, '0', STR_PAD_LEFT);
+            $nik = '35' . str_pad((string) $i, 14, '0', STR_PAD_LEFT);
 
-        Student::create([
-            'id' => '6',
-            'user_id' => '6',
-            'nisn' => '6234567890',
-            'nik' => '62345678910123',
-            'religion_id' => '2',
-            'gender' => GenderEnum::FEMALE->value,
-            'birth_date' => '2006-11-15',
-            'birth_place' => 'Probolinggo',
-            'address' => 'Jl. Diponegoro',
-            'number_kk' => '623456789101234',
-            'number_akta' => '6234567891012',
-            'order_child' => '2',
-            'count_siblings' => '2'
-        ]);
+            Student::create([
+                'user_id' => $user->id,
+                'image' => null,
+                'nisn' => $nisn,
+                'religion_id' => $faker->numberBetween(1, 5),
+                'gender' => $faker->randomElement([GenderEnum::MALE->value, GenderEnum::FEMALE->value]),
+                'birth_date' => $faker->dateTimeBetween('-17 years', '-15 years')->format('Y-m-d'),
+                'birth_place' => $faker->city(),
+                'address' => $faker->address(),
+                'nik' => $nik,
+                'number_kk' => (string) $faker->numerify('################'),
+                'number_birth_certificate' => (string) $faker->numerify('#############'),
+                'order_child' => $faker->numberBetween(1, 5),
+                'count_siblings' => $faker->numberBetween(0, 6),
+                'point' => $faker->numberBetween(0, 100),
+            ]);
+        }
     }
 }

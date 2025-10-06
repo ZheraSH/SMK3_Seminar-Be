@@ -13,14 +13,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Seed roles and sub roles
         $this->call([
-            RoleSeeder::class,
-            SubRoleSeeder::class,
             RelegionSeeder::class,
             SchoolYearSeeder::class,
             LevelClassSeeder::class,
             MapelSeeder::class,
+            ClassroomSeeder::class,
+            UserSeeder::class,
+            StudentSeeder::class,
+            ClassroomStudentSeeder::class,
         ]);
 
         // Create 4 default users with specific IDs
@@ -72,17 +73,12 @@ class DatabaseSeeder extends Seeder
                 'password' => $userData['password'],
             ]);
 
-            // Assign role
-            $role = \App\Models\Role::where('name', $userData['role'])->first();
-            if ($role) {
-                $user->roles()->attach($role->id, ['assigned_by' => 1]); // Admin assigns all roles
-            }
-
-            // Assign sub role if exists
-            if ($userData['sub_role']) {
-                $subRole = \App\Models\SubRole::where('name', $userData['sub_role'])->first();
-                if ($subRole) {
-                    $user->subRoles()->attach($subRole->id, ['assigned_by' => 1]); // Admin assigns all sub roles
+            // Assign Spatie role by name if exists
+            if (!empty($userData['role'])) {
+                try {
+                    $user->assignRole($userData['role']);
+                } catch (\Throwable $e) {
+                    // ignore if role not yet created
                 }
             }
         }
