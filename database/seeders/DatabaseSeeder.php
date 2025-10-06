@@ -78,7 +78,7 @@ class DatabaseSeeder extends Seeder
                 try {
                     $user->assignRole($userData['role']);
                 } catch (\Throwable $e) {
-                    // ignore if role not yet created
+                   
                 }
             }
         }
