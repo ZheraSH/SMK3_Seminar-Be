@@ -24,7 +24,7 @@ class StudentSeeder extends Seeder
             'birth_place' => 'Sumenep',
             'address' => 'Pamekasan',
             'number_kk' => '123456789101234',
-            'number_akta' => '1234567891012',
+            'number_birth_certificate' => '1234567891012',
             'order_child' => '5',
             'count_siblings' => '5'
         ]);
@@ -40,7 +40,7 @@ class StudentSeeder extends Seeder
             'birth_place' => 'Pamekasan',
             'address' => 'Jl. Raya Galis',
             'number_kk' => '223456789101234',
-            'number_akta' => '2234567891012',
+            'number_birth_certificate' => '2234567891012',
             'order_child' => '2',
             'count_siblings' => '3'
         ]);
@@ -56,7 +56,7 @@ class StudentSeeder extends Seeder
             'birth_place' => 'Bangkalan',
             'address' => 'Jl. Trunojoyo',
             'number_kk' => '323456789101234',
-            'number_akta' => '3234567891012',
+            'number_birth_certificate' => '3234567891012',
             'order_child' => '1',
             'count_siblings' => '1'
         ]);
@@ -72,7 +72,7 @@ class StudentSeeder extends Seeder
             'birth_place' => 'Sampang',
             'address' => 'Jl. KH Hasyim Asyari',
             'number_kk' => '423456789101234',
-            'number_akta' => '4234567891012',
+            'number_birth_certificate' => '4234567891012',
             'order_child' => '3',
             'count_siblings' => '4'
         ]);
@@ -88,7 +88,7 @@ class StudentSeeder extends Seeder
             'birth_place' => 'Sumenep',
             'address' => 'Jl. Merdeka',
             'number_kk' => '523456789101234',
-            'number_akta' => '5234567891012',
+            'number_birth_certificate' => '5234567891012',
             'order_child' => '4',
             'count_siblings' => '6'
         ]);
@@ -104,7 +104,7 @@ class StudentSeeder extends Seeder
             'birth_place' => 'Probolinggo',
             'address' => 'Jl. Diponegoro',
             'number_kk' => '623456789101234',
-            'number_akta' => '6234567891012',
+            'number_birth_certificate' => '6234567891012',
             'order_child' => '2',
             'count_siblings' => '2'
         ]);

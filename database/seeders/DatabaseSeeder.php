@@ -16,8 +16,10 @@ class DatabaseSeeder extends Seeder
         // Seed roles and sub roles
         $this->call([
             RoleSeeder::class,
-            SubRoleSeeder::class,
+            UserSeeder::class,
             RelegionSeeder::class,
+            SubRoleSeeder::class,
+            StudentSeeder::class,
             SchoolYearSeeder::class,
             LevelClassSeeder::class,
             MapelSeeder::class,
