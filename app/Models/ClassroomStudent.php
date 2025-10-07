@@ -10,11 +10,11 @@ class ClassroomStudent extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'classroom_student';
+    protected $table = 'classroom_students';
 
     protected $fillable = [
         'classroom_id',
-        'id_student',
+        'student_id',
     ];
 
     public function classroom()
@@ -24,11 +24,11 @@ class ClassroomStudent extends Model
 
     public function student()
     {
-        return $this->belongsTo(Student::class, 'id_student');
+        return $this->belongsTo(Student::class, 'student_id');
     }
 
     public function attendance()
     {
-        return $this->hasMany(Attendance::class, 'classroom_student_id');
+        return $this->hasMany(Attendance::class, 'classroom_students_id');
     }
 }
