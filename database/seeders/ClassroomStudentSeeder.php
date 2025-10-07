@@ -22,7 +22,7 @@ class ClassroomStudentSeeder extends Seeder
             $classroom = $classrooms[$i % $classrooms->count()];
             ClassroomStudent::firstOrCreate([
                 'classroom_id' => $classroom->id,
-                'id_student' => $student->id,
+                'student_id' => $student->id,
             ]);
             $i++;
         }
