@@ -20,20 +20,7 @@ return new class extends Migration
             $table->rememberToken();
             $table->timestamps();
         });
-        Schema::create('roles', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->unique(); //operator sekolah, siswa, guru, staff TU
-            $table->string('description')->nullable();
-            $table->timestamps();
-        });
-        Schema::create('role_user', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('role_id')->constrained()->onDelete('cascade');
-            $table->foreignId('assigned_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamps();
-        });
-
+        
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');

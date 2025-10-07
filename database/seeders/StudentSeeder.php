@@ -20,7 +20,7 @@ class StudentSeeder extends Seeder
 
         for ($i = 1; $i <= 6; $i++) {
             $name = 'Siswa ' . $i;
-            $email = 'siswa' . $i . '@example.com';
+            $email = 'siswa' . $i . '@SKANIGA.com';
 
             $user = User::create([
                 'name' => $name,

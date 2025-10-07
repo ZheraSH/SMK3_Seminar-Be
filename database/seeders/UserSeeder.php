@@ -19,7 +19,7 @@ class UserSeeder extends Seeder
             [
                 'id' => 1,
                 'name' => 'Admin Sekolah',
-                'email' => 'admin@sekolah.com',
+                'email' => 'admin@SKANIGA.com',
                 'password' => bcrypt('password123'),
                 'gender' => 'male',
                 'role' => 'operator sekolah',
@@ -27,26 +27,26 @@ class UserSeeder extends Seeder
             ],
             [
                 'id' => 2,
-                'name' => 'Siswa',
-                'email' => 'siswa@sekolah.com',
-                'password' => bcrypt('password123'),
-                'gender' => 'male',
-                'role' => 'siswa',
-                'sub_role' => null,
-            ],
-            [
-                'id' => 3,
                 'name' => 'Staff TU',
-                'email' => 'staff@sekolah.com',
+                'email' => 'staff@SKANIGA.com',
                 'password' => bcrypt('password123'),
                 'gender' => 'male',
                 'role' => 'staff TU',
                 'sub_role' => null,
             ],
             [
+                'id' => 3,
+                'name' => 'Siswa',
+                'email' => 'siswa@SKANIGA.com',
+                'password' => bcrypt('password123'),
+                'gender' => 'male',
+                'role' => 'siswa',
+                'sub_role' => null,
+            ],
+            [
                 'id' => 4,
                 'name' => 'Guru Pengajar',
-                'email' => 'guru@sekolah.com',
+                'email' => 'guru@SKANIGA.com',
                 'password' => bcrypt('password123'),
                 'gender' => 'female',
                 'role' => 'guru',
@@ -73,7 +73,7 @@ class UserSeeder extends Seeder
             }
         }
         foreach (Role::all() as $role) {
-            $email = str_replace(' ', '', $role->name) . '@gmail.com';
+            $email = str_replace(' ', '', $role->name) . '@SKANIGA.com';
             $user = User::create([
                 'name' => ucfirst($role->name),
                 'email' => $email,
