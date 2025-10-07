@@ -13,10 +13,7 @@ use App\Http\Controllers\Api\RfidAttendanceController;
 use App\Http\Controllers\Api\LessonAttendanceController;
 use App\Http\Controllers\SchoolYearController;
 
-// Authentication routes (public)
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/register-student', [AuthController::class, 'registerStudent']);
-Route::post('/register-employee', [AuthController::class, 'registerEmployee']);
+
 Route::post('/login', [AuthController::class, 'login']);
 
 // Public routes
