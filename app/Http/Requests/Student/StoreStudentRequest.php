@@ -17,8 +17,8 @@ class StoreStudentRequest extends FormRequest
             'nama' => 'required|string|max:255',
             'nisn' => 'required|unique:students,nisn',
             'religion_id' => 'nullable|exists:religions,id',
-            'birthdate' => 'nullable|date',
-            'birthplace' => 'nullable|string|max:255',
+            'birt_hdate' => 'nullable|date',
+            'birth_place' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:255',
             'nik' => 'nullable|string|max:255',
             'no_kk' => 'nullable|string|max:255',
@@ -26,8 +26,8 @@ class StoreStudentRequest extends FormRequest
             'order_child' => 'nullable|integer|min:1',
             'count_siblings' => 'nullable|integer|min:0',
             'point' => 'nullable|integer|min:0',
-            'kelas' => 'nullable|string|max:50',
-            'jurusan' => 'nullable|string|max:100',
+            'class' => 'nullable|string|max:50',
+            'major' => 'nullable|string|max:100',
         ];
     }
 }
