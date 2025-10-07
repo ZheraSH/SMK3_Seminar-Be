@@ -13,7 +13,7 @@ class LevelClassSeeder extends Seeder
      */
     public function run(): void
     {
-        $levelClasses = ['X', 'XI', 'XII', 'Alumni'];
+        $levelClasses = ['X', 'XI', 'XII',];
 
         foreach ($levelClasses as $name) {
             LevelClass::firstOrCreate(['name' => $name]);

@@ -13,12 +13,11 @@ return new class extends Migration
     {
         Schema::create('classrooms', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('slug')->unique();
             $table->foreignId('major_id')->constrained('majors')->onDelete('cascade');
-            $table->foreignId('employee_id')->nullable()->constrained('employees')->nullOnDelete();
-            $table->foreignId('school_year')->constrained('school_years')->onDelete('cascade');
+            $table->string('slug')->unique();
             $table->foreignId('level_class_id')->constrained('level_classes')->onDelete('cascade');
+            $table->foreignId('school_year')->constrained('school_years')->onDelete('cascade');
+            $table->foreignId('employee_id')->nullable()->constrained('employees')->nullOnDelete();
             $table->timestamps();
         });
     }

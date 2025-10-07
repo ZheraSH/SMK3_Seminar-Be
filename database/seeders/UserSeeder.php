@@ -19,7 +19,7 @@ class UserSeeder extends Seeder
             [
                 'id' => 1,
                 'name' => 'Admin Sekolah',
-                'email' => 'admin@SKANIGA.com',
+                'email' => 'admin@Skaniga.com',
                 'password' => bcrypt('password123'),
                 'gender' => 'male',
                 'role' => 'operator sekolah',
@@ -28,7 +28,7 @@ class UserSeeder extends Seeder
             [
                 'id' => 2,
                 'name' => 'Staff TU',
-                'email' => 'staff@SKANIGA.com',
+                'email' => 'staff@Skaniga.com',
                 'password' => bcrypt('password123'),
                 'gender' => 'male',
                 'role' => 'staff TU',
@@ -37,7 +37,7 @@ class UserSeeder extends Seeder
             [
                 'id' => 3,
                 'name' => 'Siswa',
-                'email' => 'siswa@SKANIGA.com',
+                'email' => 'siswa@Skaniga.com',
                 'password' => bcrypt('password123'),
                 'gender' => 'male',
                 'role' => 'siswa',
@@ -46,7 +46,7 @@ class UserSeeder extends Seeder
             [
                 'id' => 4,
                 'name' => 'Guru Pengajar',
-                'email' => 'guru@SKANIGA.com',
+                'email' => 'guru@Skaniga.com',
                 'password' => bcrypt('password123'),
                 'gender' => 'female',
                 'role' => 'guru',
@@ -73,7 +73,7 @@ class UserSeeder extends Seeder
             }
         }
         foreach (Role::all() as $role) {
-            $email = str_replace(' ', '', $role->name) . '@SKANIGA.com';
+            $email = str_replace(' ', '', $role->name) . '@Skaniga.com';
             $user = User::create([
                 'name' => ucfirst($role->name),
                 'email' => $email,

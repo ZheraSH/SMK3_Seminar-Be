@@ -21,7 +21,6 @@ class ClassroomSeeder extends Seeder
             Classroom::firstOrCreate(
                 ['slug' => Str::slug($c['name'])],
                 [
-                    'name' => $c['name'],
                     'major_id' => $c['major_id'],
                     'employee_id' => $c['employee_id'],
                     'school_year' => $c['school_year'],
