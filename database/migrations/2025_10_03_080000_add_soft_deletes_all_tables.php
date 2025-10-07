@@ -10,7 +10,7 @@ return new class extends Migration
     {
         $tables = [
             'classrooms',
-            'classroom_student',
+            'classroom_students',
             'contacts',
             'employees',
             'employee_positions',
@@ -22,6 +22,8 @@ return new class extends Migration
             'majors',
             'mapels',
             'model_has_rfid',
+            'attendances',
+            'attendance_journals',
             'news',
             'positions',
             'religions',
@@ -49,7 +51,7 @@ return new class extends Migration
     {
         $tables = [
             'classrooms',
-            'classroom_student',
+            'classroom_students',
             'contacts',
             'employees',
             'employee_positions',
@@ -61,6 +63,8 @@ return new class extends Migration
             'majors',
             'mapels',
             'model_has_rfid',
+            'attendances',
+            'attendance_journals',
             'news',
             'positions',
             'religions',

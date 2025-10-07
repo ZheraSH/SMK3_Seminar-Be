@@ -18,7 +18,7 @@ class StudentSeeder extends Seeder
     {
         $faker = \Faker\Factory::create('id_ID');
 
-        for ($i = 1; $i <= 108; $i++) {
+        for ($i = 1; $i <= 6; $i++) {
             $name = 'Siswa ' . $i;
             $email = 'siswa' . $i . '@example.com';
 

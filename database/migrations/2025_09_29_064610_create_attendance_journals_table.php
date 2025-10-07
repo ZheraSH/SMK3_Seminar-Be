@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('attendance_journals', function (Blueprint $table) {
             $table->id();
             $table->foreignId('teacher_journal_id')->constrained('teacher_journals')->onDelete('cascade');
-            $table->foreignId('student_classroom_id')->constrained('student_classrooms')->onDelete('cascade');
+            $table->foreignId('classroom_student_id')->constrained('classroom_students')->onDelete('cascade');
             $table->foreignId('lesson_hour_id')->constrained('lesson_hours')->onDelete('cascade');
             $table->enum('status',['alpha','sick','permission'])->nullable();
             $table->date('date');
