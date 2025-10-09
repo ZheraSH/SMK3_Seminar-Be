@@ -25,7 +25,7 @@ class StudentSeeder extends Seeder
             $user = User::create([
                 'name' => $name,
                 'email' => $email,
-                'password' => Hash::make('password123'),
+                'password' => Hash::make('murid123'),
             ]);
 
             try {
@@ -46,9 +46,8 @@ class StudentSeeder extends Seeder
                 'birth_date' => $faker->dateTimeBetween('-17 years', '-15 years')->format('Y-m-d'),
                 'birth_place' => $faker->city(),
                 'address' => $faker->address(),
-                'nik' => $nik,
                 'number_kk' => (string) $faker->numerify('################'),
-                'number_birth_certificate' => (string) $faker->numerify('#############'),
+                'number_akta' => (string) $faker->numerify('#############'),
                 'order_child' => $faker->numberBetween(1, 5),
                 'count_siblings' => $faker->numberBetween(0, 6),
                 'point' => $faker->numberBetween(0, 100),

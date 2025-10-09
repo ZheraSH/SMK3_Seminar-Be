@@ -13,7 +13,7 @@ class MajorSeeder extends Seeder
      */
     public function run(): void
     {
-        $Majors = ['RPL', 'DKV', 'DPB', 'PH', 'KCS', 'Kuliner'];
+        $Majors = ['PPLG', 'DKV', 'DPB', 'PH', 'KCS', 'Kuliner'];
 
         foreach ($Majors as $name) {
             Major::firstOrCreate(['name' => $name]);

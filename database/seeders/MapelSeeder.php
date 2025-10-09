@@ -14,14 +14,14 @@ class MapelSeeder extends Seeder
     public function run(): void
     {
         $mapels = [
-            'PJOK',
-            'Matematika',
             'Bahasa Indonesia',
             'Bahasa Inggris',
             'Bahasa Madura',
-            'Seni Budaya',
             'Pend. Agama Islam',
             'Pend. Pancasila',
+            'Matematika',
+            'Seni Budaya',
+            'PJOK',
             'PKK',
             'Produktif PPLG',
             'Produktif DKV',
@@ -34,7 +34,6 @@ class MapelSeeder extends Seeder
         foreach ($mapels as $mapel) {
             Mapel::firstOrCreate([
                 'name' => $mapel,
-                'religion_id' => 1,
             ]);
         }
     }
