@@ -2,16 +2,23 @@
 
 namespace App\Models;
 
+use App\Enums\GenderEnum;
+use App\Traits\Models\BelongsToReligion;
+use App\Traits\Models\BelongsToSchool;
+use App\Traits\Models\BelongsToUser;
+use App\Traits\Models\HasManyClassroomStudent;
+use App\Traits\Models\MorphManyRfid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Student extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, BelongsToUser,
+    BelongsToReligion, HasManyClassroomStudent, MorphManyRfid, SoftDeletes;
 
+    protected $guarded = ['id'];
     protected $table = 'students';
-
     protected $fillable = [
         'user_id',
         'nisn',
@@ -27,38 +34,7 @@ class Student extends Model
         'point',
         'gender',
     ];
-
     protected $casts = [
-        'birthdate' => 'date'
+        'gender' => GenderEnum::class
     ];
-
-    public function user()
-    {
-        return $this->belongsTo(User::class,'user_id');
-    }
-
-    public function religion()
-    {
-        return $this->belongsTo(Religion::class,'religion_id');
-    }
-
-    public function classroomStudent()
-    {
-        return $this->hasMany(ClassroomStudent::class,'id_student');
-    }
-
-    public function attendance()
-    {
-        return $this->hasMany(Attendance::class,'classroom_student_id');
-    }
-
-    public function studentViolation()
-    {
-        return $this->hasMany(StudentViolation::class,'Student_id');
-    }
-
-    public function studentRepairs()
-    {
-        return $this->hasMany(StudentRepair::class,'Student_id');
-    }
 }

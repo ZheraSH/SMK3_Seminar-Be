@@ -2,38 +2,17 @@
 
 namespace App\Models;
 
+use App\Traits\Models\HasManyClassroom;
+use App\Traits\Models\HasManyLessonSchedule;
+use App\Traits\Models\HasManyMapel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SchoolYear extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasManyMapel, HasManyLessonSchedule, HasManyClassroom, SoftDeletes;
 
-    protected $table = 'school_years';
-
-    protected $fillable = [
-        'school_year',
-        'active',
-        'school_id',
-    ];
-
-    protected $casts = [
-        'active' => 'boolean',
-    ];
-
-    public function school()
-    {
-        return $this->belongsTo(School::class, 'school_id');
-    }
-
-    public function lessonSchedules()
-    {
-        return $this->hasMany(LessonSchedule::class, 'school_year_id');
-    }
-
-    public function teacherMapels()
-    {
-        return $this->hasMany(TeacherMapel::class, 'school_year_id');
-    }
+    protected $guarded = ['id'];
 }
+

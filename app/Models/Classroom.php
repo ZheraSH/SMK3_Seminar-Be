@@ -2,49 +2,33 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\LessonSchedule;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Models\BelongsToEmployee;
+use App\Traits\Models\BelongsToLevelClass;
+use App\Traits\Models\BelongsToSchoolYear;
+use App\Traits\Models\HasManyClassroomStudent;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Classroom extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, BelongsToEmployee, BelongsToLevelClass, BelongsToSchoolYear, HasManyClassroomStudent, SoftDeletes;
 
+    protected $guarded = ['id'];
     protected $table = 'classrooms';
-
     protected $fillable = [
-        'level_class_id',
-        'school_year_id',
-        'name',
-        'teacher_id',
-        'slug',
         'major_id',
+        'slug',
+        'level_class_id',
+        'employee_id',
+        'school_year_id',
     ];
 
-    public function levelClass()
-    {
-        return $this->belongsTo(LevelClass::class, 'level_class_id');
-    }
-
-    public function schoolYear()
-    {
-        return $this->belongsTo(SchoolYear::class, 'school_year_id');
-    }
-
-    public function teacher()
-    {
-        return $this->belongsTo(Employee::class, 'teacher_id');
-    }
-
-    public function major()
-    {
-        return $this->belongsTo(Major::class, 'major_id');
-    }
-
-    public function classroomStudents()
-    {
-        return $this->hasMany(ClassroomStudent::class, 'classroom_id');
-    }
+    public $incrementing = false;
+    public $keyType = 'char';
 
     public function lessonSchedules()
     {

@@ -2,29 +2,26 @@
 
 namespace App\Models;
 
+use App\Traits\Models\BelongsToLessonSchedule;
+use App\Traits\Models\HasManyAttendanceJournal;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TeacherJournal extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, BelongsToLessonSchedule, HasManyAttendanceJournal, SoftDeletes;
 
+    protected $guarded = ['id'];
     protected $table = 'teacher_journals';
-
     protected $fillable = [
         'lesson_schedule_id',
+        'title',
         'description',
         'photo',
         'date',
     ];
-
     protected $casts = [
         'date' => 'date',
     ];
-
-    public function lessonSchedule()
-    {
-        return $this->belongsTo(LessonSchedule::class, 'lesson_schedule_id');
-    }
 }

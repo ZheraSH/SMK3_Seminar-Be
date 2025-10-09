@@ -2,51 +2,41 @@
 
 namespace App\Models;
 
+use App\Enums\GenderEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\Models\HasManyExtracurricular;
+use App\Traits\Models\HasManyTeacherSubject;
+use App\Traits\Models\BelongsToReligion;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Models\HasManyClassroom;
+use App\Traits\Models\BelongsToUser;
+use App\Traits\Models\HasManyStudentViolation;
+use App\Traits\Models\MorphManyAttendance;
+use App\Traits\Models\MorphManyRfid;
+
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Employee extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, BelongsToUser,
+    BelongsToReligion,HasManyClassroom,
+    MorphManyAttendance, MorphManyRfid, SoftDeletes;
 
+    protected $guarded = ['id'];
     protected $table = 'employees';
-
     protected $fillable = [
         'user_id',
+        'image',
         'NIP',
         'NIK',
-        'agama',
+        'religion_id',
         'gender',
         'birth_date',
         'birth_place',
-        'phone_number',
         'address',
-        'employment_status',
-        'religion_id',
+        'phone_number',
     ];
-
     protected $casts = [
-        'birthdate' => 'date',
+        'gender' => GenderEnum::class,
     ];
-
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
-    public function religion()
-    {
-        return $this->belongsTo(Religion::class, 'religion_id');
-    }
-
-    public function teacherMapels()
-    {
-        return $this->hasMany(TeacherMapel::class, 'employee_id');
-    }
-
-    public function positions()
-    {
-        return $this->hasMany(EmployeePosition::class, 'employee_id');
-    }
 }

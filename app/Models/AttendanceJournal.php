@@ -2,40 +2,21 @@
 
 namespace App\Models;
 
+use App\Enums\AttendanceEnum;
+use App\Traits\Models\BelongsToClassroomStudent;
+use App\Traits\Models\BelongsToLessonHour;
+use App\Traits\Models\BelongsToTeacherJournal;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AttendanceJournal extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, BelongsToTeacherJournal, BelongsToClassroomStudent, BelongsToLessonHour, SoftDeletes;
 
-    protected $table = 'attendance_journals';
-
-    protected $fillable = [
-        'teacher_journal_id',
-        'student_classroom_id',
-        'lesson_hour_id',
-        'status',
-        'date',
-    ];
-
+    protected $guarded = ['id'];
+    protected $table = 'attendanceJournal';
     protected $casts = [
-        'date' => 'date',
+        'status' => AttendanceEnum::class,
     ];
-
-    public function teacherJournal()
-    {
-        return $this->belongsTo(TeacherJournal::class, 'teacher_journal_id');
-    }
-
-    public function classroomStudent()
-    {
-        return $this->belongsTo(ClassroomStudent::class, 'student_classroom_id');
-    }
-
-    public function lessonHour()
-    {
-        return $this->belongsTo(LessonHour::class, 'lesson_hour_id');
-    }
 }
