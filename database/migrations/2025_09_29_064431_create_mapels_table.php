@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('mapels', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->foreignId('religion_id')->constrained('religions')->onDelete('cascade');
             $table->timestamps();
         });
     }

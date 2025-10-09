@@ -22,9 +22,8 @@ return new class extends Migration
             $table->date('birth_date')->nullable();
             $table->string('birth_place')->nullable();
             $table->string('address')->nullable();
-            $table->string('nik', 16)->nullable();
+            $table->string('number_akta')->nullable();
             $table->string('number_kk')->nullable();
-            $table->string('number_birth_certificate')->nullable();
             $table->integer('order_child')->nullable();
             $table->integer('count_siblings')->nullable();
             $table->integer('point')->nullable();

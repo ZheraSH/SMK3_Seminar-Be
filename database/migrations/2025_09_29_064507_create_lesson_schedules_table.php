@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId('end_lesson_hour')->constrained('lesson_hours')->onDelete('cascade');
             $table->foreignId('teacher_mapel_id')->constrained('teacher_mapels')->onDelete('cascade');
             $table->foreignId('school_year_id')->constrained('school_years')->onDelete('cascade');
+            $table->foreignId('mapel_id')->constrained('mapels')->onDelete('cascade');
             $table->timestamps();
         });
     }

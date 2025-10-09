@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('rfid')->unique();
             $table->enum('model_type',['School','Student','Employee']);
             $table->unsignedBigInteger('model_id');
+            $table->foreignId('student_id')->constrained('students')->onDelete('cascade');
             $table->timestamps();
         });
     }

@@ -23,9 +23,8 @@ return new class extends Migration
             $table->enum('gender',[GenderEnum::MALE->value, GenderEnum::FEMALE->value])->nullable();
             $table->date('birth_date')->nullable();
             $table->string('birth_place')->nullable();
-            $table->string('phone_number')->nullable();
             $table->string('address')->nullable();
-            $table->enum('employment_status',[RoleEnum::TEACHER->value, RoleEnum::STAFF->value]); // staffTu, guru-> guru pengajar(default), walikelas, bk, WakaKurikulum,
+            $table->string('phone_number')->nullable();
             $table->boolean('active')->default(true);
             $table->timestamps();
         });

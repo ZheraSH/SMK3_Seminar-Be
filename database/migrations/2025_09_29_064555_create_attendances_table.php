@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('attendances', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('classroom_student_id')->constrained('classroom_students')->onDelete('cascade');
             $table->string('model_type');
             $table->unsignedBigInteger('model_id');
-            $table->foreignId('classroom_student_id')->constrained('classroom_students')->onDelete('cascade');
             $table->integer('point')->default(10);
             $table->enum('status',['alpha','sick','permission'])->nullable();
             $table->string('proof')->nullable();
