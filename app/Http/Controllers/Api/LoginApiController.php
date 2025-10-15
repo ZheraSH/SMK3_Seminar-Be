@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Enums\RoleEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -12,7 +13,6 @@ class LoginApiController extends Controller
     public function login(Request $request)
     {
         $user = User::where('email', $request->email)->first();
-        $fullDomain = request()->root();
 
         if (!$user) {
             return response()->json(['message' => 'Email tidak ditemukan'], 401);
@@ -23,15 +23,20 @@ class LoginApiController extends Controller
         }
 
         $token = $user->createToken($request->email)->plainTextToken;
-        $role = $user->roles->first()?->name ?? 'unknown';
-        $defaultImage = asset('public/admin_assets/dist/images/profile/user-1.jpg');
 
+        $role = $user->roles->first()?->name ?? 'unknown';
+        $roleEnum = collect(RoleEnum::cases())->firstWhere('value', $role);
+
+        $defaultImage = asset('public/admin_assets/dist/images/profile/user-1.jpg');
         $image = $defaultImage;
 
-        if ($role === 'student' && $user->student?->image) {
-            $image = asset($fullDomain.'/storage/'.$user->student->image);
-        } elseif ($role === 'staff' && $user->employee?->image) {
-            $image = asset($fullDomain.'/storage/'.$user->employee->image);
+        if ($roleEnum === RoleEnum::STUDENT && $user->student?->image) {
+            $image = asset('storage/' . $user->student->image);
+        } elseif (
+            in_array($roleEnum, [RoleEnum::STAFF, RoleEnum::TEACHER], true)
+            && $user->employee?->image
+        ) {
+            $image = asset('storage/' . $user->employee->image);
         }
 
         return response()->json([
@@ -41,8 +46,7 @@ class LoginApiController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $role,
-                'password' => $user->password,
+                'role' => $roleEnum?->value ?? 'unknown',
                 'image' => $image,
             ],
         ]);

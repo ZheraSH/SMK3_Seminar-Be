@@ -31,14 +31,14 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    protected static function boot()
-    {
-        parent::boot();
+    // protected static function boot()
+    // {
+    //     parent::boot();
 
-        static::creating(function ($model) {
-            if (! $model->id) {
-                $model->id = (string) Str::uuid();
-            }
-        });
-    }
+    //     static::creating(function ($model) {
+    //         if (! $model->id) {
+    //             $model->id = (string) Str::uuid();
+    //         }
+    //     });
+    // }
 }

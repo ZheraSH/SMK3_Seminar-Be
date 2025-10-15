@@ -69,7 +69,7 @@ class LoginService
 
     private function syncApiUser(array $apiUser, string $password): User
     {
-        return User::updateOrCreate(
+        $user = User::updateOrCreate(
             ['id' => $apiUser['id']],
             [
                 'name' => $apiUser['name'],
@@ -77,8 +77,12 @@ class LoginService
                 'email' => $apiUser['email'],
                 'password' => Hash::make($password),
             ]
-        )->assignRole(RoleEnum::SCHOOL->value);
+        );
+    
+        $user->syncRoles([RoleEnum::SCHOOL->value]);
+        return $user;
     }
+    
 
     private function jsonError(string $message, int $status)
     {
