@@ -1,0 +1,75 @@
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\File;
+
+class RepositoryCommand extends Command
+{
+    protected $signature = 'make:repository {name}';
+    protected $description = 'Command to make a repository';
+
+    public function handle()
+    {
+        $name = $this->argument('name');
+
+        $directory = app_path('Contracts/Repositories');
+        $filePath = $directory . '/' . $name . 'Repository.php';
+
+        if (!File::exists($directory)) {
+            File::makeDirectory($directory, 0755, true);
+        }
+
+        if (File::exists($filePath)) {
+            $this->error('Repository already exists!');
+            return;
+        }
+
+        $stub = <<<EOT
+<?php
+
+namespace App\Contracts\Repositories;
+
+use App\Contracts\Interfaces\\{$name}Interface;
+use App\Models\\{$name};
+
+class {$name}Repository extends BaseRepository implements {$name}Interface
+{
+    public function __construct({$name} \${$name})
+    {
+        \$this->model = \${$name};
+    }
+
+    public function get(): mixed
+    {
+        return \$this->model->query()->get();
+    }
+
+    public function store(array \$data): mixed
+    {
+        return \$this->model->query()->create(\$data);
+    }
+
+    public function show(mixed \$id): mixed
+    {
+        return \$this->model->query()->findOrFail(\$id);
+    }
+
+    public function update(mixed \$id, array \$data): mixed
+    {
+        return \$this->model->query()->findOrFail(\$id)->update(\$data);
+    }
+
+    public function delete(mixed \$id): mixed
+    {
+        return \$this->model->query()->findOrFail(\$id)->delete();
+    }
+}
+EOT;
+
+        File::put($filePath, $stub);
+
+        $this->info("Repository {$name} created successfully at {$filePath}");
+    }
+}
