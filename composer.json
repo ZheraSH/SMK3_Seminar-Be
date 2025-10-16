@@ -28,7 +28,8 @@
         },
         "files": [
             "app/Helpers/AuthHelper.php",
-            "app/Helpers/ResponseHelper.php"
+            "app/Helpers/ResponseHelper.php",
+            "app/Helpers/ImageCompressing.php"
         ]
     },
     "autoload-dev": {
