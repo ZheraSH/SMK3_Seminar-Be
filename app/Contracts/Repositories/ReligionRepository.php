@@ -7,9 +7,9 @@ use App\Models\Religion;
 
 class ReligionRepository extends BaseRepository implements ReligionInterface
 {
-    public function __construct(Religion $Religion)
+    public function __construct(Religion $religion)
     {
-        $this->model = $Religion;
+        $this->model = $religion;
     }
 
     public function get(): mixed
