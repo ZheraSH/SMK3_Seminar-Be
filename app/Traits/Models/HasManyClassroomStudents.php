@@ -5,7 +5,7 @@ namespace App\Traits\Models;
 use App\Models\ClassroomStudent;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-trait HasManyClassroomStudent {
+trait HasManyClassroomStudents {
 
     /**
      * Get all of the students for the HasManyStudent

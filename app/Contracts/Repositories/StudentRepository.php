@@ -5,8 +5,6 @@ namespace App\Contracts\Repositories;
 use App\Contracts\Interfaces\StudentInterface;
 use App\Models\Student;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Collection;
 
 class StudentRepository extends BaseRepository implements StudentInterface
 {
@@ -15,54 +13,113 @@ class StudentRepository extends BaseRepository implements StudentInterface
         $this->model = $student;
     }
 
-    /**
-     * Get all students (with optional search).
-     */
-    public function getAll(Request $request): LengthAwarePaginator|Collection
+    public function store(array $data): mixed
     {
-        return $this->model
-            ->with(['user', 'religion'])
-            ->when($request->search, fn($q) =>
-                $q->whereHas('user', fn($user) =>
-                    $user->where('name', 'LIKE', "%{$request->search}%")
-                )
-            )
+        return $this->model->query()->create($data);
+    }
+
+    public function show(mixed $id): mixed
+    {
+        return $this->model->query()->findOrFail($id);
+    }
+
+    public function update(mixed $id, array $data): mixed
+    {
+        return $this->model->query()->findOrFail($id)->update($data);
+    }
+
+    public function get(): mixed
+    {
+        return $this->model->query()->get();
+    }
+
+    public function delete(mixed $id): mixed
+    {
+        return $this->model->query()->findOrFail($id)->delete();
+    }
+
+    public function paginate(): mixed
+    {
+        return $this->model->query()->latest()->paginate(8);
+    }
+
+    public function search(Request $request): mixed
+    {
+        return $this->model->query()
+            ->when($request->name, function ($query) use ($request) {
+                $query->whereHas('user', function($q) use ($request) {
+                    $q->where('name', 'LIKE', '%' . $request->name . '%');
+                });
+            })
+            ->when($request->gender, function ($query) use ($request) {
+                $query->where('gender', $request->gender);
+            })
+            ->when($request->nisn, function ($query) use ($request) {
+                $query->where('nisn', 'LIKE', '%' . $request->nisn . '%');
+            })
+            ->when($request->birth_place, function ($query) use ($request) {
+                $query->where('birth_place', 'LIKE', '%' . $request->birth_place . '%');
+            })
+            ->when($request->address, function ($query) use ($request) {
+                $query->where('address', 'LIKE', '%' . $request->address . '%');
+            })
+            ->when($request->religion_id, function ($query) use ($request) {
+                $query->where('religion_id', $request->religion_id);
+            })
+            ->when($request->class, function ($query) use ($request) {
+                $query->whereHas('classroomStudents.classroom', function ($query) use ($request) {
+                    $query->where('name', 'LIKE', '%' . $request->class . '%');
+                });
+            })
+            ->whereDoesntHave('classroomStudents.classroom.levelClass', function($query) {
+                $query->where('name');
+            })
             ->latest()
-            ->paginate(10);
+            ->paginate(8);
+    }
+    
+    // public function doesntHaveClassroom(Request $request): mixed
+    // {
+    //     return $this->model->query()
+    //         ->with('user')
+    //         ->whereDoesntHave('classroomStudents')
+    //         ->when($request->name, function ($query) use ($request) {
+    //             $query->whereHas('user', function($q) use ($request){
+    //                 $q->where('name', 'LIKE', '%' . $request->name . '%');
+    //             });
+    //         })
+    //         ->get();
+    // }
+
+    // public function whereClassroomStudent(mixed $id): mixed
+    // {
+    //     return $this->model->query()
+    //         ->whereRelation('classroomStudents', 'id', $id)
+    //         ->first();
+    // }
+
+    public function getAllCategories(): mixed
+    {
+        return $this->model->query()->get();
     }
 
-    /**
-     * Find student by UUID.
-     */
-    public function findByUuid(string $uuid): Student
+    public function filterByGender(string $gender): mixed
     {
-        return $this->model->where('id', $uuid)->firstOrFail();
+        return $this->model->query()->where('gender', $gender)->get();
     }
 
-    /**
-     * Store a new student record.
-     */
-    public function store(array $data): Student
+    public function filterByMajor(string $major): mixed
     {
-        return $this->model->create($data);
+        return $this->model->query()->where('major', $major)->get();
     }
 
-    /**
-     * Update student by UUID.
-     */
-    public function update(string $uuid, array $data): Student
+    public function filterByLevel(string $level): mixed
     {
-        $student = $this->findByUuid($uuid);
-        $student->update($data);
-        return $student;
+        return $this->model->query()->where('level_class', $level)->get();
     }
 
-    /**
-     * Delete student by UUID.
-     */
-    public function delete(string $uuid): bool
+    public function count(): mixed
     {
-        $student = $this->findByUuid($uuid);
-        return $student->delete();
+        return $this->model->query()->count();
     }
 }

@@ -2,11 +2,11 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
+use App\Models\Student;
+use App\Models\User;
 
-class StoreStudentRequest extends FormRequest
+class StoreStudentRequest extends ApiRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -18,17 +18,23 @@ class StoreStudentRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
             'name' => 'required',
-            'email' => 'required|email',
+            'email' => [
+                'required',
+                'email',
+                Rule::unique(User::class, 'email'),
+            ],
             'role' => 'required',
             'image' => 'nullable|mimes:png,jpeg,jpg',
-            'nisn' => 'required|numeric',
+            'nisn' => [
+                'required',
+                'numeric',
+                Rule::unique(Student::class, 'nisn'),
+            ],
             'religion_id' => 'required|exists:religions,id',
             'gender' => 'required',
             'birth_date' => 'required|date',
@@ -47,10 +53,12 @@ class StoreStudentRequest extends FormRequest
             'name.required' => 'Nama tidak boleh kosong',
             'email.required' => 'Email tidak boleh kosong',
             'email.email' => 'Email tidak valid',
+            'email.unique' => 'Email sudah digunakan',
             'role.required' => 'Peran tidak boleh kosong',
             'image.mimes' => 'Foto harus berekstensi png, jpg dan jpeg',
             'nisn.required' => 'NISN tidak boleh kosong',
             'nisn.numeric' => 'NISN harus berupa angka',
+            'nisn.unique' => 'NISN sudah terdaftar',
             'religion_id.required' => 'Agama tidak boleh kosong',
             'religion_id.exists' => 'Agama tidak ditemukan',
             'gender.required' => 'Jenis kelamin tidak boleh kosong',
@@ -66,13 +74,5 @@ class StoreStudentRequest extends FormRequest
             'order_child.numeric' => 'Anak ke- harus berupa angka',
             'count_siblings.numeric' => 'Jumlah saudara harus berupa angka',
         ];
-    }
-
-    protected function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(response()->json([
-            'message' => 'Validasi gagal',
-            'errors' => $validator->errors(),
-        ], 422));
     }
 }

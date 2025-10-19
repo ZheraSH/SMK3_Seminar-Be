@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class StudentResource extends JsonResource
 {
@@ -14,10 +15,15 @@ class StudentResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $user = $this->resource->user ?? null;
+        $photo = $user?->image;
+
         return [
-            'name' => $this->student->user->name,
-            'email' => $this->student->user->email,
-            'image' => $this->student->user->image != null ? asset(request()->root(). '/storage'.$this->student->image) : asset(request()->root().'/public/admin_assets/dist/image/profile/user-1.jpg'),
+            'name' => $user?->name,
+            'email' => $user?->email,
+            'image' => $photo && Storage::exists($photo)
+                ? url('storage/' . $photo)
+                : asset('admin_assets/dist/image/profile/user-1.jpg'),
         ];
     }
 }
