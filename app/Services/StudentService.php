@@ -20,7 +20,7 @@ class StudentService
 
     private UserInterface $user;
     private StudentInterface $student;
-    public function __construct(UserInterface $user, StudentInterface $student,)
+    public function __construct(UserInterface $user, StudentInterface $student)
     {
         $this->user = $user;
         $this->student = $student;
@@ -55,27 +55,26 @@ class StudentService
     public function update(Student $student, UpdateStudentRequest $request): ?Student
     {
         if (!$student) return null;
-
+    
         $data = $request->validated();
-
+    
         $userData = [
-            'id' => (string) Str::uuid(),
             'name' => $data['name'],
             'slug' => Str::slug($data['name']),
             'email' => $data['email'],
             'password' => Hash::make($data['nisn']),
         ];
-
+    
         $studentData = collect($data)->except(['name','email','role'])->toArray();
-
+    
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
             $studentData['image'] = $this->handleUpload($student->image, $request->file('image'));
-        } else {
-            $studentData['image'] = $student->image;
         }
-
+    
         $this->user->update($student->user_id, $userData);
-        return $this->student->update($student->id, $studentData);
+        $this->student->update($student->id, $studentData);
+    
+        return $student->fresh(['user','religion']);
     }
 
     public function delete(Student $student): bool
@@ -95,14 +94,5 @@ class StudentService
         if ($oldFile) $this->remove($oldFile);
         return $this->upload(UploadDiskEnum::STUDENT->value, $file);
     }
-    
-    public function search(Request $request): mixed
-    {
-        return $this->student->search($request);
-    }
-
-    public function paginate(): mixed
-    {
-        return $this->student->paginate();
-    }    
+ 
 }

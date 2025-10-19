@@ -5,7 +5,7 @@ namespace App\Models;
 use App\Enums\GenderEnum;
 use App\Traits\Models\BelongsToReligion;
 use App\Traits\Models\BelongsToUser;
-use App\Traits\Models\HasManyClassroomStudents;
+// use App\Traits\Models\HasManyClassroomStudents;
 use App\Traits\Models\MorphManyRfid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,7 +15,8 @@ class Student extends Model
 {
 
     use HasFactory, BelongsToUser,
-    BelongsToReligion, HasManyClassroomStudents,
+    BelongsToReligion,
+    //  HasManyClassroomStudents,
     MorphManyRfid, SoftDeletes;
 
     public $incrementing = false;

@@ -15,10 +15,4 @@ interface StudentInterface extends GetInterface, StoreInterface, UpdateInterface
 {
     public function search(Request $request): mixed;
     public function paginate(): mixed;
-    // public function doesntHaveClassroom(Request $request): mixed;
-    // public function whereClassroomStudent(mixed $id): mixed;
-    public function getAllCategories(): mixed;
-    public function filterByGender(string $gender): mixed;
-    public function filterByMajor(string $major): mixed;
-    public function filterByLevel(string $level): mixed;
 }

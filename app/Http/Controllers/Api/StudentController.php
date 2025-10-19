@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Contracts\Repositories\StudentRepository;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Http\Resources\StudentResource;
@@ -10,27 +11,29 @@ use App\Services\StudentService;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseHelper;
-use Exception;
+use Throwable;
 
 class StudentController extends Controller
 {
     private StudentService $studentService;
+    private StudentRepository $studentRepository;
 
-    public function __construct(StudentService $studentService)
+    public function __construct(StudentService $studentService, StudentRepository $studentRepository)
     {
         $this->studentService = $studentService;
+        $this->studentRepository = $studentRepository;
     }
 
     public function index(Request $request)
     {
         try {
-            $students = $this->studentService->search($request);
+            $students = $this->studentRepository->search($request);
             return ResponseHelper::success(
                 StudentResource::collection($students),
-                'Student list retrieved successfully'
+                'List Data Siswa Berhasil Diambil'
             );
-        } catch (Exception $e) {
-            return ResponseHelper::error($e->getMessage(), 500);
+        } catch (\Throwable $th) {
+            return ResponseHelper::error(500,$th->getMessage());
         }
     }
 
@@ -43,8 +46,8 @@ class StudentController extends Controller
                 'Data Siswa Berhasil Dibuat',
                 201
             );
-        } catch (Exception $e) {
-            return ResponseHelper::error($e->getMessage(), 500);
+        } catch (\Throwable $th) {
+            return ResponseHelper::error(500, $th->getMessage());
         }
     }
 
@@ -54,11 +57,11 @@ class StudentController extends Controller
             if (!$student) return ResponseHelper::notFound();
 
             return ResponseHelper::success(
-                new StudentResource($student->load('user', 'religion')),
+                new StudentResource($student),
                 'Detail Data Siswa Berhasil Diambil'
             );
-        } catch (Exception $e) {
-            return ResponseHelper::error($e->getMessage(), 500);
+        } catch (\Throwable $th) {
+            return ResponseHelper::error(500,$th->getMessage());
         }
     }
 
@@ -71,10 +74,10 @@ class StudentController extends Controller
 
             return ResponseHelper::success(
                 new StudentResource($student->fresh('user', 'religion')),
-                'Data Siswa Berhasil Diperbaharui'
+                'Data Siswa Berhasil Diperbarui'
             );
-        } catch (Exception $e) {
-            return ResponseHelper::error($e->getMessage(), 500);
+        } catch (\Throwable $th) {
+            return ResponseHelper::error(500,$th->getMessage());
         }
     }
 
@@ -85,9 +88,9 @@ class StudentController extends Controller
 
             if (!$deleted) return ResponseHelper::notFound();
 
-            return ResponseHelper::success(null, 'Data Siswa Berhasil Dihapus');
-        } catch (Exception $e) {
-            return ResponseHelper::error($e->getMessage(), 500);
+            return ResponseHelper::success(null, 'Data Siswa Berhasil Dihapus',200);
+        } catch (\Throwable $th) {
+            return ResponseHelper::error(500, $th->getMessage());
         }
     }
 }
