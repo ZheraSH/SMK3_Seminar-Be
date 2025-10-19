@@ -30,6 +30,7 @@ class UserSeeder extends Seeder
             $user = User::updateOrCreate(
                 ['email' => $email],
                 [
+                    'id' => Str::uuid(),
                     'name' => ucwords(str_replace('_', ' ', $enumRole->value)),
                     'slug' => Str::slug($enumRole->value),
                     'email_verified_at' => now(),
