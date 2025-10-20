@@ -2,19 +2,19 @@
 
 namespace App\Traits\Models;
 
-use App\Models\Employee;
+use App\Models\Classroom;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-trait HasManyEmployee {
+trait HasManyClassrooms {
 
     /**
      * Get all of the students for the HasManyStudent
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function employees(): HasMany
+    public function classrooms(): HasMany
     {
-        return $this->hasMany(Employee::class);
+        return $this->hasMany(Classroom::class);
     }
 
 }
