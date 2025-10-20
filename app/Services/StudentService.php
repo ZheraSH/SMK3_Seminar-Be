@@ -94,5 +94,8 @@ class StudentService
         if ($oldFile) $this->remove($oldFile);
         return $this->upload(UploadDiskEnum::STUDENT->value, $file);
     }
- 
+    public function getWithFilter(Request $request, int $pagination = 8): mixed
+    {
+        return $this->student->search($request, $pagination);
+    }
 }

@@ -43,24 +43,52 @@ class StudentRepository extends BaseRepository implements StudentInterface
         return $this->model->query()->latest()->paginate(8);
     }
 
-    public function search(Request $request): mixed
-    {
-        return $this->model->query()
-            ->when($request->search, function ($query) use ($request) {
-                $query->whereHas('user', function($q) use ($request) {
-                    $q->where('name', 'LIKE', '%' . $request->search . '%');
-                })->orWhereHas('nisn', function($q) use ($request){
-                    $q->where('name', 'LIKE', '%' . $request->search . '%');
-                })->orWhereHas('classromStudents',function($q) use ($request){
-                    $q->where('classrooms.name', 'LIKE', '%' . $request->search . '%');
-                });
+    // public function search(Request $request, int $pagination = 8): mixed
+    // {
+    //     return $this->model->query()
+    //         ->when($request->search, function ($query) use ($request) {
+    //             $query->where(function ($q) use ($request) {
+    //                 $q->whereHas('user', function ($sub) use ($request) {
+    //                     $sub->where('name', 'LIKE', '%' . $request->search . '%');
+    //                 })
+    //                 ->orWhere('nisn', 'LIKE', '%' . $request->search . '%')
+    //                 ->orWhereHas('classroomStudents.classroom', function ($sub) use ($request) {
+    //                     $sub->where('name', 'LIKE', '%' . $request->search . '%');
+    //                 });
+    //             });
+    //         })
+    //         ->when($request->gender, function ($query) use ($request) {
+    //             $query->where('gender', $request->gender);
+    //         })
+    //         ->when($request->major_id, function ($query) use ($request) {
+    //             $query->where('major_id', $request->major_id);
+    //         })
+    //         ->when($request->level_class, function ($query) use ($request) {
+    //             $query->whereHas('level_class', function ($q) use ($request) {
+    //                 $q->where('level_class', $request->level_class);
+    //             });
+    //         })
+    //         ->latest()
+    //         ->paginate($pagination);
+    // }
+    
+    public function search(Request $request, int $pagination = 8): mixed
+{
+    return $this->model->query()
+        ->when($request->search, function ($query) use ($request) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('name', 'LIKE', '%' . $request->search . '%');
             })
-            ->when($request->filter, function ($query) use ($request) {
-                $query->where('gender', $request->gender);
-            })
-            ->latest()
-            ->paginate(8);
-    }
+            ->orWhere('nisn', 'LIKE', '%' . $request->search . '%');
+        })
+        ->when($request->gender, function ($query) use ($request) {
+            $query->where('gender', $request->gender);
+        })
+        // untuk sementara skip major_id & level_class
+        ->latest()
+        ->paginate($pagination);
+}
+
 
     public function count(): mixed
     {

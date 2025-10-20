@@ -27,13 +27,15 @@ class StudentController extends Controller
     public function index(Request $request)
     {
         try {
-            $students = $this->studentRepository->search($request);
+            $students = $this->studentRepository->search($request)
+                ->load(['user', 'religion']);
+
             return ResponseHelper::success(
                 StudentResource::collection($students),
                 'List Data Siswa Berhasil Diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500,$th->getMessage());
+            return ResponseHelper::error(500, $th->getMessage());
         }
     }
 
@@ -54,14 +56,12 @@ class StudentController extends Controller
     public function show(Student $student)
     {
         try {
-            if (!$student) return ResponseHelper::notFound();
-
             return ResponseHelper::success(
-                new StudentResource($student),
+                new StudentResource($student->load(['user', 'religion'])),
                 'Detail Data Siswa Berhasil Diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500,$th->getMessage());
+            return ResponseHelper::error(500, $th->getMessage());
         }
     }
 
@@ -69,15 +69,12 @@ class StudentController extends Controller
     {
         try {
             $updated = $this->studentService->update($student, $request);
-
-            if (!$updated) return ResponseHelper::notFound();
-
             return ResponseHelper::success(
-                new StudentResource($student->fresh('user', 'religion')),
+                new StudentResource($updated),
                 'Data Siswa Berhasil Diperbarui'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500,$th->getMessage());
+            return ResponseHelper::error(500, $th->getMessage());
         }
     }
 
@@ -86,9 +83,10 @@ class StudentController extends Controller
         try {
             $deleted = $this->studentService->delete($student);
 
-            if (!$deleted) return ResponseHelper::notFound();
-
-            return ResponseHelper::success(null, 'Data Siswa Berhasil Dihapus',200);
+            if (!$deleted) {
+                return ResponseHelper::notFound();
+            }
+            return ResponseHelper::success(null, 'Data Siswa Berhasil Dihapus', 200);
         } catch (\Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
         }
