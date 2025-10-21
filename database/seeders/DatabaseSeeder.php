@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
             ReligionSeeder::class,
             StudentSeeder::class,
             EmployeeSeeder::class,
+            SchoolYearSeeder::class,
+
         ]);
     }
 }

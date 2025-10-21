@@ -1,8 +1,8 @@
 <?php
 
 namespace App\Providers;
-
 use App\Contracts\Interfaces\EmployeeInterface;
+use App\Contracts\Interfaces\SchoolYearInterface;
 use App\Contracts\Interfaces\ReligionInterface;
 use App\Contracts\Interfaces\StudentInterface;
 use App\Contracts\Interfaces\UserInterface;
@@ -18,6 +18,7 @@ use App\Observers\StudentObserver;
 use App\Observers\EmployeeObserver;
 use App\Observers\ReligionObserver;
 use App\Observers\UserObserver;
+use App\Contracts\Repositories\SchoolYearRepository;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -27,6 +28,8 @@ class AppServiceProvider extends ServiceProvider
         ReligionInterface::class => ReligionRepository::class,
         StudentInterface::class => StudentRepository::class,
         EmployeeInterface::class => EmployeeRepository::class,
+        SchoolYearInterface::class => SchoolYearRepository::class,
+
     ];
 
     public function register(): void
