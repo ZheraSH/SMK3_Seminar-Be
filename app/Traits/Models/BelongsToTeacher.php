@@ -3,11 +3,10 @@
 namespace App\Traits\Models;
 
 use App\Models\User;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-trait BelongsToUser {
-
-    public function user(): BelongsTo
+trait BelongsToTeacher
+{
+    public function teacher()
     {
         return $this->belongsTo(User::class);
     }
