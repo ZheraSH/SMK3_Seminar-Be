@@ -20,7 +20,8 @@ class DatabaseSeeder extends Seeder
             StudentSeeder::class,
             EmployeeSeeder::class,
             SchoolYearSeeder::class,
-
+            MajorSeeder::class,
+            // LevelClassSeeder::class,
         ]);
     }
 }
