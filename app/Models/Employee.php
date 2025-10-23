@@ -5,7 +5,7 @@ namespace App\Models;
 use App\Enums\GenderEnum;
 use App\Traits\Models\BelongsToReligion;
 use App\Traits\Models\BelongsToUser;
-// use App\Traits\Models\HasManyClassrooms;
+use App\Traits\Models\HasManyClassrooms;
 // use App\Traits\Models\MorphManyAttendance;
 use App\Traits\Models\MorphManyRfid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,9 +16,8 @@ class Employee extends Model
 {
 
     use HasFactory, BelongsToUser,
-    BelongsToReligion,
-    // HasManyClassrooms,
-    // MorphManyAttendance, 
+    BelongsToReligion, HasManyClassrooms,
+    // MorphManyAttendance,
     MorphManyRfid, 
     SoftDeletes;
 
