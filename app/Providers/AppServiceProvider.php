@@ -51,7 +51,7 @@ class AppServiceProvider extends ServiceProvider
         EmployeeInterface::class => EmployeeRepository::class,
         SchoolYearInterface::class => SchoolYearRepository::class,
         MajorInterface::class => MajorRepository::class,
-        // LevelClassInterface::class => LevelClassRepository::class,
+        LevelClassInterface::class => LevelClassRepository::class,
         // ClassroomInterface::class => ClassroomRepository::class,
         // ClassroomStudentsInterface::class => ClassroomStudentsRepository::class,
         // ClassroomTeachersInterface::class => ClassroomTeachersRepository::class,
@@ -75,7 +75,7 @@ class AppServiceProvider extends ServiceProvider
         Employee::observe(EmployeeObserver::class);
 
         Major::observe(MajorObserver::class);
-        // LevelClass::observe(LevelClassObserver::class);
+        LevelClass::observe(LevelClassObserver::class);
         // Classroom::observe(ClassroomObserver::class);
         // ClassroomStudents::observe(ClassroomStudentsObserver::class);
         // ClassroomTeachers::observe(ClassroomTeachersObserver::class);
