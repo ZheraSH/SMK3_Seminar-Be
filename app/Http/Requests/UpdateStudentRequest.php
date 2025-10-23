@@ -48,9 +48,9 @@ class UpdateStudentRequest extends ApiRequest
         return [
             'name.required' => 'Nama tidak boleh kosong',
             'image.mimes' => 'Foto harus berekstensi png, jpg dan jpeg',
-            'religion_id.required' => 'Agama tidak boleh kosong',
             'religion_id.exists' => 'Agama tidak ditemukan',
             'gender.required' => 'Jenis kelamin tidak boleh kosong',
+            'gender.in' => 'Jenis kelamin harus laki-laki atau perempuan',
             'birth_date.required' => 'Tanggal lahir tidak boleh kosong',
             'birth_date.date' => 'Tanggal lahir harus berupa tanggal',
             'birth_place.required' => 'Tempat lahir tidak boleh kosong',

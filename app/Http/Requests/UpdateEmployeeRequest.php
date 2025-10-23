@@ -28,11 +28,7 @@ class UpdateEmployeeRequest extends ApiRequest
 
         return [
             'name' => 'required|string|max:255',
-            'email' => [
-                'required',
-                'email',
-                Rule::unique(User::class, 'email')->ignore($userId),
-            ],
+            'email' => 'required|email',
             'image' => 'nullable|mimes:png,jpg,jpeg',
             'NIP' => 'required|string|max:18',
             'NIK' => 'nullable|string|max:16',
@@ -55,10 +51,7 @@ class UpdateEmployeeRequest extends ApiRequest
             'name.required' => 'Nama tidak boleh kosong',
             'email.required' => 'Email tidak boleh kosong',
             'email.email' => 'Email tidak valid',
-            'email.unique' => 'Email sudah digunakan',
             'image.mimes' => 'Foto harus berekstensi png, jpg, atau jpeg',
-            'NIP.required' => 'NIP tidak boleh kosong',
-            'NIP.unique' => 'NIP sudah digunakan',
             'NIP.max' => 'NIP maksimal 18 karakter',
             'NIK.max' => 'NIK maksimal 16 karakter',
             'religion_id.exists' => 'Agama tidak ditemukan',
