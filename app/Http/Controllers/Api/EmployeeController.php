@@ -53,21 +53,29 @@ class EmployeeController extends Controller
         }
     }
 
-    public function show(Employee $employee)
+    public function show(string $id)
     {
         try {
+            $employee = Employee::with(['user', 'religion'])->find($id);
+            if (! $employee) {
+                return ResponseHelper::notFound('Data karyawan tidak ditemukan');
+            }
             return ResponseHelper::success(
-                new EmployeeResource($employee->load('user', 'religion')),
-                'Detail Data Karyawan berhasil diambil'
+                new EmployeeResource($employee),
+                'Detail Data karyawan Berhasil Diambil'
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
         }
     }
 
-    public function update(UpdateEmployeeRequest $request, Employee $employee)
+    public function update(UpdateEmployeeRequest $request, string $id)
     {
         try {
+            $employee = Employee::find($id);
+            if (! $employee) {
+                return ResponseHelper::notFound('Data karyawan tidak ditemukan');
+            }
             $updated = $this->employeeService->update($employee, $request);
             return ResponseHelper::success(
                 new EmployeeResource($updated),
@@ -78,15 +86,18 @@ class EmployeeController extends Controller
         }
     }
 
-    public function destroy(Employee $employee)
+    public function destroy(string $id)
     {
         try {
-            $deleted = $this->employeeService->delete($employee);
-
-            if (!$deleted) {
-                return ResponseHelper::notFound();
+            $employee = Employee::find($id);
+            if (! $employee) {
+                return ResponseHelper::notFound('Data karyawan tidak ditemukan');
             }
-            return ResponseHelper::success(null, 'Data Karyawan berhasil dihapus',200);
+            $deleted = $this->employeeService->delete($employee);
+            if (! $deleted) {
+                return ResponseHelper::notFound('Gagal menghapus data karyawan');
+            }
+            return ResponseHelper::success(null, 'Data Karyawan berhasil dihapus', 200);
         } catch (\Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
         }

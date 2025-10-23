@@ -53,11 +53,15 @@ class StudentController extends Controller
         }
     }
 
-    public function show(Student $student)
+    public function show(string $id)
     {
         try {
+            $student = Student::with(['user', 'religion'])->find($id);
+            if (! $student) {
+                return ResponseHelper::notFound('Data siswa tidak ditemukan');
+            }
             return ResponseHelper::success(
-                new StudentResource($student->load(['user', 'religion'])),
+                new StudentResource($student),
                 'Detail Data Siswa Berhasil Diambil'
             );
         } catch (\Throwable $th) {
@@ -65,9 +69,13 @@ class StudentController extends Controller
         }
     }
 
-    public function update(UpdateStudentRequest $request, Student $student)
+    public function update(UpdateStudentRequest $request, string $id)
     {
         try {
+            $student = Student::find($id);
+            if (! $student) {
+                return ResponseHelper::notFound('Data siswa tidak ditemukan');
+            }
             $updated = $this->studentService->update($student, $request);
             return ResponseHelper::success(
                 new StudentResource($updated),
@@ -78,13 +86,16 @@ class StudentController extends Controller
         }
     }
 
-    public function destroy(Student $student)
+    public function destroy(string $id)
     {
         try {
+            $student = Student::find($id);
+            if (! $student) {
+                return ResponseHelper::notFound('Data siswa tidak ditemukan');
+            }
             $deleted = $this->studentService->delete($student);
-
-            if (!$deleted) {
-                return ResponseHelper::notFound();
+            if (! $deleted) {
+                return ResponseHelper::notFound('Gagal menghapus data siswa');
             }
             return ResponseHelper::success(null, 'Data Siswa Berhasil Dihapus', 200);
         } catch (\Throwable $th) {
