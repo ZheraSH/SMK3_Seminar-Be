@@ -27,5 +27,3 @@ class MajorSeeder extends Seeder
         }
     }
 }
-
-//Done

@@ -25,5 +25,3 @@ class PermissionSeeder extends Seeder
         }
     }
 }
-
-//Done
