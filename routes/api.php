@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\SemesterController;
 use App\Http\Controllers\Api\SchoolYearsController;
 use App\Http\Controllers\Api\ClassroomController;
 use App\Http\Controllers\Api\EmployeeController;
@@ -29,4 +30,10 @@ Route::prefix('school-years')->group(function () {
     Route::get('/', [SchoolYearsController::class, 'index']);
     Route::get('/active', [SchoolYearsController::class, 'active']);
     Route::get('/cron-status', [SchoolYearsController::class, 'cronStatus']);
+});
+
+Route::prefix('semesters')->group(function () {
+    Route::get('/', [SemesterController::class, 'index'])->name('semesters.index');           // Semua semester
+    Route::get('/active', [SemesterController::class, 'active'])->name('semesters.active');    // Semester aktif
+    Route::get('/cron-status', [SemesterController::class, 'cronStatus'])->name('semesters.cronStatus'); // Status cron
 });
