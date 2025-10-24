@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\SchoolYearsController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\MajorController;
 use App\Http\Controllers\Api\StudentController;
@@ -16,4 +17,8 @@ Route::post('login', [LoginController::class, 'login']);
         
 // });
 
-
+Route::prefix('school-years')->group(function () {
+    Route::get('/', [SchoolYearsController::class, 'index']);
+    Route::get('/active', [SchoolYearsController::class, 'active']);
+    Route::get('/cron-status', [SchoolYearsController::class, 'cronStatus']);
+});
