@@ -21,7 +21,7 @@ class EmployeeResource extends JsonResource
                 : asset('admin_assets/dist/image/profile/user-1.jpg'),
             'gender' => $this->gender,
             'phone_number'=> $this->phone_number,
-            'religion_id' => $this->religion?->id,
+            'religion_id' => $this->religion?->name,
             'NIP' => $this->NIP,
             'NIK' => $this->NIK,
             'birth_place'=> $this->birth_place, 
