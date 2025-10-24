@@ -2,9 +2,7 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Validation\Rule;
 use App\Models\Employee;
-use App\Models\User;
 
 class UpdateEmployeeRequest extends ApiRequest
 {
