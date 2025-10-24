@@ -11,7 +11,7 @@ class SchoolYearResource extends JsonResource
     {
        return [
             'id' => $this->id,
-            'school_year' => $this->school_year,
+            'name' => $this->name,
             'active' => $this->active,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
         ];

@@ -15,11 +15,9 @@ class SchoolYear extends Model
     protected $keyType = 'string';
     protected $table = 'school_years';
     protected $fillable = [
-        'school_year', 
+        'name', 
         'active'
     ];
-   
-
 
     protected static function boot()
     {
