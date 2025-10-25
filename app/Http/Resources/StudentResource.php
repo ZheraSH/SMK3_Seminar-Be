@@ -14,7 +14,7 @@ class StudentResource extends JsonResource
         $photo = $user?->image ?? $this->image;
 
         return [
-            "id"=> $this->id,
+            'id'=> $this->id,
             'name' => $user?->name,
             'email' => $user?->email,
             'image' => $photo && Storage::exists($photo)
