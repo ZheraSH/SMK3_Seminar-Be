@@ -25,7 +25,11 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+        "files": [
+            "app/Helpers/ResponseHelper.php",
+            "app/Helpers/ImageCompressing.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
