@@ -29,11 +29,11 @@ class ReligionRepository extends BaseRepository implements ReligionInterface
 
     public function update(mixed $id, array $data): mixed
     {
-        return $this->model->query()->findOrFail($id)->update($data);
+        return $this->show($id)->update($data);
     }
 
     public function delete(mixed $id): mixed
     {
-        return $this->model->query()->findOrFail($id)->delete();
+        return $this->show($id)->delete();
     }
 }
