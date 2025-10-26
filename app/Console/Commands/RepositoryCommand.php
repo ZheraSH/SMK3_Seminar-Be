@@ -17,7 +17,7 @@ class RepositoryCommand extends Command
         $directory = app_path('Contracts/Repositories');
         $filePath = $directory . '/' . $name . 'Repository.php';
 
-        if (!File::exists($directory)) {
+        if (! File::exists($directory)) {
             File::makeDirectory($directory, 0755, true);
         }
 
@@ -58,12 +58,12 @@ class {$name}Repository extends BaseRepository implements {$name}Interface
 
     public function update(mixed \$id, array \$data): mixed
     {
-        return \$this->model->query()->findOrFail(\$id)->update(\$data);
+        return \$this->show(\$id)->update(\$data);
     }
 
     public function delete(mixed \$id): mixed
     {
-        return \$this->model->query()->findOrFail(\$id)->delete();
+        return \$this->show(\$id)->delete();
     }
 }
 EOT;
