@@ -70,7 +70,6 @@ class EmployeeSeeder extends Seeder
                         'birth_place' => $faker->city(),
                         'address' => $faker->address(),
                         'phone_number' => $faker->phoneNumber(),
-                        'active' => true,
                     ]
                 );
             }
