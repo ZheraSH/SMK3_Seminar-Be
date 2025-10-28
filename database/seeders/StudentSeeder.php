@@ -50,7 +50,7 @@ class StudentSeeder extends Seeder
                 ['user_id' => $user->id],
                 [
                     'id' => $studentId,
-                    'image' => null,
+                    'image' => "admin_assets/dist/images/profile/student-" . $i . ".jpg",
                     'nisn' => $nisn,
                     'religion_id' => $religion->id,
                     'gender' => $faker->randomElement([

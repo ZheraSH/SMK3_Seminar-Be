@@ -55,7 +55,7 @@ class EmployeeSeeder extends Seeder
                     ['user_id' => $user->id],
                     [
                         'id' => $employeeId,
-                        'image' => null,
+                        'image' => "admin_assets/dist/images/profile/teacher-" . $i . ".jpg",
                         'NIP' => $data['nip_start'] . str_pad($i, 10, '0', STR_PAD_LEFT),
                         'NIK' => (string) $faker->numerify('################'),
                         'religion_id' => $religion->id,
