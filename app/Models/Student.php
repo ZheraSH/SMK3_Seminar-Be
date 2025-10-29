@@ -36,7 +36,7 @@ class Student extends Model
         'order_child',
         'count_siblings',
     ];
-    protected $cast = [
+    protected $casts = [
         'gender' => GenderEnum::class,
     ];
 
