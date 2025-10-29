@@ -18,7 +18,7 @@ class EmployeeResource extends JsonResource
             'name' => $user?->name,
             'email' => $user?->email,
             'image' => $this->resolveImageUrl($photo),
-            'gender' => $this->gender,
+            'gender' => $this->gender?->label(),
             'phone_number' => $this->phone_number,
             'religion' => $this->religion?->name,
             'NIP' => $this->NIP,

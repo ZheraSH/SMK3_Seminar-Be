@@ -19,7 +19,7 @@ class StudentResource extends JsonResource
             'email' => $user?->email,
             'image' => $this->resolveImageUrl($photo),
             'nisn' => $this->nisn,
-            'gender' => $this->gender,
+            'gender' => $this->gender?->label(),
             'religion' => $this->religion?->name,
             'birth_place' => $this->birth_place,
             'birth_date' => $this->birth_date,
