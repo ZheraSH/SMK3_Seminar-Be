@@ -2,12 +2,12 @@
 
 namespace App\Traits\Models;
 
-use App\Models\User;
+use App\Models\Employee;
 
 trait BelongsToTeacher
 {
     public function teacher()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Employee::class, 'teacher_id')->with('user');
     }
 }

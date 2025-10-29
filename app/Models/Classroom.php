@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Models;
+
+use App\Traits\Models\BelongsToLevelClass;
+use App\Traits\Models\BelongsToMajor;
+use App\Traits\Models\BelongsToSchoolYear;
+use App\Traits\Models\BelongsToTeacher;
+use App\Traits\Models\HasManyClassroomStudents;
+use App\Traits\Models\HasManyClassroomTeachers;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Classroom extends Model
+{
+    use HasFactory, BelongsToMajor,
+    BelongsToLevelClass, BelongsToSchoolYear,
+    BelongsToTeacher, HasManyClassroomStudents,
+    // HasManyClassroomTeachers, 
+    SoftDeletes;
+
+    public $incrementing = false;
+    protected $keyType = 'string';
+    protected $table = 'classrooms';
+    protected $fillable = [
+        'name',
+        'major_id',
+        'slug',
+        'level_class_id',
+        'school_year_id',
+        'teacher_id',
+    ];
+}

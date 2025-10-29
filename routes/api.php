@@ -19,11 +19,14 @@ Route::post('login', [LoginController::class, 'login']);
     Route::apiResource('religions', ReligionController::class)->only(['index', 'show']);
     Route::apiResource('majors', MajorController::class)->only(['index', 'show']);
     Route::apiResource('levelclasses', LevelClassController::class)->only(['index', 'show']);
-    // Route::apiResource('classrooms', ClassroomController::class);
-
-    // //End Point nambah dan hapus siswa ke kelas
-    // Route::post('classrooms/{classroom}/add-students', [ClassroomController::class, 'addStudent']);
-    // Route::delete('classrooms/{classroom}/remove-student/{studentId}', [ClassroomController::class, 'removeStudent']);
+    Route::apiResource('classrooms', ClassroomController::class);
+    //End Point nambah dan hapus siswa ke kelas
+    Route::prefix('classrooms/{classroom}')->group(function () {
+        Route::get('/available-students', [ClassroomController::class,'getAvailableStudents']);
+        Route::post('/add-students', [ClassroomController::class, 'addStudents']);
+        Route::post('/sync-students', [ClassroomController::class, 'syncStudents']);
+        Route::delete('/remove-student/{studentId}', [ClassroomController::class, 'removeStudent']);
+    });
 // });
 
 Route::prefix('school-years')->group(function () {
