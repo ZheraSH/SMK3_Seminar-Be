@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\ReligionController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\LevelClassController;
+use App\Http\Controllers\Api\ClassroomStudentsController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('login', [LoginController::class, 'login']);
@@ -27,6 +28,7 @@ Route::post('login', [LoginController::class, 'login']);
         Route::post('/sync-students', [ClassroomController::class, 'syncStudents']);
         Route::delete('/remove-student/{studentId}', [ClassroomController::class, 'removeStudent']);
     });
+    Route::apiResource('classroomStudents', ClassroomStudentsController::class)->only('index'); 
 // });
 
 Route::prefix('school-years')->group(function () {
