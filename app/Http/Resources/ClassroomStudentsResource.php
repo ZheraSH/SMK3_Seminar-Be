@@ -9,37 +9,34 @@ class ClassroomStudentsResource extends JsonResource
 {
     public function toArray($request)
     {
+        $student = $this->whenLoaded('student');
+        $user = $student ? $this->student->user : null;
+        $classroom = $this->whenLoaded('classroom');
+
         return [
             'id' => $this->id,
             'classroom_id' => $this->classroom_id,
             'student_id' => $this->student_id,
             'status' => $this->status,
-            // 'rfid' => $this->rfid,
-            'students' => $this->whenLoaded('classroomStudents', function() {
-                return $this->classroomStudents->map(function($classroomStudent) {
-                    if (!$classroomStudent->student || !$classroomStudent->student->user) {
-                        return null;
-                    }
 
-                    return [
-                        'id' => $classroomStudent->student->id,
-                        'name' => $classroomStudent->student->user->name,
-                        'nisn' => $classroomStudent->student->nisn,
-                        'current_class' => $this->name,
-                        'gender' => $classroomStudent->student->gender?->label() ?? 'Tidak diketahui',
-                        'religion' => $classroomStudent->student->religion?->name,
-                        'birth_place' => $classroomStudent->student->birth_place,
-                        'birth_date' => $classroomStudent->student->birth_date,
-                        'number_akta' => $classroomStudent->student->number_akta,
-                        'order_child' => $classroomStudent->student->order_child,
-                        'count_siblings' => $classroomStudent->student->count_siblings,
-                        'address' => $classroomStudent->student->address,
-                        'status' => $classroomStudent->status?->label() ?? 'Tidak diketahui', 
-                        'pivot_id' => $classroomStudent->id,
-                    ];
-                })->filter();
-            }),
+            'student' => $student ? [
+                'id' => $this->student->id,
+                'name' => $user->name ?? 'Nama tidak tersedia',
+                'nisn' => $this->student->nisn,
+                'gender' => $this->student->gender?->label() ?? 'Tidak diketahui',
+                'religion' => $this->student->religion?->name,
+                'birth_place' => $this->student->birth_place,
+                'birth_date' => $this->student->birth_date,
+                'number_akta' => $this->student->number_akta,
+                'order_child' => $this->student->order_child,
+                'count_siblings' => $this->student->count_siblings,
+                'address' => $this->student->address,
+            ] : null,
+
+            'classroom' => $classroom ? [
+                'id' => $this->classroom->id,
+                'name' => $this->classroom->name,
+            ] : null,
         ];
     }
-    
 }

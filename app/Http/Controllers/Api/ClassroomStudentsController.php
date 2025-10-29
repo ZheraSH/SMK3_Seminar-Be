@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Services\ClassroomStudentsService;
 use App\Http\Resources\ClassroomStudentsResource;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseHelper;
+use App\Http\Controllers\Controller;
 
 class ClassroomStudentsController extends Controller
 {

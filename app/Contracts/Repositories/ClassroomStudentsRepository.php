@@ -52,7 +52,7 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
     public function search(Request $request, int $pagination = 8): mixed
     {
         return $this->model->query()
-            ->with(['student.user', 'student.religion', 'student.gender', 'classroom'])
+            ->with(['student.user', 'classroom'])
             ->when($request->search, function ($query) use ($request) {
                 $query->where(function ($q) use ($request) {
                     $q->whereHas('student.user', function ($sub) use ($request) {
@@ -60,20 +60,8 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
                     })
                     ->orWhereHas('student', function ($sub) use ($request) {
                         $sub->where('nisn', 'LIKE', '%' . $request->search . '%');
-                    })
-                    ->orWhereHas('classroom', function ($sub) use ($request) {
-                        $sub->where('name', 'LIKE', '%' . $request->search . '%');
                     });
                 });
-            })
-            ->when($request->status, function ($query) use ($request) {
-                $query->where('status', $request->status);
-            })
-            ->when($request->classroom_id, function ($query) use ($request) {
-                $query->where('classroom_id', $request->classroom_id);
-            })
-            ->when($request->student_id, function ($query) use ($request) {
-                $query->where('student_id', $request->student_id);
             })
             ->latest()
             ->paginate($pagination);
