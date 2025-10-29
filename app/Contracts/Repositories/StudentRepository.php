@@ -4,10 +4,12 @@ namespace App\Contracts\Repositories;
 
 use App\Contracts\Interfaces\StudentInterface;
 use App\Models\Student;
+use App\Traits\PaginationTrait;
 use Illuminate\Http\Request;
 
 class StudentRepository extends BaseRepository implements StudentInterface
 {
+    use PaginationTrait;
     public function __construct(Student $student)
     {
         $this->model = $student;

@@ -4,10 +4,12 @@ namespace App\Contracts\Repositories;
 
 use App\Contracts\Interfaces\EmployeeInterface;
 use App\Models\Employee;
+use App\Traits\PaginationTrait;
 use Illuminate\Http\Request;
 
 class EmployeeRepository extends BaseRepository implements EmployeeInterface
 {
+    use PaginationTrait;
     public function __construct(Employee $employee)
     {
         $this->model = $employee;
