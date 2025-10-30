@@ -4,10 +4,12 @@ namespace App\Contracts\Repositories;
 
 use App\Contracts\Interfaces\SchoolYearInterface;
 use App\Models\SchoolYear;
+use App\Traits\PaginationTrait;
 use Illuminate\Http\Request;
 
 class SchoolYearRepository extends BaseRepository implements SchoolYearInterface
 {   
+    use PaginationTrait;
     public function __construct(SchoolYear $schoolYear)
     {
         $this->model = $schoolYear;
