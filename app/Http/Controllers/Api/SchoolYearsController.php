@@ -40,12 +40,6 @@ class SchoolYearsController extends Controller
         return ResponseHelper::success('Detail tahun ajaran ditemukan', new SchoolYearResource($data));
     }
 
-    public function update(UpdateSchoolYearRequest $request, $id)
-    {
-        $data = $this->schoolYear->update($id, $request->validated());
-        return ResponseHelper::success('Data tahun ajaran berhasil diperbarui', new SchoolYearResource($data));
-    }
-
     public function destroy($id)
     {
         $this->schoolYear->delete($id);
@@ -60,7 +54,7 @@ class SchoolYearsController extends Controller
         }
 
         return ResponseHelper::success('Data tahun ajaran berhasil dipulihkan', new SchoolYearResource($data));
-    }
+    }   
 
     public function active()
     {
