@@ -9,7 +9,7 @@ use App\Http\Controllers\Api\ReligionController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\LevelClassController;
-use App\Http\Controllers\Api\ClassroomStudentsController;
+use App\Http\Controllers\Api\ClassroomStudentsController;       
 use App\Http\Controllers\Api\RoleController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +37,10 @@ Route::prefix('school-years')->group(function () {
     Route::get('/', [SchoolYearsController::class, 'index']);
     Route::get('/active', [SchoolYearsController::class, 'active']);
     Route::get('/cron-status', [SchoolYearsController::class, 'cronStatus']);
+    Route::post('/', [SchoolYearsController::class, 'store']);
+    Route::get('/{id}', [SchoolYearsController::class, 'show']);
+    Route::delete('/{id}', [SchoolYearsController::class, 'destroy']);
+    Route::patch('/restore/{id}', [SchoolYearsController::class, 'restore']);
 });
 
 Route::prefix('semesters')->group(function () {
