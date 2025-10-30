@@ -16,11 +16,10 @@ class RoleSeeder extends Seeder
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $reflection = new \ReflectionClass(RoleEnum::class);
-
-        foreach ($reflection->getConstants() as $case) {
-            Role::create([
-                'name' => $case
+        foreach (RoleEnum::cases() as $role) {
+            Role::firstOrCreate([
+                'name' => $role->value,
+                'guard_name' => 'web'
             ]);
         }
     }

@@ -16,11 +16,10 @@ class PermissionSeeder extends Seeder
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $reflection = new \ReflectionClass(PermissionEnum::class);
-
-        foreach ($reflection->getConstants() as $case) {
-            Permission::create([
-                'name' => $case
+        foreach (PermissionEnum::cases() as $permission) {
+            Permission::firstOrCreate([
+                'name' => $permission->value,
+                'guard_name' => 'web'
             ]);
         }
     }
