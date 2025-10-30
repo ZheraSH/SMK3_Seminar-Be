@@ -4,21 +4,18 @@ namespace App\Contracts\Repositories;
 
 use App\Contracts\Interfaces\SchoolYearInterface;
 use App\Models\SchoolYear;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
 class SchoolYearRepository extends BaseRepository implements SchoolYearInterface
-{
-    protected Model $model;
-
-    public function __construct(SchoolYear $model)
+{   
+    public function __construct(SchoolYear $schoolYear)
     {
-        $this->model = $model;
+        $this->model = $schoolYear;
     }
 
     public function get(): mixed
     {
-        return $this->model->orderByDesc('created_at')->get();
+          return $this->model->query()->get();
     }
 
     public function show(mixed $id): mixed
@@ -28,20 +25,17 @@ class SchoolYearRepository extends BaseRepository implements SchoolYearInterface
 
     public function store(array $data): mixed
     {
-        return $this->model->create($data);
+        return $this->model->query()->create($data);
     }
 
     public function update(mixed $id, array $data): mixed
     {
-        $model = $this->model->findOrFail($id);
-        $model->update($data);
-        return $model;
+       return $this->show($id)->update($data);
     }
 
     public function delete(mixed $id): mixed
     {
-        $model = $this->model->findOrFail($id);
-        return $model->delete();
+        return $this->show($id)->delete();
     }
 
     public function restore(string $id): mixed
@@ -56,7 +50,7 @@ class SchoolYearRepository extends BaseRepository implements SchoolYearInterface
   
     public function paginate(): mixed
     {
-        return $this->model->query()->latest()->paginate(8);
+        return $this->model->query()->latest()->paginate(9);
     }
 
    public function search(Request $request, int $pagination = 10): mixed
@@ -69,7 +63,7 @@ class SchoolYearRepository extends BaseRepository implements SchoolYearInterface
         ->when($request->active, function ($query) use ($request) {
             $query->where('active', $request->active);
         })
-        ->orderByDesc('created_at')
+        ->latest()
         ->paginate($pagination);
     }
 
