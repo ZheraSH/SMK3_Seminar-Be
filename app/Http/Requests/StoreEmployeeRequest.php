@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Validation\Rule;
 use App\Models\User;
 use App\Models\Employee;
+use App\Enums\RoleEnum;
 
 class StoreEmployeeRequest extends ApiRequest
 {
@@ -21,6 +22,14 @@ class StoreEmployeeRequest extends ApiRequest
      */
     public function rules(): array
     {
+        $employeeRoles = [
+            RoleEnum::TEACHER->value,
+            RoleEnum::STAFF->value,
+            RoleEnum::HOMEROOM_TEACHER->value,
+            RoleEnum::COUNSELOR->value,
+            RoleEnum::CURRICULUM_COORDINATOR->value,
+        ];
+
         return [
             'name' => 'required|string|max:255',
             'email' => [
@@ -42,7 +51,8 @@ class StoreEmployeeRequest extends ApiRequest
             'birth_place' => 'required|string|max:255',
             'address' => 'required|string',
             'phone_number' => 'nullable|string|max:20',
-            'active' => 'boolean',
+            'roles' => 'required|array|min:1',
+            'roles.*' => Rule::in($employeeRoles),
         ];
     }
 
@@ -67,6 +77,10 @@ class StoreEmployeeRequest extends ApiRequest
             'birth_place.max' => 'Tempat lahir terlalu panjang',
             'address.required' => 'Alamat tidak boleh kosong',
             'phone_number.max' => 'Nomor telepon terlalu panjang',
+            'roles.required' => 'Role tidak boleh kosong',
+            'roles.array' => 'Role harus berupa array',
+            'roles.min' => 'Pilih minimal 1 role',
+            'roles.*.in' => 'Role yang dipilih tidak valid',
         ];
     }
 }

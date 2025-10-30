@@ -21,10 +21,13 @@ class UserSeeder extends Seeder
             );
 
             $email = match ($enumRole) {
-                RoleEnum::SCHOOL => 'operatorschool@skaniga.com',
-                RoleEnum::TEACHER => 'teacher@skaniga.com',
-                RoleEnum::STUDENT => 'student@skaniga.com',
+                RoleEnum::SCHOOL => 'operatorsekolah@skaniga.com',
+                RoleEnum::TEACHER => 'gurupengajar@skaniga.com',
+                RoleEnum::STUDENT => 'siswa@skaniga.com',
                 RoleEnum::STAFF => 'stafftu@skaniga.com',
+                RoleEnum::HOMEROOM_TEACHER => 'walikelas@skaniga.com',
+                RoleEnum::COUNSELOR => 'gurubk@skaniga.com',
+                RoleEnum::CURRICULUM_COORDINATOR => 'wakakurikulum@skaniga.com',
             };
 
             $user = User::updateOrCreate(
@@ -40,5 +43,23 @@ class UserSeeder extends Seeder
 
             $user->syncRoles([$role->name]);
         }
+
+        // Create user with multiple roles as example
+        $multiRoleUser = User::updateOrCreate(
+            ['email' => 'multirole@skaniga.com'],
+            [
+                'id' => Str::uuid(),
+                'name' => 'Multi Role User',
+                'slug' => 'multi-role-user',
+                'email_verified_at' => now(),
+                'password' => Hash::make('developer'),
+            ]
+        );
+
+        $multiRoleUser->syncRoles([
+            RoleEnum::TEACHER->value,
+            RoleEnum::HOMEROOM_TEACHER->value,
+            RoleEnum::CURRICULUM_COORDINATOR->value
+        ]);
     }
 }

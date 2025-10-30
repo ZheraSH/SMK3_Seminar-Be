@@ -20,6 +20,7 @@ class EmployeeService
 
     private UserInterface $user;
     private EmployeeInterface $employee;
+    
     public function __construct(UserInterface $user, EmployeeInterface $employee)
     {
         $this->user = $user;
@@ -29,6 +30,7 @@ class EmployeeService
     public function store(StoreEmployeeRequest $request): Employee
     {
         $data = $request->validated();
+        $roles = $data['roles'] ?? [RoleEnum::TEACHER->value];
 
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
             $data['image'] = $this->upload(UploadDiskEnum::TEACHER->value, $request->file('image'));
@@ -43,9 +45,11 @@ class EmployeeService
         ];
 
         $user = $this->user->store($userData);
-        $user->assignRole(RoleEnum::TEACHER->value);
+        
+        // Assign multiple roles
+        $user->syncRoles($roles);
 
-        $employeeData = collect($data)->except(['name','email'])->toArray();
+        $employeeData = collect($data)->except(['name','email','roles'])->toArray();
         $employeeData['id'] = (string) Str::uuid();
         $employeeData['user_id'] = $user->id;
 
@@ -57,21 +61,31 @@ class EmployeeService
         if (!$employee) return null;
 
         $data = $request->validated();
+        $roles = $data['roles'] ?? [RoleEnum::TEACHER->value];
 
         $userData = [
             'name' => $data['name'],
             'slug' => Str::slug($data['name']),
             'email' => $data['email'],
-            'password' => Hash::make($data['NIP']),
         ];
 
-        $employeeData = collect($data)->except(['name','email','role'])->toArray();
+        // Only update password if NIP changed
+        if ($employee->NIP !== $data['NIP']) {
+            $userData['password'] = Hash::make($data['NIP']);
+        }
+
+        $employeeData = collect($data)->except(['name','email','roles'])->toArray();
 
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
             $employeeData['image'] = $this->handleUpload($employee->image, $request->file('image'));
         }
         
         $this->user->update($employee->user_id, $userData);
+        
+        // Update roles
+        $user = $this->user->show($employee->user_id);
+        $user->syncRoles($roles);
+
         $this->employee->update($employee->id, $employeeData);
 
         return $employee->fresh(['user','religion']);
@@ -94,6 +108,7 @@ class EmployeeService
         if ($oldFile) $this->remove($oldFile);
         return $this->upload(UploadDiskEnum::TEACHER->value, $file);
     }
+
     public function getWithFilter(Request $request, int $pagination = 8): mixed
     {
         return $this->employee->search($request, $pagination);

@@ -18,61 +18,108 @@ class EmployeeSeeder extends Seeder
     {
         $faker = \Faker\Factory::create('id_ID');
 
-        Role::firstOrCreate(['name' => RoleEnum::TEACHER->value]);
-        // Role::firstOrCreate(['name' => RoleEnum::STAFF->value]);
+        // Hanya buat role untuk employee saja
+        $employeeRoles = [
+            RoleEnum::TEACHER->value,
+            RoleEnum::STAFF->value, 
+            RoleEnum::HOMEROOM_TEACHER->value,
+            RoleEnum::COUNSELOR->value,
+            RoleEnum::CURRICULUM_COORDINATOR->value,
+        ];
+
+        foreach ($employeeRoles as $role) {
+            Role::firstOrCreate(['name' => $role]);
+        }
 
         $religion = Religion::firstOrCreate(
             ['name' => 'Islam'],
             ['id' => (string) Str::uuid()]
         );
 
-        $employeesData = [
-            ['role' => RoleEnum::TEACHER->value, 'prefix' => 'Guru', 'nip_start' => '1980', 'count' => 2],
-            // ['role' => RoleEnum::STAFF->value, 'prefix' => 'Staff TU', 'nip_start' => '1990', 'count' => 2],
+        // Data dummy employees
+        $employees = [
+            // Guru biasa
+            [
+                'name' => 'Guru Matematika',
+                'email' => 'guru.matematika@skaniga.com',
+                'roles' => [RoleEnum::TEACHER->value],
+                'NIP' => '19800000000001',
+                'gender' => GenderEnum::MALE->value,
+            ],
+            [
+                'name' => 'Guru Bahasa',
+                'email' => 'guru.bahasa@skaniga.com', 
+                'roles' => [RoleEnum::TEACHER->value],
+                'NIP' => '19800000000002',
+                'gender' => GenderEnum::FEMALE->value,
+            ],
+            
+            // Staff TU
+            [
+                'name' => 'Staff Tu',
+                'email' => 'staff.administrasi@skaniga.com',
+                'roles' => [RoleEnum::STAFF->value],
+                'NIP' => '19900000000001',
+                'gender' => GenderEnum::FEMALE->value,
+            ],
+            
+            // Wali Kelas (multiple roles)
+            [
+                'name' => 'Wali Kelas',
+                'email' => 'wali.kelas.x@skaniga.com',
+                'roles' => [RoleEnum::TEACHER->value, RoleEnum::HOMEROOM_TEACHER->value],
+                'NIP' => '19750000000001',
+                'gender' => GenderEnum::MALE->value,
+            ],
+            
+            // Guru BK (multiple roles)  
+            [
+                'name' => 'BK',
+                'email' => 'guru.bimbingan@skaniga.com',
+                'roles' => [RoleEnum::TEACHER->value, RoleEnum::COUNSELOR->value],
+                'NIP' => '19850000000001',
+                'gender' => GenderEnum::FEMALE->value,
+            ],
+            
+            // Waka Kurikulum (multiple roles)
+            [
+                'name' => 'Waka Kurikulum',
+                'email' => 'waka.kurikulum@skaniga.com',
+                'roles' => [RoleEnum::TEACHER->value, RoleEnum::CURRICULUM_COORDINATOR->value],
+                'NIP' => '19700000000001',
+                'gender' => GenderEnum::MALE->value,
+            ],
         ];
 
-        foreach ($employeesData as $data) {
-            for ($i = 1; $i <= $data['count']; $i++) {
-                $name = "{$data['prefix']} {$i}";
-                $email = strtolower(str_replace(' ', '', $name)) . '@skaniga.com';
+        foreach ($employees as $employeeData) {
+            $user = User::updateOrCreate(
+                ['email' => $employeeData['email']],
+                [
+                    'id' => (string) Str::uuid(),
+                    'name' => $employeeData['name'],
+                    'slug' => Str::slug($employeeData['name']),
+                    'password' => Hash::make('employee123'),
+                    'email_verified_at' => now(),
+                ]
+            );
 
-                $user = User::updateOrCreate(
-                    ['email' => $email],
-                    [
-                        'id' => (String) Str::uuid(),
-                        'name' => $name,
-                        'slug' => Str::slug($name),
-                        'password' => Hash::make('employee123'),
-                        'email_verified_at' => now(),
-                    ]
-                );
+            $user->syncRoles($employeeData['roles']);
 
-                $user->syncRoles([$data['role']]);
-
-                $employeeId = $user->id;
-
-                Employee::updateOrCreate(
-                    ['user_id' => $user->id],
-                    [
-                        'id' => $employeeId,
-                        'image' => "admin_assets/dist/images/profile/teacher-" . $i . ".jpg",
-                        'NIP' => $data['nip_start'] . str_pad($i, 10, '0', STR_PAD_LEFT),
-                        'NIK' => (string) $faker->numerify('################'),
-                        'religion_id' => $religion->id,
-                        'gender' => $faker->randomElement([
-                            GenderEnum::MALE->value,
-                            GenderEnum::FEMALE->value,
-                        ]),
-                        'birth_date' => $faker->dateTimeBetween(
-                            $data['role'] === RoleEnum::TEACHER->value ? '-45 years' : '-40 years',
-                            $data['role'] === RoleEnum::TEACHER->value ? '-30 years' : '-25 years'
-                        )->format('Y-m-d'),
-                        'birth_place' => $faker->city(),
-                        'address' => $faker->address(),
-                        'phone_number' => $faker->phoneNumber(),
-                    ]
-                );
-            }
+            Employee::updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'id' => (string) Str::uuid(),
+                    'image' => null,
+                    'NIP' => $employeeData['NIP'],
+                    'NIK' => $faker->unique()->numerify('################'),
+                    'religion_id' => $religion->id,
+                    'gender' => $employeeData['gender'],
+                    'birth_date' => $faker->dateTimeBetween('-45 years', '-25 years')->format('Y-m-d'),
+                    'birth_place' => $faker->city(),
+                    'address' => $faker->address(),
+                    'phone_number' => $faker->phoneNumber(),
+                ]
+            );
         }
     }
 }
