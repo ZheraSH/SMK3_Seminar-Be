@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\RoleEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
@@ -28,7 +29,12 @@ class StudentResource extends JsonResource
             'order_child' => $this->order_child,
             'count_siblings' => $this->count_siblings,
             'address' => $this->address,
-            'roles' => $user?->roles?->pluck('name') ?? [],
+            'roles' => $user?->roles?->map(function ($role) {
+                return [
+                    'value' => $role->name,
+                    'label' => RoleEnum::tryFrom($role->name)?->label() ?? $role->name,
+                ];
+}) ?? [],
         ];
     }
 
