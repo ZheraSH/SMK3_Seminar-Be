@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class UpdateSchoolYearRequest extends FormRequest
+class UpdateSchoolYearRequest extends ApiRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,10 +26,14 @@ class UpdateSchoolYearRequest extends FormRequest
         $id = $this->route('school_year');
 
         return [
-            'school_year' => 'required|string|unique:school_years,school_year,' . $id,
+            'name' => 'required|string|unique:school_years,name,' . $id,
             'active' => 'boolean',
         ];
     }
+
+     /**
+     * Custom error messages
+     */
         public function messages(): array
     {
         return [
@@ -38,13 +42,5 @@ class UpdateSchoolYearRequest extends FormRequest
             'school_year.string' => 'Tahun ajaran harus berupa teks',
             'active.boolean' => 'Status aktif harus berupa true atau false',
         ];
-}
-
- protected function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(response()->json([
-            'message' => 'Validasi gagal',
-            'errors' => $validator->errors(),
-        ], 422));
     }
 }
