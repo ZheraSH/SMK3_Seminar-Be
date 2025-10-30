@@ -10,11 +10,13 @@ use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\LevelClassController;
 use App\Http\Controllers\Api\ClassroomStudentsController;
+use App\Http\Controllers\Api\RoleController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('login', [LoginController::class, 'login']);
 
 // Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
+    Route::apiResource('roles', RoleController::class)->only('index');
     Route::apiResource('students', StudentController::class);
     Route::apiResource('employees', EmployeeController::class);
     Route::apiResource('religions', ReligionController::class)->only(['index', 'show']);

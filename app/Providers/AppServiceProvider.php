@@ -9,6 +9,7 @@ use App\Contracts\Interfaces\LevelClassInterface;
 use App\Contracts\Interfaces\MajorInterface;
 use App\Contracts\Interfaces\SchoolYearInterface;
 use App\Contracts\Interfaces\ReligionInterface;
+use App\Contracts\Interfaces\RoleInterface;
 use App\Contracts\Interfaces\StudentInterface;
 use App\Contracts\Interfaces\UserInterface;
 use App\Contracts\Repositories\ClassroomRepository;
@@ -17,6 +18,7 @@ use App\Contracts\Repositories\EmployeeRepository;
 use App\Contracts\Repositories\LevelClassRepository;
 use App\Contracts\Repositories\MajorRepository;
 use App\Contracts\Repositories\ReligionRepository;
+use App\Contracts\Repositories\RoleRepository;
 use App\Contracts\Repositories\StudentRepository;
 use App\Contracts\Repositories\UserRepository;
 use App\Models\Student;
@@ -44,6 +46,7 @@ class AppServiceProvider extends ServiceProvider
 {
     private array $register = [
         UserInterface::class => UserRepository::class,
+        RoleInterface::class => RoleRepository::class,
         ReligionInterface::class => ReligionRepository::class,
         StudentInterface::class => StudentRepository::class,
         EmployeeInterface::class => EmployeeRepository::class,
