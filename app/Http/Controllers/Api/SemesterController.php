@@ -41,6 +41,24 @@ class SemesterController extends Controller
         }
     }
 
+    public function active()
+    {
+        try {
+            $semester = Semester::where('active', true)->first();
+
+            if (!$semester) {
+                return ResponseHelper::notFound('Tidak Ada Semester Aktif');
+            }
+
+            return ResponseHelper::success(
+                new SemesterResource($semester),
+                'Data Semester Aktif Berhasil Diambil'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage());
+        }
+    }
+
     public function cronStatus()
     {
         try {

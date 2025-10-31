@@ -17,5 +17,6 @@ class Semester extends Model
 
     protected $fillable = [
         'name', 
+        'active'
     ];
 }
