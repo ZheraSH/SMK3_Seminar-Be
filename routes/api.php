@@ -42,9 +42,8 @@ Route::prefix('school-years')->group(function () {
     Route::delete('/{id}', [SchoolYearsController::class, 'destroy']);
     Route::patch('/restore/{id}', [SchoolYearsController::class, 'restore']);
 });
-
 Route::prefix('semesters')->group(function () {
-    Route::get('/', [SemesterController::class, 'index'])->name('semesters.index');           // Semua semester
-    Route::get('/active', [SemesterController::class, 'active'])->name('semesters.active');    // Semester aktif
-    Route::get('/cron-status', [SemesterController::class, 'cronStatus'])->name('semesters.cronStatus'); // Status cron
+    Route::get('/', [SemesterController::class, 'index'])->name('semesters.index');
+    Route::get('/cron-status', [SemesterController::class, 'cronStatus'])->name('semesters.cronStatus');
+    Route::get('/{id}', [SemesterController::class, 'show'])->name('semesters.show');
 });
