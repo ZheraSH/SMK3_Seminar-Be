@@ -2,31 +2,60 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\SemesterResource;
 use App\Models\Semester;
 
 class SemesterController extends Controller
 {
     public function index()
     {
-        $semesters = Semester::all();
-        return response()->json($semesters);
+        try {
+            $semesters = Semester::all();
+
+            return ResponseHelper::success(
+                SemesterResource::collection($semesters),
+                'Data Semester Berhasil Diambil'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage());
+        }
     }
 
-    public function active()
+    public function show(string $id)
     {
-        $semester = Semester::where('active', true)->first();
-        return response()->json($semester);
+        try {
+            $semester = Semester::findOrFail($id);
+
+            if (!$semester) {
+                return ResponseHelper::notFound('Data Semester Tidak Ditemukan');
+            }
+
+            return ResponseHelper::success(
+                new SemesterResource($semester),
+                'Detail Data Semester Berhasil Diambil'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error(500, $th->getMessage());
+        }
     }
 
     public function cronStatus()
     {
-        $activeSemester = Semester::where('active', true)->first();
+        try {
+            $activeSemester = Semester::where('active', true)->first();
 
-        $status = $activeSemester 
-            ? "Semester aktif: " . $activeSemester->name 
-            : "Tidak ada semester aktif";
+            $status = $activeSemester
+                ? "Semester aktif: " . $activeSemester->name
+                : "Tidak ada semester aktif";
 
-        return response()->json(['status' => $status]);
+            return ResponseHelper::success(
+                ['status' => $status],
+                'Status Semester Berhasil Diambil'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage());
+        }
     }
 }
