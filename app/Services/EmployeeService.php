@@ -46,7 +46,6 @@ class EmployeeService
 
         $user = $this->user->store($userData);
         
-        // Assign multiple roles
         $user->syncRoles($roles);
 
         $employeeData = collect($data)->except(['name','email','roles'])->toArray();
@@ -69,7 +68,6 @@ class EmployeeService
             'email' => $data['email'],
         ];
 
-        // Only update password if NIP changed
         if ($employee->NIP !== $data['NIP']) {
             $userData['password'] = Hash::make($data['NIP']);
         }
@@ -82,7 +80,6 @@ class EmployeeService
         
         $this->user->update($employee->user_id, $userData);
         
-        // Update roles
         $user = $this->user->show($employee->user_id);
         $user->syncRoles($roles);
 
