@@ -38,12 +38,26 @@ class SubjectController extends Controller
 
     return ResponseHelper::success(new SubjectResource($data), 'Detail mata pelajaran ditemukan');
     }
-    public function update(UpdateSubjectRequest $request, $id)
-    {
-        $data = $this->subject->update($id, $request->validated());
-        return ResponseHelper::success(new SubjectResource($data), 'Data mata pelajaran berhasil diperbarui');
-    }
+public function update(UpdateSubjectRequest $request, string $id)
+{
+    try {
+        $subject = $this->subject->show($id);
 
+        if (! $subject) {
+            return ResponseHelper::notFound('Data mata pelajaran tidak ditemukan');
+        }
+        $this->subject->update($id, $request->validated());
+        $subject = $this->subject->show($id);
+
+        return ResponseHelper::success(
+            new SubjectResource($subject),
+            'Data mata pelajaran berhasil diperbarui'
+        );
+
+    } catch (\Throwable $th) {
+        return ResponseHelper::error(500, $th->getMessage());
+    }
+}
 
     public function destroy($id)
     {
