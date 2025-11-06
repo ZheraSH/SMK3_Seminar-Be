@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Contracts\Interfaces\SubjectInterface;
 use App\Contracts\Interfaces\SemesterInterface;
 use App\Contracts\Interfaces\ClassroomInterface;
 use App\Contracts\Interfaces\ClassroomStudentsInterface;
@@ -32,18 +33,21 @@ use App\Observers\ReligionObserver;
 use App\Observers\UserObserver;
 use App\Contracts\Repositories\SchoolYearRepository;
 use App\Contracts\Repositories\SemesterRepository;
+use App\Contracts\Repositories\SubjectRepository;
 use App\Models\Classroom;
 use App\Models\ClassroomStudents;
 use App\Models\LevelClass;
 use App\Models\Major;
 use App\Models\SchoolYear;
 use App\Models\Semester;
+use App\Models\Subject;
 use App\Observers\ClassroomObserver;
 use App\Observers\ClassroomStudentsObserver;
 use App\Observers\LevelClassObserver;
 use App\Observers\MajorObserver;
 use App\Observers\SchoolYearObserver;
 use App\Observers\SemesterObserver;
+use App\Observers\SubjectObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -60,6 +64,7 @@ class AppServiceProvider extends ServiceProvider
         ClassroomInterface::class => ClassroomRepository::class,
         ClassroomStudentsInterface::class => ClassroomStudentsRepository::class,
         SemesterInterface::class => SemesterRepository::class,
+        SubjectInterface::class => SubjectRepository::class,
     ];
 
     public function register(): void
@@ -84,5 +89,6 @@ class AppServiceProvider extends ServiceProvider
         Classroom::observe(ClassroomObserver::class);
         ClassroomStudents::observe(ClassroomStudentsObserver::class);
         Semester::observe(SemesterObserver::class);
+        Subject::observe(SubjectObserver::class);
     }
 }
