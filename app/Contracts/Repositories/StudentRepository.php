@@ -15,6 +15,11 @@ class StudentRepository extends BaseRepository implements StudentInterface
         $this->model = $student;
     }
 
+    public function get(): mixed
+    {
+        return $this->model->query()->get();
+    }
+    
     public function store(array $data): mixed
     {
         return $this->model->query()->create($data);
@@ -28,10 +33,6 @@ class StudentRepository extends BaseRepository implements StudentInterface
     public function update(mixed $id, array $data): mixed
     {
         return $this->show($id)->update($data);
-    }
-    public function get(): mixed
-    {
-        return $this->model->query()->get();
     }
 
     public function delete(mixed $id): mixed
