@@ -25,7 +25,7 @@ class StudentSeeder extends Seeder
             ['id' => (string) Str::uuid()]
         );
 
-        for ($i = 1; $i <= 2; $i++) {
+        for ($i = 1; $i <= 24; $i++) {
             $name = "Siswa {$i}";
             $email = "siswa{$i}@Skaniga.com";
 
