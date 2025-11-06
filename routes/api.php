@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\SubjectController;
 use App\Http\Controllers\Api\SemesterController;
 use App\Http\Controllers\Api\SchoolYearsController;
 use App\Http\Controllers\Api\ClassroomController;
@@ -47,4 +48,14 @@ Route::prefix('semesters')->group(function () {
     Route::get('/active', [SemesterController::class, 'active'])->name('semesters.active');
     Route::get('/cron-status', [SemesterController::class, 'cronStatus'])->name('semesters.cronStatus');
     Route::get('/{id}', [SemesterController::class, 'show'])->name('semesters.show');
+});
+
+
+
+Route::prefix('subjects')->group(function () {
+    Route::get('/', [SubjectController::class, 'index'])->name('subjects.index');
+    Route::get('/{id}', [SubjectController::class, 'show'])->name('subjects.show');
+    Route::post('/', [SubjectController::class, 'store'])->name('subjects.store');
+    Route::put('/{id}', [SubjectController::class, 'update'])->name('subjects.update');
+    Route::delete('/{id}', [SubjectController::class, 'destroy'])->name('subjects.destroy');
 });
