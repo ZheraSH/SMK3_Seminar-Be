@@ -6,7 +6,7 @@ use App\Enums\GenderEnum;
 use App\Traits\Models\BelongsToReligion;
 use App\Traits\Models\BelongsToUser;
 use App\Traits\Models\HasManyClassroomStudents;
-use App\Traits\Models\MorphManyRfid;
+use App\Traits\Models\HasManyRfids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -16,13 +16,12 @@ class Student extends Model
 
     use HasFactory, BelongsToUser,
     BelongsToReligion, HasManyClassroomStudents,
-    MorphManyRfid, SoftDeletes;
+    HasManyRfids, SoftDeletes;
 
     public $incrementing = false;
     protected $keyType = 'string';
     protected $table = 'students';
     protected $fillable = [
-        'name',
         'user_id',
         'image',
         'nisn',
@@ -39,5 +38,4 @@ class Student extends Model
     protected $casts = [
         'gender' => GenderEnum::class,
     ];
-
 }

@@ -9,6 +9,6 @@ trait BelongsToStudent
 {
     public function student(): BelongsTo
     {
-        return $this->belongsTo(Student::class);
+        return $this->belongsTo(Student::class, 'student_id');
     }
 }
