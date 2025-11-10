@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 class SubjectRepository extends BaseRepository implements SubjectInterface
 {
     use PaginationTrait;
+
     public function __construct(Subject $subject)
     {
         $this->model = $subject;
@@ -40,22 +41,16 @@ class SubjectRepository extends BaseRepository implements SubjectInterface
         return $this->show($id)->delete();
     }
 
-    public function paginate(int $perPage = 12): mixed
+    public function paginate(int $perPage = 8): mixed
     {
-        return $this->model->query()
-        ->latest()
-        ->paginate($perPage)
-        ->withQueryString(); 
+        return $this->model->query()->latest()->paginate($perPage);
     }
 
-  public function search(Request $request, int $pagination = 12): mixed
+    public function search(Request $request, int $perPage = 8): mixed
     {
         return $this->model->query()
-            ->when($request->keyword, function ($query) use ($request) {
-                $query->where('name', 'like', '%' . $request->keyword . '%');
-            })
+            ->when($request->keyword, fn($q) => $q->where('name', 'like', "%{$request->keyword}%"))
             ->latest()
-            ->paginate($pagination)
-            ->withQueryString();
+            ->paginate($perPage);
     }
 }
