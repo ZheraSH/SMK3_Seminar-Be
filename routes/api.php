@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\LessonHourController;
 use App\Http\Controllers\Api\SubjectController;
 use App\Http\Controllers\Api\SemesterController;
 use App\Http\Controllers\Api\SchoolYearsController;
@@ -47,10 +48,14 @@ Route::prefix('semesters')->group(function () {
     Route::get('/cron-status', [SemesterController::class, 'cron-status'])->name('semesters.cron-status');
 });
 
-Route::prefix('subjects')->group(function () {
-    Route::get('/', [SubjectController::class, 'index'])->name('subjects.index');
-    Route::get('/{id}', [SubjectController::class, 'show'])->name('subjects.show');
-    Route::post('/', [SubjectController::class, 'store'])->name('subjects.store');
-    Route::put('/{id}', [SubjectController::class, 'update'])->name('subjects.update');
-    Route::delete('/{id}', [SubjectController::class, 'destroy'])->name('subjects.destroy');
-});
+
+//Route::prefix('subjects')->group(function () {
+    //Route::get('/', [SubjectController::class, 'index'])->name('subjects.index');
+    //Route::get('/{id}', [SubjectController::class, 'show'])->name('subjects.show');
+    //Route::post('/', [SubjectController::class, 'store'])->name('subjects.store');
+    //Route::put('/{id}', [SubjectController::class, 'update'])->name('subjects.update');
+    //Route::delete('/{id}', [SubjectController::class, 'destroy'])->name('subjects.destroy');
+
+
+
+Route::apiResource('lesson-hours', LessonHourController::class);
