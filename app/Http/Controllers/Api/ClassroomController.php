@@ -36,7 +36,7 @@ class ClassroomController extends Controller
                 ClassroomResource::collection($classrooms),
                 'List Data Kelas Berhasil Diambil'
             );
-        } catch (Throwable $th) {
+        } catch (\Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
         }
     }
@@ -51,7 +51,7 @@ class ClassroomController extends Controller
                 'Data Kelas Berhasil Dibuat',
                 201
             );
-        } catch (Throwable $th) {
+        } catch (\Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
         }
     }
@@ -65,7 +65,7 @@ class ClassroomController extends Controller
                 new ClassroomDetailResource($classroom),
                 'Detail Data Kelas Berhasil Diambil'
             );
-        } catch (Throwable $th) {
+        } catch (\Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
         }
     }
@@ -79,7 +79,7 @@ class ClassroomController extends Controller
                 new ClassroomResource($classroom->load(['major', 'levelClass', 'schoolYear', 'teacher.user'])),
                 'Data Kelas Berhasil Diperbarui'
             );
-        } catch (Throwable $th) {
+        } catch (\Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
         }
     }
@@ -94,7 +94,7 @@ class ClassroomController extends Controller
                 new ClassroomDetailResource($updated),
                 'Siswa Berhasil Ditambahkan ke Kelas'
             );
-        } catch (Throwable $th) {
+        } catch (\Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
         }
     }
@@ -109,7 +109,7 @@ class ClassroomController extends Controller
                 new ClassroomDetailResource($updated),
                 'Siswa Berhasil Dihapus dari Kelas'
             );
-        } catch (Throwable $th) {
+        } catch (\Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
         }
     }
@@ -124,7 +124,7 @@ class ClassroomController extends Controller
                 new ClassroomDetailResource($updated),
                 'Data Siswa Kelas Berhasil Disinkronisasi'
             );
-        } catch (Throwable $th) {
+        } catch (\Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
         }
     }
@@ -139,7 +139,7 @@ class ClassroomController extends Controller
                 $students,
                 'Data Siswa Aktif Berhasil Diambil'
             );
-        } catch (Throwable $th) {
+        } catch (\Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
         }
     }
@@ -157,7 +157,7 @@ class ClassroomController extends Controller
                 AvailableStudentResource::collection($students),
                 'Data Siswa yang Tersedia Berhasil Diambil'
             );
-        } catch (Throwable $th) {
+        } catch (\Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
         }
     }

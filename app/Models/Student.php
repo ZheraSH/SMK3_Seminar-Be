@@ -4,9 +4,9 @@ namespace App\Models;
 
 use App\Enums\GenderEnum;
 use App\Traits\Models\BelongsToReligion;
+use App\Traits\Models\HasOneRfid;
 use App\Traits\Models\BelongsToUser;
 use App\Traits\Models\HasManyClassroomStudents;
-use App\Traits\Models\HasManyRfids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -16,7 +16,7 @@ class Student extends Model
 
     use HasFactory, BelongsToUser,
     BelongsToReligion, HasManyClassroomStudents,
-    HasManyRfids, SoftDeletes;
+    HasOneRfid, SoftDeletes;
 
     public $incrementing = false;
     protected $keyType = 'string';

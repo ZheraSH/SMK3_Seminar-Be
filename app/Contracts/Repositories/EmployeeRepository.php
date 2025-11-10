@@ -45,43 +45,26 @@ class EmployeeRepository extends BaseRepository implements EmployeeInterface
         return $this->model->query()->latest()->paginate(8);
     }
 
-    // public function search(Request $request, int $pagination = 8): mixed
-    // {
-    //     return $this->model->query()
-    //         ->when($request->search, function ($query) use ($request) {
-    //             $query->where(function($q) use ($request) {
-    //                 $q->whereHas('user', function ($sub) use ($request) {
-    //                 $sub->where('name', 'LIKE', '%' . $request->search . '%');
-    //             })
-    //             ->orWhere('NIP', 'LIKE', '%' . $request->search . '%');
-    //         });
-    //         })
-    //         ->when($request->role, function ($query) use ($request) {
-    //             $query->where('role', $request->role);
-    //         })
-    //         ->when($request->subject_id, function ($query) use ($request) {
-    //             $query->where('subject_id', $request->subject_id);
-    //         })
-    //         ->latest()
-    //         ->paginate($pagination);
-    // }
-    
     public function search(Request $request, int $pagination = 8): mixed
-{
-    return $this->model->query()
-        ->when($request->search, function ($query) use ($request) {
-            $query->whereHas('user', function ($q) use ($request) {
-                $q->where('name', 'LIKE', '%' . $request->search . '%');
+    {
+        return $this->model->query()
+            ->when($request->search, function ($query) use ($request) {
+                $query->where(function($q) use ($request) {
+                    $q->whereHas('user', function ($sub) use ($request) {
+                    $sub->where('name', 'LIKE', '%' . $request->search . '%');
+                })
+                ->orWhere('NIP', 'LIKE', '%' . $request->search . '%');
+            });
             })
-            ->orWhere('NIP', 'LIKE', '%' . $request->search . '%');
-        })
-        ->when($request->gender, function ($query) use ($request) {
-            $query->where('gender', $request->gender);
-        })
-        // untuk sementara skip role_id & subject_id
-        ->latest()
-        ->paginate($pagination);
-}
+            ->when($request->role, function ($query) use ($request) {
+                $query->where('role', $request->role);
+            })
+            ->when($request->subject_id, function ($query) use ($request) {
+                $query->where('subject_id', $request->subject_id);
+            })
+            ->latest()
+            ->paginate($pagination);
+    }
 
     public function count(): mixed
     {
