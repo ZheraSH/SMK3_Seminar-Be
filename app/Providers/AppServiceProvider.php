@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use App\Contracts\Interfaces\LessonHourInterface;
 use App\Contracts\Interfaces\SubjectInterface;
-use App\Contracts\Interfaces\SemesterInterface;
 use App\Contracts\Interfaces\ClassroomInterface;
 use App\Contracts\Interfaces\ClassroomStudentsInterface;
 use App\Contracts\Interfaces\EmployeeInterface;
@@ -33,7 +32,6 @@ use App\Observers\EmployeeObserver;
 use App\Observers\ReligionObserver;
 use App\Observers\UserObserver;
 use App\Contracts\Repositories\SchoolYearRepository;
-use App\Contracts\Repositories\SemesterRepository;
 use App\Contracts\Repositories\SubjectRepository;
 use App\Contracts\Repositories\LessonHourRepository;
 use App\Models\Classroom;
@@ -41,7 +39,6 @@ use App\Models\ClassroomStudents;
 use App\Models\LevelClass;
 use App\Models\Major;
 use App\Models\SchoolYear;
-use App\Models\Semester;
 use App\Models\Subject;
 use App\Models\LessonHour;
 use App\Observers\ClassroomObserver;
@@ -49,7 +46,6 @@ use App\Observers\ClassroomStudentsObserver;
 use App\Observers\LevelClassObserver;
 use App\Observers\MajorObserver;
 use App\Observers\SchoolYearObserver;
-use App\Observers\SemesterObserver;
 use App\Observers\SubjectObserver;
 use App\Observers\LessonHourObserver;
 use Illuminate\Support\ServiceProvider;
@@ -67,7 +63,6 @@ class AppServiceProvider extends ServiceProvider
         LevelClassInterface::class => LevelClassRepository::class,
         ClassroomInterface::class => ClassroomRepository::class,
         ClassroomStudentsInterface::class => ClassroomStudentsRepository::class,
-        SemesterInterface::class => SemesterRepository::class,
         SubjectInterface::class => SubjectRepository::class,
         LessonHourInterface::class => LessonHourRepository::class,
     ];
@@ -93,7 +88,6 @@ class AppServiceProvider extends ServiceProvider
         LevelClass::observe(LevelClassObserver::class);
         Classroom::observe(ClassroomObserver::class);
         ClassroomStudents::observe(ClassroomStudentsObserver::class);
-        Semester::observe(SemesterObserver::class);
         Subject::observe(SubjectObserver::class);
     }
 }
