@@ -24,7 +24,6 @@ class DatabaseSeeder extends Seeder
             SchoolYearSeeder::class,
             MajorSeeder::class,
             LevelClassSeeder::class,
-            SemesterSeeder::class,
             SubjectSeeder::class,
             LessonHourSeeder::class
         ]);
