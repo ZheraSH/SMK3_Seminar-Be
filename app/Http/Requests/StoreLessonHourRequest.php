@@ -3,7 +3,7 @@ namespace App\Http\Requests;
 
 use App\Http\Requests\ApiRequest;
 
-class UpdateLessonHourRequest extends ApiRequest
+class StoreLessonHourRequest extends ApiRequest
 {
     public function authorize(): bool
     {
@@ -12,8 +12,6 @@ class UpdateLessonHourRequest extends ApiRequest
 
     public function rules(): array
     {
-        $id = $this->route('id');
-
         return [
             'name' => 'required|string|max:100',
             'start' => 'required|date_format:H:i',
@@ -33,6 +31,9 @@ class UpdateLessonHourRequest extends ApiRequest
         ];
     }
 
+    /**
+     * Prepare the data for validation.
+     */
     protected function prepareForValidation()
     {
         if ($this->start) {
