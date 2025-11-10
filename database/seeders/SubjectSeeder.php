@@ -9,14 +9,32 @@ use App\Models\Subject;
 class SubjectSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Run the database seeds.a
      */
-    public function run(): void
+  public function run(): void
     {
-        $subjects = ['Matematika', 'Bahasa Indonesia', 'Bahasa Inggris', 'IPA', 'IPS'];
-        
-        foreach ($subjects as $name) {
-            Subject::create(['name' => $name]);
+        $subjects = [
+            'Bahasa Indonesia',
+            'Bahasa Inggris',
+            'Bahasa Madura',
+            'Pend. Agama Islam',
+            'Pend. Pancasila',
+            'Matematika',
+            'Seni Budaya',
+            'PJOK',
+            'PKK',
+            'Produktif PPLG',
+            // 'Produktif DKV',
+            // 'Praktik BDP',
+            // 'Praktik PH',
+            // 'Praktik KCS',
+            // 'Praktik Kuliner',
+        ];
+
+        foreach ($subjects as $subject) {
+            Subject::firstOrCreate([
+                'name' => $subject,
+            ]);
         }
     }
 }

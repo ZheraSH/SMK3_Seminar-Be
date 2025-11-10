@@ -34,23 +34,18 @@ Route::post('login', [LoginController::class, 'login']);
     Route::apiResource('classroomStudents', ClassroomStudentsController::class)->only('index'); 
 // });
 
+Route::apiResource('school-years', SchoolYearsController::class)->except(['update']);
 Route::prefix('school-years')->group(function () {
-    Route::get('/', [SchoolYearsController::class, 'index']);
-    Route::get('/active', [SchoolYearsController::class, 'active']);
-    Route::get('/cron-status', [SchoolYearsController::class, 'cronStatus']);
-    Route::post('/', [SchoolYearsController::class, 'store']);
-    Route::get('/{id}', [SchoolYearsController::class, 'show']);
-    Route::delete('/{id}', [SchoolYearsController::class, 'destroy']);
-    Route::patch('/restore/{id}', [SchoolYearsController::class, 'restore']);
+    Route::get('/active', [SchoolYearsController::class, 'active'])->name('school-years.active');
+    Route::get('/cron-status', [SchoolYearsController::class, 'cronStatus'])->name('school-years.cron-status');
+    Route::patch('/restore/{id}', [SchoolYearsController::class, 'restore'])->name('school-years.restore');
 });
+
+Route::apiResource('semesters', SemesterController::class)->only(['index', 'show']);
 Route::prefix('semesters')->group(function () {
-    Route::get('/', [SemesterController::class, 'index'])->name('semesters.index');
     Route::get('/active', [SemesterController::class, 'active'])->name('semesters.active');
-    Route::get('/cron-status', [SemesterController::class, 'cronStatus'])->name('semesters.cronStatus');
-    Route::get('/{id}', [SemesterController::class, 'show'])->name('semesters.show');
+    Route::get('/cron-status', [SemesterController::class, 'cron-status'])->name('semesters.cron-status');
 });
-
-
 
 Route::prefix('subjects')->group(function () {
     Route::get('/', [SubjectController::class, 'index'])->name('subjects.index');
