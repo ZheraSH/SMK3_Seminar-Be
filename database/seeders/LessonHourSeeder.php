@@ -1,5 +1,4 @@
 <?php
-
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -15,6 +14,8 @@ class LessonHourSeeder extends Seeder
             ['name' => 'Jam Ke 3', 'start' => '08:30', 'end' => '09:15'],
             ['name' => 'Istirahat', 'start' => '09:15', 'end' => '10:00'],
             ['name' => 'Jam Ke 4', 'start' => '10:00', 'end' => '10:45'],
+            ['name' => 'Jam Ke 5', 'start' => '10:45', 'end' => '11:30'],
+            ['name' => 'Jam Ke 6', 'start' => '11:30', 'end' => '12:15'],
         ];
 
         foreach ($data as $item) {
