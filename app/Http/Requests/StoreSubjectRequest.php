@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use PhpParser\Node\Expr\FuncCall;
 
 class StoreSubjectRequest extends ApiRequest
@@ -20,12 +19,13 @@ class StoreSubjectRequest extends ApiRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
-    {
-        return [
-            'name' => 'required|string|max:255|unique:subjects,name',
-        ];
-    }
+  public function rules(): array
+{
+    return [
+        'name' => 'required|string|max:255|unique:subjects,name',
+    ];
+}
+
 
     public function messages(): array
     {

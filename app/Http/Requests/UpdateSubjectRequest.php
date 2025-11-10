@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateSubjectRequest extends ApiRequest
 {
@@ -19,13 +18,14 @@ class UpdateSubjectRequest extends ApiRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
-    {
-       $id = $this->route('id');
-        return [
-            'name' => 'required|string|max:255|unique:subjects,name,' . $id,
-        ];
-    }
+   public function rules(): array
+{
+    $id = $this->route('id');
+    return [
+        'name' => 'required|string|max:255|unique:subjects,name,' . $id,
+    ];
+}
+
     public function messages(): array
     {
         return [
