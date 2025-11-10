@@ -59,11 +59,11 @@ class SchoolYearRepository extends BaseRepository implements SchoolYearInterface
     {
     
         return $this->model->query()
-        ->when($request->keyword, function ($query) use ($request) {
-            $query->where('school_year', 'like', '%' . $request->keyword . '%');
+           ->when($request->keyword, function ($query) use ($request) {
+               $query->where('name', 'like', '%' . $request->keyword . '%');
         })
-        ->when($request->active, function ($query) use ($request) {
-            $query->where('active', $request->active);
+           ->when($request->active, function ($query) use ($request) {
+               $query->where('active', $request->active);
         })
         ->latest()
         ->paginate($pagination);

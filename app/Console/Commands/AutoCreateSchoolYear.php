@@ -21,20 +21,15 @@ class AutoCreateSchoolYear extends Command
 
         SchoolYear::where('active', true)->update(['active' => false]);
 
-        $exists = SchoolYear::where('name', $schoolYearName)->exists();
-
-        if (!$exists) {
+        if (!SchoolYear::where('name', $schoolYearName)->exists()) {
             SchoolYear::create([
                 'name' => $schoolYearName,
                 'active' => true,
             ]);
-
             Log::info("Tahun ajaran baru dibuat otomatis: {$schoolYearName}");
             $this->info("✅ Tahun ajaran {$schoolYearName} berhasil dibuat otomatis.");
         } else {
             $this->info("ℹ️ Tahun ajaran {$schoolYearName} sudah ada, tidak dibuat ulang.");
         }
-
-        file_put_contents(storage_path('logs/last_cronjob.txt'), now());
     }
 }
