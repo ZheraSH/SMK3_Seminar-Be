@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Contracts\Repositories;
 
 use App\Contracts\Interfaces\LessonHourInterface;
@@ -7,11 +6,9 @@ use App\Models\LessonHour;
 use App\Traits\PaginationTrait;
 use Illuminate\Http\Request;
 
-class LessonHourRepository implements LessonHourInterface
+class LessonHourRepository extends BaseRepository implements LessonHourInterface
 {
     use PaginationTrait;
-
-    protected $model;
 
     public function __construct(LessonHour $lessonHour)
     {
@@ -20,48 +17,51 @@ class LessonHourRepository implements LessonHourInterface
 
     public function get(): mixed
     {
-        return $this->model->orderBy('start')->get();
+        return $this->model->query()->orderBy('start')->get();
     }
-
-    public function paginate($perPage = 10): mixed
-    {
-        return $this->model->orderBy('start')->paginate($perPage);
-    }
-
+    
     public function store(array $data): mixed
     {
-        return $this->model->create($data);
+        return $this->model->query()->create($data);
     }
 
-    public function update($id, array $data): mixed
+    public function show(mixed $id): mixed
     {
-        $lessonHour = $this->model->findOrFail($id);
-        $lessonHour->update($data);
-        return $lessonHour;
+        return $this->model->query()->findOrFail($id);
     }
 
-    public function show($id): mixed
+    public function update(mixed $id, array $data): mixed
     {
-        return $this->model->findOrFail($id);
+        return $this->show($id)->update($data);
     }
 
-    public function delete($id): bool
+    public function delete(mixed $id): mixed
     {
-        $lessonHour = $this->model->findOrFail($id);
-        return $lessonHour->delete();
+        return $this->show($id)->delete();
     }
 
-        public function search(Request $request): mixed
+    public function paginate(): mixed
     {
-        $keyword = $request->input('keyword');
+        return $this->model->query()->orderBy('start')->paginate(10);
+    }
 
-        return $this->model
-            ->when($keyword, function ($query, $keyword) {
-                $query->where('name', 'like', "%{$keyword}%")
-                      ->orWhere('start', 'like', "%{$keyword}%")
-                      ->orWhere('end', 'like', "%{$keyword}%");
+    public function search(Request $request, int $pagination = 10): mixed
+    {
+        return $this->model->query()
+            ->when($request->keyword, function ($query) use ($request) {
+                $query->where('name', 'like', '%' . $request->keyword . '%')
+                      ->orWhere('start', 'like', '%' . $request->keyword . '%')
+                      ->orWhere('end', 'like', '%' . $request->keyword . '%');
             })
             ->orderBy('start')
-            ->paginate($request->input('per_page', 10));
+            ->paginate($pagination);
+    }
+
+    /**
+     * Get last lesson hour by start time
+     */
+    public function getLastLessonHour(): mixed
+    {
+        return $this->model->query()->orderBy('start', 'desc')->first();
     }
 }
