@@ -31,6 +31,7 @@ class UpdateSubjectRequest extends ApiRequest
         return [
             'name.required' => 'Nama mapel tidak boleh kosong.',
             'name.unique' => 'Nama mapel sudah digunakan.',
+            'name.string' => 'Nama mapel harus berupa teks',
         ];
     }
 }

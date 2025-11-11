@@ -2,10 +2,6 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Http\Exceptions\HttpResponseException;
-
 class UpdateSchoolYearRequest extends ApiRequest
 {
     /**
@@ -37,9 +33,9 @@ class UpdateSchoolYearRequest extends ApiRequest
         public function messages(): array
     {
         return [
-            'school_year.required' => 'Tahun ajaran tidak boleh kosong',
-            'school_year.unique' => 'Tahun ajaran sudah digunakan',
-            'school_year.string' => 'Tahun ajaran harus berupa teks',
+            'name.required' => 'Tahun ajaran tidak boleh kosong',
+            'name.unique' => 'Tahun ajaran sudah digunakan',
+            'name.string' => 'Tahun ajaran harus berupa teks',
             'active.boolean' => 'Status aktif harus berupa true atau false',
         ];
     }
