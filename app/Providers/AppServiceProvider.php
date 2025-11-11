@@ -3,23 +3,29 @@
 namespace App\Providers;
 
 use App\Contracts\Interfaces\LessonHourInterface;
+use App\Contracts\Interfaces\AttendanceRuleInterface;
 use App\Contracts\Interfaces\SubjectInterface;
 use App\Contracts\Interfaces\ClassroomInterface;
 use App\Contracts\Interfaces\ClassroomStudentsInterface;
 use App\Contracts\Interfaces\EmployeeInterface;
+use App\Contracts\Interfaces\LessonScheduleInterface;
 use App\Contracts\Interfaces\LevelClassInterface;
 use App\Contracts\Interfaces\MajorInterface;
 use App\Contracts\Interfaces\SchoolYearInterface;
 use App\Contracts\Interfaces\ReligionInterface;
+use App\Contracts\Interfaces\RfidInterface;
 use App\Contracts\Interfaces\RoleInterface;
 use App\Contracts\Interfaces\StudentInterface;
 use App\Contracts\Interfaces\UserInterface;
+use App\Contracts\Repositories\AttendanceRuleRepository;
 use App\Contracts\Repositories\ClassroomRepository;
 use App\Contracts\Repositories\ClassroomStudentsRepository;
 use App\Contracts\Repositories\EmployeeRepository;
+use App\Contracts\Repositories\LessonScheduleRepository;
 use App\Contracts\Repositories\LevelClassRepository;
 use App\Contracts\Repositories\MajorRepository;
 use App\Contracts\Repositories\ReligionRepository;
+use App\Contracts\Repositories\RfidRepository;
 use App\Contracts\Repositories\RoleRepository;
 use App\Contracts\Repositories\StudentRepository;
 use App\Contracts\Repositories\UserRepository;
@@ -34,17 +40,23 @@ use App\Observers\UserObserver;
 use App\Contracts\Repositories\SchoolYearRepository;
 use App\Contracts\Repositories\SubjectRepository;
 use App\Contracts\Repositories\LessonHourRepository;
+use App\Models\AttendanceRule;
 use App\Models\Classroom;
 use App\Models\ClassroomStudents;
+use App\Models\LessonSchedules;
 use App\Models\LevelClass;
 use App\Models\Major;
+use App\Models\Rfid;
 use App\Models\SchoolYear;
 use App\Models\Subject;
 use App\Models\LessonHour;
+use App\Observers\AttendanceRuleObserver;
 use App\Observers\ClassroomObserver;
 use App\Observers\ClassroomStudentsObserver;
+use App\Observers\LessonScheduleObserver;
 use App\Observers\LevelClassObserver;
 use App\Observers\MajorObserver;
+use App\Observers\RfidObserver;
 use App\Observers\SchoolYearObserver;
 use App\Observers\SubjectObserver;
 use App\Observers\LessonHourObserver;
@@ -65,6 +77,9 @@ class AppServiceProvider extends ServiceProvider
         ClassroomStudentsInterface::class => ClassroomStudentsRepository::class,
         SubjectInterface::class => SubjectRepository::class,
         LessonHourInterface::class => LessonHourRepository::class,
+        // LessonScheduleInterface::class => LessonScheduleRepository::class,
+        // RfidInterface::class => RfidRepository::class,
+        // AttendanceRuleInterface::class => AttendanceRuleRepository::class,
     ];
 
     public function register(): void
@@ -89,5 +104,9 @@ class AppServiceProvider extends ServiceProvider
         Classroom::observe(ClassroomObserver::class);
         ClassroomStudents::observe(ClassroomStudentsObserver::class);
         Subject::observe(SubjectObserver::class);
+        LessonHour::observe(LessonHourObserver::class);
+        // LessonSchedules::observe(LessonScheduleObserver::class);
+        // Rfid::observe(RfidObserver::class);
+        // AttendanceRule::observe(AttendanceRuleObserver::class);
     }
 }
