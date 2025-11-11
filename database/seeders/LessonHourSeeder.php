@@ -3,12 +3,14 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\LessonHour;
+use App\Enums\DayEnum;
+use Illuminate\Support\Str;
 
 class LessonHourSeeder extends Seeder
 {
     public function run(): void
     {
-        $data = [
+        $lessonHours = [
             ['name' => 'Jam Ke 1', 'start' => '07:00', 'end' => '07:45'],
             ['name' => 'Jam Ke 2', 'start' => '07:45', 'end' => '08:30'],
             ['name' => 'Jam Ke 3', 'start' => '08:30', 'end' => '09:15'],
@@ -18,8 +20,30 @@ class LessonHourSeeder extends Seeder
             ['name' => 'Jam Ke 6', 'start' => '11:30', 'end' => '12:15'],
         ];
 
-        foreach ($data as $item) {
-            LessonHour::create($item);
+        $days = [
+            DayEnum::MONDAY->value, // Pakai ->value
+            DayEnum::TUESDAY->value,
+            DayEnum::WEDNESDAY->value,
+            DayEnum::THURSDAY->value,
+            DayEnum::FRIDAY->value,
+        ];
+
+        $data = [];
+
+        foreach ($days as $day) {
+            foreach ($lessonHours as $lessonHour) {
+                $data[] = [
+                    'id' => (string) Str::uuid(),
+                    'day' => $day, // Ini akan string 'monday', 'tuesday', dll
+                    'name' => $lessonHour['name'],
+                    'start' => $lessonHour['start'],
+                    'end' => $lessonHour['end'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
         }
+
+        LessonHour::insert($data);
     }
 }

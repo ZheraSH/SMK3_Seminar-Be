@@ -1,35 +1,33 @@
 <?php
 namespace App\Http\Controllers\Api;
 
-use App\Contracts\Repositories\LessonHourRepository;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreLessonHourRequest;
-use App\Http\Requests\UpdateLessonHourRequest;
 use App\Http\Resources\LessonHourResource;
-use Illuminate\Http\Request;
+use App\Models\LessonHour;
+use App\Services\LessonHourService;
+use App\Contracts\Repositories\LessonHourRepository;
 use Throwable;
 
 class LessonHourController extends Controller
 {
+    private LessonHourService $lessonHourService;
     private LessonHourRepository $lessonHourRepository;
 
-    public function __construct(LessonHourRepository $lessonHourRepository)
+    public function __construct(LessonHourService $lessonHourService, LessonHourRepository $lessonHourRepository) 
     {
+        $this->lessonHourService = $lessonHourService;
         $this->lessonHourRepository = $lessonHourRepository;
     }
 
-    public function index(Request $request)
+    public function index()
     {
         try {
-            if ($request->has('keyword') && !empty($request->keyword)) {
-                $data = $this->lessonHourRepository->search($request);
-            } else {
-                $data = $this->lessonHourRepository->paginate();
-            }
+            $lessonHours = $this->lessonHourRepository->get();
 
             return ResponseHelper::success(
-                LessonHourResource::collection($data)->response()->getData(true),
+                LessonHourResource::collection($lessonHours),
                 'Daftar jam pelajaran berhasil diambil'
             );
         } catch (Throwable $th) {
@@ -40,47 +38,29 @@ class LessonHourController extends Controller
     public function store(StoreLessonHourRequest $request)
     {
         try {
-            $data = $this->lessonHourRepository->store($request->validated());
+            $lessonHour = $this->lessonHourService->store($request);
+
             return ResponseHelper::success(
-                new LessonHourResource($data),
+                new LessonHourResource($lessonHour),
                 'Jam pelajaran berhasil dibuat',
                 201
             );
         } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error(400, $th->getMessage());
         }
     }
 
     public function show(string $id)
     {
         try {
-            $data = $this->lessonHourRepository->show($id);
-            return ResponseHelper::success(
-                new LessonHourResource($data),
-                'Detail jam pelajaran berhasil diambil'
-            );
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return ResponseHelper::notFound('Jam pelajaran tidak ditemukan');
-        } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
-        }
-    }
-
-    public function update(UpdateLessonHourRequest $request, string $id)
-    {
-        try {
-            $data = $this->lessonHourRepository->update($id, $request->validated());
-            if (!$data) {
+            $lessonHour = LessonHour::find($id);
+            if (!$lessonHour) {
                 return ResponseHelper::notFound('Jam pelajaran tidak ditemukan');
             }
-
-            $updatedData = $this->lessonHourRepository->show($id);
             return ResponseHelper::success(
-                new LessonHourResource($updatedData),
-                'Jam pelajaran berhasil diperbarui'
+                new LessonHourResource($lessonHour),
+                'Detail jam pelajaran berhasil diambil'
             );
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return ResponseHelper::notFound('Jam pelajaran tidak ditemukan');
         } catch (Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
         }
@@ -89,25 +69,40 @@ class LessonHourController extends Controller
     public function destroy(string $id)
     {
         try {
-            $this->lessonHourRepository->delete($id);
+            $lessonHour = LessonHour::find($id);
+            if (!$lessonHour) {
+                return ResponseHelper::notFound('Jam pelajaran tidak ditemukan');
+            }
+            
+            $this->lessonHourService->delete($lessonHour);
             return ResponseHelper::success(null, 'Jam pelajaran berhasil dihapus');
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return ResponseHelper::notFound('Jam pelajaran tidak ditemukan');
         } catch (Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
         }
     }
 
-    /**
-     * Get last lesson hour for auto calculation
-     */
-    public function getLastLessonHour()
+    public function getByDay(string $day)
     {
         try {
-            $lastLessonHour = $this->lessonHourRepository->getLastLessonHour();
+            $lessonHours = $this->lessonHourRepository->getByDay($day);
+
             return ResponseHelper::success(
-                $lastLessonHour ? new LessonHourResource($lastLessonHour) : null,
-                'Data jam pelajaran terakhir berhasil diambil'
+                LessonHourResource::collection($lessonHours),
+                'Jam pelajaran untuk hari ' . $day . ' berhasil diambil'
+            );
+        } catch (Throwable $th) {
+            return ResponseHelper::error(500, $th->getMessage());
+        }
+    }
+
+    public function getAllGroupedByDay()
+    {
+        try {
+            $lessonHours = $this->lessonHourService->getAllGroupedByDay();
+
+            return ResponseHelper::success(
+                $lessonHours,
+                'Data jam pelajaran dikelompokkan per hari berhasil diambil'
             );
         } catch (Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());

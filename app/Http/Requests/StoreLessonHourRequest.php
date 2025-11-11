@@ -1,7 +1,8 @@
 <?php
 namespace App\Http\Requests;
 
-use App\Http\Requests\ApiRequest;
+use App\Enums\DayEnum;
+use Illuminate\Validation\Rule;
 
 class StoreLessonHourRequest extends ApiRequest
 {
@@ -13,7 +14,9 @@ class StoreLessonHourRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:100',
+            'day' => 'required|in:' . implode(',', DayEnum::values()),
+            'name' => ['required','string','max:100',
+                Rule::unique('lesson_hours', 'name')->where('day', $this->day)->whereNull('deleted_at')],
             'start' => 'required|date_format:H:i',
             'end' => 'required|date_format:H:i|after:start',
         ];
@@ -22,7 +25,10 @@ class StoreLessonHourRequest extends ApiRequest
     public function messages(): array
     {
         return [
+            'day.required' => 'Hari wajib dipilih',
+            'day.in' => 'Hari tidak valid',
             'name.required' => 'Nama jam pelajaran wajib diisi',
+            'name.unique' => 'Nama jam pelajaran sudah digunakan untuk hari ini',
             'start.required' => 'Waktu mulai wajib diisi',
             'start.date_format' => 'Format waktu mulai harus HH:MM',
             'end.required' => 'Waktu selesai wajib diisi',
@@ -31,9 +37,6 @@ class StoreLessonHourRequest extends ApiRequest
         ];
     }
 
-    /**
-     * Prepare the data for validation.
-     */
     protected function prepareForValidation()
     {
         if ($this->start) {
@@ -41,7 +44,7 @@ class StoreLessonHourRequest extends ApiRequest
                 'start' => $this->formatTime($this->start),
             ]);
         }
-        
+
         if ($this->end) {
             $this->merge([
                 'end' => $this->formatTime($this->end),
