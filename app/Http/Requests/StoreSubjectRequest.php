@@ -2,8 +2,6 @@
 
 namespace App\Http\Requests;
 
-use PhpParser\Node\Expr\FuncCall;
-
 class StoreSubjectRequest extends ApiRequest
 {
     /**
@@ -32,6 +30,7 @@ class StoreSubjectRequest extends ApiRequest
         return [
             'name.required' => 'Nama mapel tidak boleh kosong.',
             'name.unique' => 'Nama mapel sudah terdaftar.',
+            'name.string' => 'Nama mapel harus berupa teks',
         ];
     }
 }
