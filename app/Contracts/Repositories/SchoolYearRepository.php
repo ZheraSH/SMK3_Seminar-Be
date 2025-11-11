@@ -17,12 +17,12 @@ class SchoolYearRepository extends BaseRepository implements SchoolYearInterface
 
     public function get(): mixed
     {
-          return $this->model->query()->get();
+        return $this->model->query()->get();
     }
 
     public function show(mixed $id): mixed
     {
-        return $this->model->withTrashed()->find($id);
+        return $this->model->findOrFail($id);
     }
 
     public function store(array $data): mixed
@@ -39,23 +39,13 @@ class SchoolYearRepository extends BaseRepository implements SchoolYearInterface
     {
         return $this->show($id)->delete();
     }
-
-    public function restore(string $id): mixed
-    {
-        $data = $this->model->onlyTrashed()->find($id);
-        if ($data) {
-            $data->restore();
-        }
-        return $data;
-    }
-
-  
+    
     public function paginate(): mixed
     {
-        return $this->model->query()->latest()->paginate(9);
+        return $this->model->query()->latest()->paginate(12);
     }
 
-   public function search(Request $request, int $pagination = 10): mixed
+   public function search(Request $request, int $pagination = 12): mixed
     {
     
         return $this->model->query()
