@@ -9,6 +9,6 @@ class SubjectObserver
 {
     public function creating(Subject $subject)
     {
-        $subject->id = $subject->id ?? (string) Str::uuid();
+        $subject->id = Str::uuid();
     }
 }
