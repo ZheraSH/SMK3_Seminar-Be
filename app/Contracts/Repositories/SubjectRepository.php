@@ -41,12 +41,12 @@ class SubjectRepository extends BaseRepository implements SubjectInterface
         return $this->show($id)->delete();
     }
 
-    public function paginate(int $perPage = 8): mixed
+    public function paginate(int $perPage = 12): mixed
     {
         return $this->model->query()->latest()->paginate($perPage);
     }
 
-    public function search(Request $request, int $perPage = 8): mixed
+    public function search(Request $request, int $perPage = 12): mixed
     {
         return $this->model->query()
             ->when($request->keyword, fn($q) => $q->where('name', 'like', "%{$request->keyword}%"))
