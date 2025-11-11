@@ -24,6 +24,7 @@ class SubjectController extends Controller
     {
         try {
             $subjects = $this->subjectRepository->paginate();
+
             return ResponseHelper::success(
                 SubjectResource::collection($subjects),
                 'List mata pelajaran berhasil diambil'
@@ -37,9 +38,10 @@ class SubjectController extends Controller
     {
         try {
             $subjects = $this->subjectRepository->search($request);
+
             return ResponseHelper::success(
                 SubjectResource::collection($subjects),
-                'Hasil pencarian mata pelajaran'
+                'Hasil pencarian mata pelajaran berhasil diambil'
             );
         } catch (Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
@@ -50,6 +52,7 @@ class SubjectController extends Controller
     {
         try {
             $subject = $this->subjectRepository->store($request->validated());
+
             return ResponseHelper::success(
                 new SubjectResource($subject),
                 'Mata pelajaran berhasil ditambahkan',
@@ -64,20 +67,26 @@ class SubjectController extends Controller
     {
         try {
             $subject = $this->subjectRepository->show($id);
+
+            if (! $subject) {
+                return ResponseHelper::notFound('Data mata pelajaran tidak ditemukan');
+            }
+
             return ResponseHelper::success(
                 new SubjectResource($subject),
-                'Detail mata pelajaran ditemukan'
+                'Detail mata pelajaran berhasil diambil'
             );
         } catch (Throwable $th) {
-            return ResponseHelper::error(404, 'Data mata pelajaran tidak ditemukan');
+            return ResponseHelper::error(500, $th->getMessage());
         }
     }
 
     public function update(UpdateSubjectRequest $request, string $id)
     {
         try {
-            $this->subjectRepository->update($id, $request->validated());
+            $updated = $this->subjectRepository->update($id, $request->validated());
             $subject = $this->subjectRepository->show($id);
+
             return ResponseHelper::success(
                 new SubjectResource($subject),
                 'Data mata pelajaran berhasil diperbarui'
@@ -90,7 +99,12 @@ class SubjectController extends Controller
     public function destroy(string $id)
     {
         try {
-            $this->subjectRepository->delete($id);
+            $deleted = $this->subjectRepository->delete($id);
+
+            if (! $deleted) {
+                return ResponseHelper::notFound('Data mata pelajaran tidak ditemukan');
+            }
+
             return ResponseHelper::success(null, 'Data mata pelajaran berhasil dihapus');
         } catch (Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());

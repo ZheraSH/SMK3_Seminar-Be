@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Contracts\Repositories\SchoolYearRepository;
 use App\Http\Requests\StoreSchoolYearRequest;
 use App\Http\Requests\UpdateSchoolYearRequest;
 use App\Http\Resources\SchoolYearResource;
-use App\Contracts\Repositories\SchoolYearRepository;
 use App\Helpers\ResponseHelper;
+use Illuminate\Http\Request;
+use Throwable;
 
 class SchoolYearsController extends Controller
 {
@@ -18,95 +20,114 @@ class SchoolYearsController extends Controller
         $this->schoolYear = $schoolYear;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $data = $this->schoolYear->get();
-        return ResponseHelper::success(
-            SchoolYearResource::collection($data),
-            'Data tahun ajaran berhasil diambil'
-        );
+        try {
+            $data = $this->schoolYear->search($request, 12);
+
+            return ResponseHelper::success(
+                SchoolYearResource::collection($data),
+                'Data tahun ajaran berhasil diambil'
+            );
+        } catch (Throwable $th) {
+            return ResponseHelper::error(500, $th->getMessage());
+        }
     }
 
     public function store(StoreSchoolYearRequest $request)
     {
-        $data = $this->schoolYear->store($request->validated());
-        return ResponseHelper::success(
-            new SchoolYearResource($data),
-            'Tahun ajaran berhasil ditambahkan',
-            201
-        );
+        try {
+            $data = $this->schoolYear->store($request->validated());
+
+            return ResponseHelper::success(
+                new SchoolYearResource($data),
+                'Tahun ajaran berhasil ditambahkan',
+                201
+            );
+        } catch (Throwable $th) {
+            return ResponseHelper::error(500, $th->getMessage());
+        }
     }
 
     public function show($id)
     {
-        $data = $this->schoolYear->show($id);
-        if (!$data) {
-            return ResponseHelper::error('Data tidak ditemukan', null, 404);
-        }
+        try {
+            $data = $this->schoolYear->show($id);
+            if (! $data) {
+                return ResponseHelper::notFound('Data tidak ditemukan');
+            }
 
-        return ResponseHelper::success(
-            new SchoolYearResource($data),
-            'Detail tahun ajaran ditemukan'
-        );
+            return ResponseHelper::success(
+                new SchoolYearResource($data),
+                'Detail tahun ajaran ditemukan'
+            );
+        } catch (Throwable $th) {
+            return ResponseHelper::error(500, $th->getMessage());
+        }
     }
 
     public function destroy($id)
     {
-        $this->schoolYear->delete($id);
-        return ResponseHelper::success(
-            null,
-            'Data tahun ajaran berhasil dihapus'
-        );
-    }
+        try {
+            $deleted = $this->schoolYear->delete($id);
 
-    public function restore($id)
-    {
-        $data = $this->schoolYear->restore($id);
-        if (!$data) {
-            return ResponseHelper::error('Data tidak ditemukan', null, 404);
+            if (! $deleted) {
+                return ResponseHelper::notFound('Data tidak ditemukan');
+            }
+
+            return ResponseHelper::success(null, 'Data tahun ajaran berhasil dihapus');
+        } catch (Throwable $th) {
+            return ResponseHelper::error(500, $th->getMessage());
         }
-
-        return ResponseHelper::success(
-            new SchoolYearResource($data),
-            'Data tahun ajaran berhasil dipulihkan'
-        );
-    }   
+    }
 
     public function active()
     {
-        $data = $this->schoolYear->get()->where('active', true)->first();
+        try {
+            $data = $this->schoolYear->get()->where('active', true)->first();
 
-        if (!$data) {
-            return ResponseHelper::error('Tidak ada tahun ajaran yang aktif', null, 404);
+            if (! $data) {
+                return ResponseHelper::notFound('Tidak ada tahun ajaran yang aktif');
+            }
+
+            return ResponseHelper::success(
+                new SchoolYearResource($data),
+                'Tahun ajaran aktif ditemukan'
+            );
+        } catch (Throwable $th) {
+            return ResponseHelper::error(500, $th->getMessage());
         }
-
-        return ResponseHelper::success(
-            new SchoolYearResource($data),
-            'Tahun ajaran aktif ditemukan'
-        );
     }
 
     public function cronStatus()
     {
-        $latest = \App\Models\SchoolYear::orderByDesc('created_at')->first();
+        try {
+            $latest = \App\Models\SchoolYear::orderByDesc('created_at')->first();
 
-        if (!$latest) {
+            if (! $latest) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Belum ada data tahun ajaran',
+                    'data' => null
+                ], 404);
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Status cron job tahun ajaran berhasil diambil',
+                'data' => [
+                    'id' => $latest->id,
+                    'name' => $latest->name,
+                    'active' => $latest->active,
+                    'created_at' => $latest->created_at->format('Y-m-d H:i:s'),
+                ]
+            ]);
+        } catch (Throwable $th) {
             return response()->json([
                 'status' => false,
-                'message' => 'Belum ada data tahun ajaran',
-                'data' => null
-            ], 404);
+                'message' => 'Terjadi kesalahan saat mengambil status cron job',
+                'error' => $th->getMessage(),
+            ], 500);
         }
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Status cron job tahun ajaran berhasil diambil',
-            'data' => [
-                'id' => $latest->id,
-                'name' => $latest->name,
-                'active' => $latest->active,
-                'created_at' => $latest->created_at->format('Y-m-d H:i:s'),
-            ]
-        ]);
     }
 }
