@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AttendanceRuleController;
 use App\Http\Controllers\Api\LessonHourController;
 use App\Http\Controllers\Api\SubjectController;
 use App\Http\Controllers\Api\SemesterController;
@@ -11,7 +12,9 @@ use App\Http\Controllers\Api\ReligionController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\LevelClassController;
-use App\Http\Controllers\Api\ClassroomStudentsController;       
+use App\Http\Controllers\Api\ClassroomStudentsController;
+use App\Http\Controllers\Api\LessonSchedulesController;
+use App\Http\Controllers\Api\RfidController;
 use App\Http\Controllers\Api\RoleController;
 use Illuminate\Support\Facades\Route;
 
@@ -33,27 +36,14 @@ Route::post('login', [LoginController::class, 'login']);
         Route::delete('/remove-student/{studentId}', [ClassroomController::class, 'removeStudent']);
     });
     Route::apiResource('classroomStudents', ClassroomStudentsController::class)->only('index'); 
+    Route::apiResource('school-years', SchoolYearsController::class)->except(['update']);
+    Route::prefix('school-years')->group(function () {
+        Route::get('/active', [SchoolYearsController::class, 'active']); // ambil tahun ajaran aktif
+        Route::get('/cron-status', [SchoolYearsController::class, 'cronStatus']); // cek cron terakhir jalan
+        Route::patch('/restore/{id}', [SchoolYearsController::class, 'restore']); // restore soft delete
+    });
+    Route::get('/semesters/active', [SemesterController::class, 'active']);
+    Route::apiResource('subjects', SubjectController::class);
+    Route::apiResource('lesson-hours', LessonHourController::class);
 // });
-
-Route::prefix('school-years')->group(function () {
-    Route::get('/active', [SchoolYearsController::class, 'active']); // ambil tahun ajaran aktif
-    Route::get('/cron-status', [SchoolYearsController::class, 'cronStatus']); // cek cron terakhir jalan
-    Route::patch('/restore/{id}', [SchoolYearsController::class, 'restore']); // restore soft delete
-});
-
-Route::apiResource('school-years', SchoolYearsController::class)->except(['update']);
-
-Route::get('/semesters/active', [SemesterController::class, 'active']);
-
-
-Route::prefix('subjects')->group(function () {
-    Route::apiResource('/', SubjectController::class)->parameters(['' => 'id'])->only([
-        'index', 'show', 'store', 'update', 'destroy'
-    ]);
-
-});
-
-
-
-Route::apiResource('lesson-hours', LessonHourController::class);
-
+    
