@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Major;
 
@@ -13,17 +12,20 @@ class MajorSeeder extends Seeder
      */
     public function run(): void
     {
-        $Majors = [
-        'PPLG',
-        'DKV',
-        'DPB',
-        'KCS',
-        'Kuliner',
-        'Perhotelan'
-    ];
+        $majors = [
+            ['name' => 'Pengembangan Perangkat Lunak & Game', 'code' => 'PPLG'],
+            ['name' => 'Desain Komunikasi Visual', 'code' => 'DKV'],
+            ['name' => 'Desain & Produksi Busana', 'code' => 'DPB'],
+            ['name' => 'Kecantikan & Spa', 'code' => 'KCS'],
+            ['name' => 'Perhotelan', 'code' => 'PH'],
+            ['name' => 'Kuliner', 'code' => null],
+        ];
 
-        foreach ($Majors as $name) {
-            Major::firstOrCreate(['name' => $name]);
+        foreach ($majors as $major) {
+            Major::firstOrCreate(
+                ['name' => $major['name']],
+                ['code' => $major['code']]
+            );
         }
     }
 }
