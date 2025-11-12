@@ -12,6 +12,7 @@ class MajorResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'code' => $this->code,
             'classrooms' => ClassroomResource::collection($this->whenLoaded('classrooms')),
         ];
     }
