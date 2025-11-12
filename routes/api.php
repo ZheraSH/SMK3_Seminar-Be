@@ -68,25 +68,25 @@ Route::post('login', [LoginController::class, 'login']);
     Route::apiResource('subjects', SubjectController::class);
 
     // Lesson Hours
-    Route::apiResource('lessonHours', LessonHourController::class);
+    Route::apiResource('lessonHours', LessonHourController::class)->except(['update']);
     Route::prefix('lessonHours')->group(function () {
         Route::get('day/{day}', [LessonHourController::class, 'getByDay']); // jam pelajaran berdasarkan hari
         Route::get('grouped/days', [LessonHourController::class, 'getAllGroupedByDay']); // semua jam dikelompokkan per hari
     });
 
     // Lesson Schedules
-    Route::apiResource('lessonSchedules', LessonSchedulesController::class)->except(['update']);
-    Route::prefix('classrooms')->group(function () {
+    Route::apiResource('lessonSchedules', LessonSchedulesController::class);
+    Route::prefix('lessonSchedules')->group(function () {
         Route::get('/{classroomId}/schedules', [LessonSchedulesController::class, 'getByClassroom']); // jadwal per kelas
         Route::get('/{classroomId}/schedules/{day}', [LessonSchedulesController::class, 'getByClassroomAndDay']); // jadwal per kelas dan hari
     });
 
     // Attendance Rules
-    // Route::apiResource('attendanceRules', AttendanceRuleController::class)->only(['store', 'show']);
-    // Route::prefix('attendanceRules')->group(function () {
-    //     Route::get('/day/{day}', [AttendanceRuleController::class, 'getByDay']); // aturan absensi per hari
-    //     Route::post('/day/{day}', [AttendanceRuleController::class, 'updateByDay']); // update aturan absensi per hari
-    // });
+    Route::apiResource('attendanceRules', AttendanceRuleController::class)->only(['store', 'show']);
+    Route::prefix('attendanceRules')->group(function () {
+        Route::get('/day/{day}', [AttendanceRuleController::class, 'getByDay']); // aturan absensi per hari
+        Route::post('/day/{day}', [AttendanceRuleController::class, 'updateByDay']); // update aturan absensi per hari
+    });
 
     // Rfid
     // Route::apiResource('rfids', RfidController::class);
