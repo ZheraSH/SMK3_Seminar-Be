@@ -18,10 +18,8 @@ class LessonHourService
     {
         $data = $request->validated();
         
-        // Validasi nama tidak boleh duplikat di hari yang sama
         $this->validateUniqueName($data['name'], $data['day']);
         
-        // Validasi waktu tidak overlap
         $this->validateTimeOverlap($data);
         
         return $this->lessonHour->store($data);
@@ -83,7 +81,7 @@ class LessonHourService
 
     private function isUsedInSchedules(string $lessonHourId): bool
     {
-        return \App\Models\LessonSchedules::where('lesson_hour_id', $lessonHourId)->exists();
+        return \App\Models\LessonSchedule::where('lesson_hour_id', $lessonHourId)->exists();
     }
 
     private function formatTimeForResponse($time): string
