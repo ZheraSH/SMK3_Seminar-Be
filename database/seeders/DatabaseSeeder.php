@@ -2,9 +2,6 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-
-use App\Models\Subject;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -17,18 +14,18 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             PermissionSeeder::class,
-            UserSeeder::class,
+            UserSeeder::class, //Data dummy
             ReligionSeeder::class,
-            StudentSeeder::class,
-            EmployeeSeeder::class,
+            StudentSeeder::class, //Data dummy
+            EmployeeSeeder::class, //Data dummy
             SchoolYearSeeder::class,
             MajorSeeder::class,
             LevelClassSeeder::class,
             SubjectSeeder::class,
-            ClassroomSeeder::class,
-            LessonHourSeeder::class,
-            LessonScheduleSeeder::class,
-            // AttendanceRuleSeeder::class,
+            ClassroomSeeder::class, //Data dummy
+            LessonHourSeeder::class, //Data dummy
+            LessonScheduleSeeder::class, //Data dummy
+            AttendanceRuleSeeder::class, //Data dummy
         ]);
     }
 }

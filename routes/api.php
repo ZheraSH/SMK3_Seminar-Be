@@ -82,10 +82,10 @@ Route::post('login', [LoginController::class, 'login']);
     });
 
     // Attendance Rules
-    Route::apiResource('attendanceRules', AttendanceRuleController::class)->only(['store', 'show']);
+    Route::apiResource('attendanceRules', AttendanceRuleController::class)->only(['index','store']);
     Route::prefix('attendanceRules')->group(function () {
-        Route::get('/day/{day}', [AttendanceRuleController::class, 'getByDay']); // aturan absensi per hari
         Route::post('/day/{day}', [AttendanceRuleController::class, 'updateByDay']); // update aturan absensi per hari
+        Route::get('/day/{day}', [AttendanceRuleController::class, 'getByDay']); // aturan absensi per hari
     });
 
     // Rfid

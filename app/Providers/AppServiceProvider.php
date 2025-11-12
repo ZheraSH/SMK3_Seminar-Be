@@ -78,7 +78,7 @@ class AppServiceProvider extends ServiceProvider
         SubjectInterface::class => SubjectRepository::class,
         LessonHourInterface::class => LessonHourRepository::class,
         LessonScheduleInterface::class => LessonScheduleRepository::class,
-        // AttendanceRuleInterface::class => AttendanceRuleRepository::class,
+        AttendanceRuleInterface::class => AttendanceRuleRepository::class,
         // RfidInterface::class => RfidRepository::class,
     ];
 
@@ -106,7 +106,7 @@ class AppServiceProvider extends ServiceProvider
         Subject::observe(SubjectObserver::class);
         LessonHour::observe(LessonHourObserver::class);
         LessonSchedule::observe(LessonScheduleObserver::class);
-        // AttendanceRule::observe(AttendanceRuleObserver::class);
+        AttendanceRule::observe(AttendanceRuleObserver::class);
         // Rfid::observe(RfidObserver::class);
     }
 }
