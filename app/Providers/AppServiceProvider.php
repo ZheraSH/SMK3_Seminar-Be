@@ -43,7 +43,7 @@ use App\Contracts\Repositories\LessonHourRepository;
 use App\Models\AttendanceRule;
 use App\Models\Classroom;
 use App\Models\ClassroomStudents;
-use App\Models\LessonSchedules;
+use App\Models\LessonSchedule;
 use App\Models\LevelClass;
 use App\Models\Major;
 use App\Models\Rfid;
@@ -77,9 +77,9 @@ class AppServiceProvider extends ServiceProvider
         ClassroomStudentsInterface::class => ClassroomStudentsRepository::class,
         SubjectInterface::class => SubjectRepository::class,
         LessonHourInterface::class => LessonHourRepository::class,
-        // LessonScheduleInterface::class => LessonScheduleRepository::class,
-        // RfidInterface::class => RfidRepository::class,
+        LessonScheduleInterface::class => LessonScheduleRepository::class,
         // AttendanceRuleInterface::class => AttendanceRuleRepository::class,
+        // RfidInterface::class => RfidRepository::class,
     ];
 
     public function register(): void
@@ -105,8 +105,8 @@ class AppServiceProvider extends ServiceProvider
         ClassroomStudents::observe(ClassroomStudentsObserver::class);
         Subject::observe(SubjectObserver::class);
         LessonHour::observe(LessonHourObserver::class);
-        // LessonSchedules::observe(LessonScheduleObserver::class);
-        // Rfid::observe(RfidObserver::class);
+        LessonSchedule::observe(LessonScheduleObserver::class);
         // AttendanceRule::observe(AttendanceRuleObserver::class);
+        // Rfid::observe(RfidObserver::class);
     }
 }

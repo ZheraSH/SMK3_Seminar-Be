@@ -21,43 +21,74 @@ use Illuminate\Support\Facades\Route;
 Route::post('login', [LoginController::class, 'login']);
 
 // Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
+// Roles
     Route::apiResource('roles', RoleController::class)->only('index');
+
+    // Students
     Route::apiResource('students', StudentController::class);
+
+    // Employees
     Route::apiResource('employees', EmployeeController::class);
+
+    // Religions
     Route::apiResource('religions', ReligionController::class)->only(['index', 'show']);
+
+    // Majors
     Route::apiResource('majors', MajorController::class)->only(['index', 'show']);
+
+    // Level Classes
     Route::apiResource('levelclasses', LevelClassController::class)->only(['index', 'show']);
+
+    // Classrooms
     Route::apiResource('classrooms', ClassroomController::class);
+
+    // Classroom - Custom Routes
     Route::prefix('classrooms/{classroom}')->group(function () {
-        Route::get('/available-students', [ClassroomController::class,'getAvailableStudents']);
-        Route::post('/add-students', [ClassroomController::class, 'addStudents']);
-        Route::post('/sync-students', [ClassroomController::class, 'syncStudents']);
-        Route::delete('/remove-student/{studentId}', [ClassroomController::class, 'removeStudent']);
+        Route::get('/available-students', [ClassroomController::class, 'getAvailableStudents']); // siswa yg bisa ditambahkan
+        Route::post('/add-students', [ClassroomController::class, 'addStudents']); // tambah siswa ke kelas
+        Route::post('/sync-students', [ClassroomController::class, 'syncStudents']); // sinkronisasi siswa
+        Route::delete('/remove-student/{studentId}', [ClassroomController::class, 'removeStudent']); // hapus siswa dari kelas
     });
-    Route::apiResource('classroomStudents', ClassroomStudentsController::class)->only('index'); 
+
+    // Classroom Students
+    Route::apiResource('classroomStudents', ClassroomStudentsController::class)->only('index');
+
+    // School Years
     Route::apiResource('school-years', SchoolYearsController::class)->except(['update']);
     Route::prefix('school-years')->group(function () {
-        Route::get('/active', [SchoolYearsController::class, 'active']);
-        Route::get('/cron-status', [SchoolYearsController::class, 'cronStatus']);
-        Route::patch('/restore/{id}', [SchoolYearsController::class, 'restore']);
+        Route::get('/active', [SchoolYearsController::class, 'active']); // tahun ajaran aktif
+        Route::get('/cron-status', [SchoolYearsController::class, 'cronStatus']); // status cron
+        Route::patch('/restore/{id}', [SchoolYearsController::class, 'restore']); // restore tahun ajaran
     });
-    Route::get('/semesters/active', [SemesterController::class, 'active']);
+
+    // Semesters
+    Route::get('semesters/active', [SemesterController::class, 'active']); // semester aktif
+
+    // Subjects
     Route::apiResource('subjects', SubjectController::class);
+
+    // Lesson Hours
     Route::apiResource('lessonHours', LessonHourController::class);
     Route::prefix('lessonHours')->group(function () {
-        Route::get('day/{day}', [LessonHourController::class, 'getByDay']);
-        Route::get('grouped/days', [LessonHourController::class, 'getAllGroupedByDay']);
+        Route::get('day/{day}', [LessonHourController::class, 'getByDay']); // jam pelajaran berdasarkan hari
+        Route::get('grouped/days', [LessonHourController::class, 'getAllGroupedByDay']); // semua jam dikelompokkan per hari
     });
-    // Route::apiResource('lessonSchedules', LessonSchedulesController::class);
-    // Route::prefix('classrooms')->group(function () {
-    //     Route::get('/{classroomId}/schedules', [LessonSchedulesController::class, 'getByClassroom']);
-    //     Route::get('/{classroomId}/schedules/{day}', [LessonSchedulesController::class, 'getByClassroomAndDay']);
-    // });
+
+    // Lesson Schedules
+    Route::apiResource('lessonSchedules', LessonSchedulesController::class)->except(['update']);
+    Route::prefix('classrooms')->group(function () {
+        Route::get('/{classroomId}/schedules', [LessonSchedulesController::class, 'getByClassroom']); // jadwal per kelas
+        Route::get('/{classroomId}/schedules/{day}', [LessonSchedulesController::class, 'getByClassroomAndDay']); // jadwal per kelas dan hari
+    });
+
+    // Attendance Rules
     // Route::apiResource('attendanceRules', AttendanceRuleController::class)->only(['store', 'show']);
     // Route::prefix('attendanceRules')->group(function () {
-    //     Route::get('/day/{day}', [AttendanceRuleController::class, 'getByDay']);
-    //     Route::post('/day/{day}', [AttendanceRuleController::class, 'updateByDay']);
+    //     Route::get('/day/{day}', [AttendanceRuleController::class, 'getByDay']); // aturan absensi per hari
+    //     Route::post('/day/{day}', [AttendanceRuleController::class, 'updateByDay']); // update aturan absensi per hari
     // });
+
+    // Rfid
     // Route::apiResource('rfids', RfidController::class);
     // Route::prefix('rfids')->group(function () {
     //     Route::get('/status/used', [RfidController::class, 'used']);
