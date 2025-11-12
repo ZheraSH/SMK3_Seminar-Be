@@ -4,9 +4,9 @@ namespace App\Traits\Models;
 
 use App\Models\LessonHour;
 
-trait BelongsToLessonHours
+trait BelongsToLessonHour
 {
-    public function lessonHours()
+    public function lessonHour()
     {
         return $this->belongsTo(LessonHour::class);
     }
