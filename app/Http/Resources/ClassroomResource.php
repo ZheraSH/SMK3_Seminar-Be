@@ -14,10 +14,16 @@ class ClassroomResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'major' => $this->major?->name,
-            'level_class' => $this->levelclass?->name,
-            'school_year' => $this->schoolyear?->school_year,
+            'level_class' => $this->levelClass?->name,
+            'school_year' => $this->schoolYear?->name,
             'teacher' => $this->teacher?->user?->name,
-            'teacher_ID' => $this->teacher_id,
+            'teacher_id' => $this->teacher_id,
+            'total_students' => $this->whenLoaded('classroomStudents', function() {
+                return $this->classroomStudents->where('status', \App\Enums\ClassroomStudentStatusEnum::ACTIVE)->count();
+            }, 0),
+            'total_schedules' => $this->whenLoaded('lessonSchedules', function() {
+                return $this->lessonSchedules->count();
+            }, 0),
         ];
     }
 }

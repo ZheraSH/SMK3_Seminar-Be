@@ -2,23 +2,26 @@
 
 namespace App\Models;
 
+use App\Traits\Models\HasManyLessonSchedule;
 use App\Traits\Models\BelongsToLevelClass;
 use App\Traits\Models\BelongsToMajor;
 use App\Traits\Models\BelongsToSchoolYear;
 use App\Traits\Models\BelongsToTeacher;
 use App\Traits\Models\HasManyClassroomStudents;
-use App\Traits\Models\HasManyClassroomTeachers;
+use App\Traits\Models\HasEmployeeAlias;
+use App\Traits\Models\HasManyStudents;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Classroom extends Model
 {
-    use HasFactory, BelongsToMajor,
-    BelongsToLevelClass, BelongsToSchoolYear,
-    BelongsToTeacher, HasManyClassroomStudents,
-    // HasManyClassroomTeachers, 
-    SoftDeletes;
+    use HasFactory, 
+        BelongsToMajor,BelongsToLevelClass, 
+        BelongsToSchoolYear,BelongsToTeacher, 
+        HasManyClassroomStudents,
+        HasManyLessonSchedule,HasManyStudents,
+        SoftDeletes;
 
     public $incrementing = false;
     protected $keyType = 'string';

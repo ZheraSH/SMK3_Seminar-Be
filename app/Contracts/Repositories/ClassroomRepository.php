@@ -22,7 +22,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
     public function get(): mixed
     {
         return $this->model->query()
-            ->with(['major', 'levelClass', 'schoolYear', 'teacher.user'])
+            ->with(['major', 'levelClass', 'schoolYear', 'teacher.user', 'lessonSchedules'])
             ->get();
     }
 
@@ -39,6 +39,9 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
                 'levelClass', 
                 'schoolYear', 
                 'teacher.user', 
+                'lessonSchedules.lessonHour',
+                'lessonSchedules.subject',
+                'lessonSchedules.employee.user',
                 'classroomStudents' => function($query) {
                     $query->where('status', ClassroomStudentStatusEnum::ACTIVE->value)
                           ->with(['student.user', 'student.religion']);
@@ -60,7 +63,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
     public function paginate(): mixed
     {
         return $this->model->query()
-            ->with(['major', 'levelClass', 'schoolYear', 'teacher.user'])
+            ->with(['major', 'levelClass', 'schoolYear', 'teacher.user', 'lessonSchedules'])
             ->latest()
             ->paginate(8);
     }
@@ -68,7 +71,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
     public function search(Request $request, int $pagination = 8): mixed
     {
         return $this->model->query()
-            ->with(['major', 'levelClass', 'schoolYear', 'teacher.user'])
+            ->with(['major', 'levelClass', 'schoolYear', 'teacher.user', 'lessonSchedules'])
             ->when($request->search, function ($query) use ($request) {
                 $query->where(function ($q) use ($request) {
                     $q->where('name', 'LIKE', '%' . $request->search . '%')
@@ -94,8 +97,8 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
                 });
             })
             ->when($request->school_year, function ($query) use ($request) {
-                $query->whereHas('schoolyear', function($q) use ($request){
-                    $q->where('name', $request->school_year_id);
+                $query->whereHas('schoolYear', function($q) use ($request){
+                    $q->where('name', $request->school_year);
                 });
             })
             ->latest()
@@ -189,6 +192,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
                 'levelClass', 
                 'schoolYear', 
                 'teacher.user', 
+                'lessonSchedules',
                 'classroomStudents' => function($query) {
                     $query->where('status', ClassroomStudentStatusEnum::ACTIVE->value)
                           ->with('student.user');
@@ -211,7 +215,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
                 $query->where('student_id', $studentId)
                       ->where('status', ClassroomStudentStatusEnum::ACTIVE->value);
             })
-            ->with(['major', 'levelClass', 'schoolYear', 'teacher.user'])
+            ->with(['major', 'levelClass', 'schoolYear', 'teacher.user', 'lessonSchedules'])
             ->get();
     }
 
