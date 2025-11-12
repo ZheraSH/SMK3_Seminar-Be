@@ -10,4 +10,9 @@ trait BelongsToTeacher
     {
         return $this->belongsTo(Employee::class, 'teacher_id')->with('user');
     }
+
+    public function employee()
+    {
+        return $this->teacher();
+    }
 }
