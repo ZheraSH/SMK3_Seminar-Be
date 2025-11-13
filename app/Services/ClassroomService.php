@@ -23,9 +23,13 @@ class ClassroomService
     public function store(array $data): Classroom
     {
         return DB::transaction(function () use ($data) {
-            $data['name'] = $this->generateClassName($data);
+            $major = Major::findOrFail($data['major_id']);
+            $levelClass = LevelClass::findOrFail($data['level_class_id']);
+
+            $number = trim($data['name']); 
+            $data['name'] = sprintf('%s %s %s', strtoupper($levelClass->name), strtoupper($major->code), $number);
+            $data['slug'] = strtoupper(sprintf('%s-%s-%s', $levelClass->name, $major->code, $number));
             $data['id'] = (string) Str::uuid();
-            $data['slug'] = Str::slug($data['name']);
 
             return $this->classroomRepository->store($data);
         });
@@ -70,21 +74,6 @@ class ClassroomService
     public function search(Request $request)
     {
         return $this->classroomRepository->search($request);
-    }
-
-    private function generateClassName(array $data): string
-    {
-        $major = Major::find($data['major_id']);
-        $levelClass = LevelClass::find($data['level_class_id']);
-        
-        return $levelClass->name . ' ' . $major->name . ' ' . $data['name'];
-    }
-
-    private function shouldRegenerateName(Classroom $classroom, array $data): bool
-    {
-        return isset($data['major_id']) && $data['major_id'] !== $classroom->major_id ||
-               isset($data['level_class_id']) && $data['level_class_id'] !== $classroom->level_class_id ||
-               isset($data['name']) && is_numeric($data['name']);
     }
 
     public function getAvailableStudents(Classroom $classroom, string $search = null, int $limit = 10): Collection

@@ -18,7 +18,7 @@ class MajorSeeder extends Seeder
             ['name' => 'Desain & Produksi Busana', 'code' => 'DPB'],
             ['name' => 'Kecantikan & Spa', 'code' => 'KCS'],
             ['name' => 'Perhotelan', 'code' => 'PH'],
-            ['name' => 'Kuliner', 'code' => null],
+            ['name' => 'Kuliner', 'code' => 'Kuliner'],
         ];
 
         foreach ($majors as $major) {
