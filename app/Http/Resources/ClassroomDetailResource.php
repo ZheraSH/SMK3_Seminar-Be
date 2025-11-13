@@ -4,19 +4,17 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Enums\ClassroomStudentStatusEnum;
 use App\Enums\GenderEnum;
+use App\Enums\StudentStatusEnum;
 
 class ClassroomDetailResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
         $classroomStudents = $this->whenLoaded('classroomStudents') ?? collect();
-
-        $activeStudents = $classroomStudents->where('status', ClassroomStudentStatusEnum::ACTIVE);
-        $totalActiveStudents = $activeStudents->count();
-
+        $activeStudents = $classroomStudents->where('status', StudentStatusEnum::ACTIVE);
         $lessonSchedules = $this->whenLoaded('lessonSchedules') ?? collect();
+        $totalActiveStudents = $activeStudents->count();
 
         return [
             'id' => $this->id,

@@ -19,11 +19,11 @@ class ClassroomResource extends JsonResource
             'teacher' => $this->teacher?->user?->name,
             'teacher_id' => $this->teacher_id,
             'total_students' => $this->whenLoaded('classroomStudents', function() {
-                return $this->classroomStudents->where('status', \App\Enums\ClassroomStudentStatusEnum::ACTIVE)->count();
+                return $this->classroomStudents->where('status', \App\Enums\StudentStatusEnum::ACTIVE)->count();
             }, 0),
             'total_schedules' => $this->whenLoaded('lessonSchedules', function() {
                 return $this->lessonSchedules->count();
             }, 0),
         ];
     }
-}
+}   

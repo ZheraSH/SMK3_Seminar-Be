@@ -5,17 +5,11 @@ namespace App\Http\Requests;
 use App\Models\Student;
 class UpdateStudentRequest extends ApiRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
     public function rules(): array
     {
         $studentId = $this->route('id') ?? $this->input('id');
@@ -40,9 +34,6 @@ class UpdateStudentRequest extends ApiRequest
         ];
     }
 
-    /**
-     * Custom error messages
-     */
     public function messages(): array
     {
         return [

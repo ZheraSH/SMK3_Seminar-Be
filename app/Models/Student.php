@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\GenderEnum;
+use App\Enums\StudentStatusEnum;
 use App\Traits\Models\BelongsToReligion;
 use App\Traits\Models\HasOneRfid;
 use App\Traits\Models\BelongsToUser;
@@ -34,8 +35,10 @@ class Student extends Model
         'number_akta',
         'order_child',
         'count_siblings',
+        'status'
     ];
     protected $casts = [
         'gender' => GenderEnum::class,
+        'status' => StudentStatusEnum::class
     ];
 }

@@ -5,7 +5,7 @@ namespace App\Contracts\Repositories;
 use App\Contracts\Interfaces\ClassroomInterface;
 use App\Models\Classroom;
 use App\Models\ClassroomStudents;
-use App\Enums\ClassroomStudentStatusEnum;
+use App\Enums\StudentStatusEnum;
 use App\Traits\PaginationTrait;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Collection;
@@ -43,7 +43,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
                 'lessonSchedules.subject',
                 'lessonSchedules.employee.user',
                 'classroomStudents' => function($query) {
-                    $query->where('status', ClassroomStudentStatusEnum::ACTIVE->value)
+                    $query->where('status', StudentStatusEnum::ACTIVE->value)
                           ->with(['student.user', 'student.religion']);
                 }
             ])
@@ -65,10 +65,10 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
         return $this->model->query()
             ->with(['major', 'levelClass', 'schoolYear', 'teacher.user', 'lessonSchedules'])
             ->latest()
-            ->paginate(8);
+            ->paginate(9);
     }
 
-    public function search(Request $request, int $pagination = 8): mixed
+    public function search(Request $request, int $pagination = 9): mixed
     {
         return $this->model->query()
             ->with(['major', 'levelClass', 'schoolYear', 'teacher.user', 'lessonSchedules'])
@@ -122,7 +122,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
                         'student_id' => $studentId,
                     ],
                     [
-                        'status' => ClassroomStudentStatusEnum::ACTIVE->value
+                        'status' => StudentStatusEnum::ACTIVE->value
                     ]
                 );
             }
@@ -154,7 +154,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
             foreach ($studentIds as $studentId) {
                 ClassroomStudents::where('student_id', $studentId)
                     ->where('classroom_id', '!=', $classroom->id)
-                    ->where('status', '!=', ClassroomStudentStatusEnum::GRADUATED->value)
+                    ->where('status', '!=', StudentStatusEnum::GRADUATED->value)
                     ->delete();
             }
 
@@ -165,7 +165,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
                         'student_id' => $studentId,
                     ],
                     [
-                        'status' => ClassroomStudentStatusEnum::ACTIVE->value
+                        'status' => StudentStatusEnum::ACTIVE->value
                     ]
                 );
             }
@@ -179,7 +179,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
         $classroom = $this->model->findOrFail($classroomId);
         
         return $classroom->classroomStudents()
-            ->where('status', ClassroomStudentStatusEnum::ACTIVE->value)
+            ->where('status', StudentStatusEnum::ACTIVE->value)
             ->with('student.user')
             ->get();
     }
@@ -194,7 +194,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
                 'teacher.user', 
                 'lessonSchedules',
                 'classroomStudents' => function($query) {
-                    $query->where('status', ClassroomStudentStatusEnum::ACTIVE->value)
+                    $query->where('status', StudentStatusEnum::ACTIVE->value)
                           ->with('student.user');
                 }
             ])
@@ -204,7 +204,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
     public function countActiveStudents(string $classroomId): int
     {
         return ClassroomStudents::where('classroom_id', $classroomId)
-            ->where('status', ClassroomStudentStatusEnum::ACTIVE->value)
+            ->where('status', StudentStatusEnum::ACTIVE->value)
             ->count();
     }
 
@@ -213,7 +213,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
         return $this->model->query()
             ->whereHas('classroomStudents', function($query) use ($studentId) {
                 $query->where('student_id', $studentId)
-                      ->where('status', ClassroomStudentStatusEnum::ACTIVE->value);
+                      ->where('status', StudentStatusEnum::ACTIVE->value);
             })
             ->with(['major', 'levelClass', 'schoolYear', 'teacher.user', 'lessonSchedules'])
             ->get();
@@ -223,7 +223,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
     {
         $query = \App\Models\Student::with(['user'])
             ->whereDoesntHave('classroomStudents', function($q) {
-                $q->where('status', ClassroomStudentStatusEnum::ACTIVE->value);
+                $q->where('status', StudentStatusEnum::ACTIVE->value);
             });
 
         if ($search) {
@@ -243,7 +243,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
         
         if ($classroom->levelClass->name === 'XII') {
             ClassroomStudents::where('classroom_id', $classroomId)
-                ->update(['status' => ClassroomStudentStatusEnum::GRADUATED->value]);
+                ->update(['status' => StudentStatusEnum::GRADUATED->value]);
         }
     }
 }

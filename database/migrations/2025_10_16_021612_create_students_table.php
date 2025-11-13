@@ -4,6 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use App\Enums\GenderEnum;
+use App\Enums\StudentStatusEnum;
 
 return new class extends Migration
 {
@@ -26,6 +27,7 @@ return new class extends Migration
             $table->string('number_akta');
             $table->integer('order_child')->nullable();
             $table->integer('count_siblings')->nullable();
+            $table->enum('status',[StudentStatusEnum::ACTIVE->value, StudentStatusEnum::GRADUATED->value]);
             // $table->integer('point')->nullable();
             $table->softDeletes();
             $table->timestamps();

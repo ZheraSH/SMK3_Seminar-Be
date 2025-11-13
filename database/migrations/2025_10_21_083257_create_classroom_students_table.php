@@ -1,6 +1,6 @@
 <?php
 
-use App\Enums\ClassroomStudentStatusEnum;
+use App\Enums\StudentStatusEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,7 +16,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('classroom_id')->constrained('classrooms')->onDelete('cascade');
             $table->foreignUuid('student_id')->constrained('students')->onDelete('cascade');
-            $table->enum('status', ClassroomStudentStatusEnum::values())->default(ClassroomStudentStatusEnum::ACTIVE->value);
+            $table->enum('status', StudentStatusEnum::values())->default(StudentStatusEnum::ACTIVE->value);
             $table->softDeletes();
             $table->timestamps();
         });

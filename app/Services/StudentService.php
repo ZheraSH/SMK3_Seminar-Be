@@ -7,6 +7,7 @@ use App\Contracts\Interfaces\UserInterface;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Enums\RoleEnum;
+use App\Enums\StudentStatusEnum;
 use App\Enums\UploadDiskEnum;
 use App\Models\Student;
 use App\Traits\UploadTrait;
@@ -29,6 +30,8 @@ class StudentService
     public function store(StoreStudentRequest $request): Student
     {
         $data = $request->validated();
+
+        $data['status'] = StudentStatusEnum::ACTIVE->value;
 
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
             $data['image'] = $this->upload(UploadDiskEnum::STUDENT->value, $request->file('image'));
