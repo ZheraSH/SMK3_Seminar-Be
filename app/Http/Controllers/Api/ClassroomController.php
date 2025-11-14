@@ -13,6 +13,7 @@ use App\Http\Resources\ClassroomDetailResource;
 use App\Services\ClassroomService;
 use App\Helpers\ResponseHelper;
 use App\Http\Resources\AvailableStudentResource;
+use App\Http\Resources\ClassroomStudentsResource;
 use Illuminate\Http\Request;
 use Throwable;
 
@@ -91,7 +92,7 @@ class ClassroomController extends Controller
             $updated = $this->classroomService->addStudents($classroom, $request->student_ids);
 
             return ResponseHelper::success(
-                new ClassroomDetailResource($updated),
+                new ClassroomStudentsResource($updated),
                 'Siswa Berhasil Ditambahkan ke Kelas'
             );
         } catch (\Throwable $th) {
@@ -106,7 +107,7 @@ class ClassroomController extends Controller
             $updated = $this->classroomService->removeStudent($classroom, $studentId);
 
             return ResponseHelper::success(
-                new ClassroomDetailResource($updated),
+                new ClassroomStudentsResource($updated),
                 'Siswa Berhasil Dihapus dari Kelas'
             );
         } catch (\Throwable $th) {
@@ -121,7 +122,7 @@ class ClassroomController extends Controller
             $updated = $this->classroomService->syncStudents($classroom, $request->student_ids);
 
             return ResponseHelper::success(
-                new ClassroomDetailResource($updated),
+                new ClassroomStudentsResource($updated),
                 'Data Siswa Kelas Berhasil Disinkronisasi'
             );
         } catch (\Throwable $th) {

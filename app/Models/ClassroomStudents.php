@@ -25,6 +25,6 @@ class ClassroomStudents extends Model
     ];
     
     protected $casts = [
-        'status' => \App\Enums\ClassroomStudentStatusEnum::class,
+        'status' => \App\Enums\StudentStatusEnum::class,
     ];
 }

@@ -16,8 +16,7 @@ class ClassroomResource extends JsonResource
             'major' => $this->major?->name,
             'level_class' => $this->levelClass?->name,
             'school_year' => $this->schoolYear?->name,
-            'teacher' => $this->teacher?->user?->name,
-            'teacher_id' => $this->teacher_id,
+            'homeroom_teacher' => $this->teacher?->user?->name,
             'total_students' => $this->whenLoaded('classroomStudents', function() {
                 return $this->classroomStudents->where('status', \App\Enums\StudentStatusEnum::ACTIVE)->count();
             }, 0),
@@ -26,4 +25,4 @@ class ClassroomResource extends JsonResource
             }, 0),
         ];
     }
-}   
+}

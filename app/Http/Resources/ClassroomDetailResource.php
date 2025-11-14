@@ -4,72 +4,58 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Enums\GenderEnum;
-use App\Enums\StudentStatusEnum;
 
 class ClassroomDetailResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $classroomStudents = $this->whenLoaded('classroomStudents') ?? collect();
-        $activeStudents = $classroomStudents->where('status', StudentStatusEnum::ACTIVE);
-        $lessonSchedules = $this->whenLoaded('lessonSchedules') ?? collect();
-        $totalActiveStudents = $activeStudents->count();
-
         return [
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-
-            'class_info' => [
-                'major' => $this->major?->name ?? '-',
-                'level_class' => $this->levelClass?->name ?? '-',
-                'school_year' => $this->schoolYear?->name ?? '-',
-            ],
-
-            'homeroom_teacher' => $this->whenLoaded('teacher', function () {
-                $teacher = $this->teacher?->user;
-                return $teacher ? [
+            'major' => $this->whenLoaded('major', fn() => $this->major->only(['id', 'name'])),
+            'level_class' => $this->whenLoaded('levelClass', fn() => $this->levelClass->only(['id', 'name'])),
+            'school_year' => $this->whenLoaded('schoolYear', fn() => $this->schoolYear->only(['id', 'name'])),
+            'homeroom_teacher' => $this->whenLoaded('teacher', function() {
+                return $this->teacher?->user ? [
                     'id' => $this->teacher->id,
-                    'name' => $teacher->name,
-                    'email' => $teacher->email,
+                    'name' => $this->teacher->user->name,
+                    'email' => $this->teacher->user->email
                 ] : null;
             }),
-
             'statistics' => [
-                'total_students' => $totalActiveStudents,
-                'total_male_students' => $activeStudents->filter(fn($s) => $s->student?->gender === GenderEnum::MALE)->count(),
-                'total_female_students' => $activeStudents->filter(fn($s) => $s->student?->gender === GenderEnum::FEMALE)->count(),
-                'total_schedules' => $lessonSchedules->count(),
-                'total_subjects' => $lessonSchedules->unique('subject_id')->count(),
+                'total_students' => $this->whenLoaded('classroomStudents', function() {
+                    return $this->classroomStudents->where('status', \App\Enums\StudentStatusEnum::ACTIVE)->count();
+                }, 0),
+                'total_schedules' => $this->whenLoaded('lessonSchedules', function() {
+                    return $this->lessonSchedules->count();
+                }, 0),
+                'total_subjects' => $this->whenLoaded('lessonSchedules', function() {
+                    return $this->lessonSchedules->unique('subject_id')->count();
+                }, 0),
             ],
-
-            'students' => $activeStudents->map(function ($classroomStudent) {
-                $student = $classroomStudent->student;
-                $user = $student?->user;
-
-                if (!$student || !$user) {
-                    return null;
-                }
-
-                return [
-                    'id' => $student->id,
-                    'name' => $user->name,
-                    'nisn' => $student->nisn,
-                    'current_class' => $this->name,
-                    'gender' => $student->gender?->label() ?? 'Tidak diketahui',
-                    'religion' => $student->religion?->name ?? '-',
-                    'birth_place' => $student->birth_place ?? '-',
-                    'birth_date' => $student->birth_date?->format('d-m-Y'),
-                    'number_akta' => $student->number_akta ?? '-',
-                    'order_child' => $student->order_child ?? 0,
-                    'count_siblings' => $student->count_siblings ?? 0,
-                    'address' => $student->address ?? '-',
-                    'status' => $classroomStudent->status?->label() ?? 'Tidak diketahui',
-                    'pivot_id' => $classroomStudent->id,
-                    'enrollment_date' => $classroomStudent->created_at?->format('d-m-Y'),
-                ];
-            })->filter()->values(),
+            'students' => $this->whenLoaded('classroomStudents', function() {
+                return $this->classroomStudents
+                    ->where('status', \App\Enums\StudentStatusEnum::ACTIVE)
+                    ->map(function($classroomStudent) {
+                        return [
+                            'id' => $classroomStudent->student->id,
+                            'name' => $classroomStudent->student->user->name,
+                            'nisn' => $classroomStudent->student->nisn,
+                            'gender' => $classroomStudent->student->gender?->label(),
+                            'status' => $classroomStudent->status?->label(),
+                        ];
+                    })->values();
+            }, []),
+            'schedules_overview' => $this->whenLoaded('lessonSchedules', function() {
+                return $this->lessonSchedules->groupBy('day')->map(function($schedules, $day) {
+                    return [
+                        'day' => $day,
+                        'day_label' => \App\Enums\DayEnum::tryFrom($day)?->label(),
+                        'total_lessons' => $schedules->count(),
+                    ];
+                })->values();
+            }, []),
         ];
     }
 }

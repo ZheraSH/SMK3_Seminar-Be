@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Resources;
 
 use App\Traits\FormatsTimeTrait;
@@ -8,18 +9,28 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class LessonScheduleResource extends JsonResource
 {
     use FormatsTimeTrait;
+    
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
-            'classroom' => $this->classroom?->name,
-            'school_year' => $this->classroom?->schoolYear?->name,
             'day' => $this->day?->value,
-            'day_label' => $this->day?->label() ?? $this->day,
-            'placement' => $this->lessonHour?->name,
-            'time' => $this->formatTimeRange($this->lessonHour?->start, $this->lessonHour?->end),
-            'subject' => $this->subject?->name,
-            'teacher' => $this->employee?->user?->name,
+            'day_label' => $this->day?->label(),
+            'classroom' => $this->whenLoaded('classroom', fn() => $this->classroom->only(['id', 'name'])),
+            'lesson_hour' => $this->whenLoaded('lessonHour', fn() => [
+                'id' => $this->lessonHour->id,
+                'name' => $this->lessonHour->name,
+                'start' => $this->lessonHour->start,
+                'end' => $this->lessonHour->end,
+                'time' => $this->formatTimeRange($this->lessonHour->start, $this->lessonHour->end),
+            ]),
+            'subject' => $this->whenLoaded('subject', fn() => $this->subject->only(['id', 'name'])),
+            'teacher' => $this->whenLoaded('employee', function() {
+                return $this->employee?->user ? [
+                    'id' => $this->employee->id,
+                    'name' => $this->employee->user->name,
+                ] : null;
+            }),
         ];
     }
 }
