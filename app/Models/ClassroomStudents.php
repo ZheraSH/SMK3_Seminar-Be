@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
-use App\Traits\Models\BelongsToClassroomWithForeignKey;
-use App\Traits\Models\BelongsToStudentWithForeignKey;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\Models\BelongsToStudent;
+use App\Traits\Models\BelongsToClassroom;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ClassroomStudents extends Model
 {
     use HasFactory, 
-        BelongsToClassroomWithForeignKey,
-        BelongsToStudentWithForeignKey,
+        BelongsToClassroom,
+        BelongsToStudent,
         SoftDeletes;
 
     public $incrementing = false;
