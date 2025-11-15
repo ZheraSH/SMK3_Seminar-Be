@@ -5,39 +5,42 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\LevelClassResource;
-use App\Models\LevelClass;
+use App\Contracts\Interfaces\LevelClassInterface;
 
 class LevelClassController extends Controller
 {
+    private LevelClassInterface $levelClassInterface;
+
+    public function __construct(LevelClassInterface $levelClassInterface)
+    {
+        $this->levelClassInterface = $levelClassInterface;
+    }
+
     public function index()
     {
         try {
-            $levelClass = LevelClass::all();
+            $data = $this->levelClassInterface->get();
             
             return ResponseHelper::success(
-                LevelClassResource::collection($levelClass),
-                'Data LevelClass Berhasil Diambil'
-                );
+                LevelClassResource::collection($data),
+                'Data tingkat kelas berhasil diambil'
+            );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
         }
     }
 
     public function show(string $id)
     {
         try {
-            $levelClass = LevelClass::findOrFail($id);
-
-            if (! $levelClass) {
-                return ResponseHelper::notFound('Data LevelClass tidak ditemukan');
-            }
+            $data = $this->levelClassInterface->show($id);
 
             return ResponseHelper::success(
-                new LevelClassResource($levelClass),
-                'Detail Data LevelClass Berhasil Diambil'
+                new LevelClassResource($data),
+                'Detail data tingkat kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::notFound('Data tingkat kelas tidak ditemukan');
         }
     }
 }
