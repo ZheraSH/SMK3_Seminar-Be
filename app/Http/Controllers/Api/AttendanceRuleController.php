@@ -1,32 +1,27 @@
 <?php
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Contracts\Repositories\AttendanceRuleRepository;
 use App\Enums\DayEnum;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAttendanceRuleRequest;
 use App\Http\Requests\UpdateAttendanceRuleByDayRequest;
 use App\Http\Resources\AttendanceRuleResource;
 use App\Services\AttendanceRuleService;
-use Illuminate\Http\JsonResponse;
 use App\Helpers\ResponseHelper;
-use Throwable;
 
 class AttendanceRuleController extends Controller
 {
     private AttendanceRuleService $attendanceRuleService;
-    private AttendanceRuleRepository $attendanceRuleRepository;
 
-    public function __construct(AttendanceRuleService $attendanceRuleService, AttendanceRuleRepository $attendanceRuleRepository)
+    public function __construct(AttendanceRuleService $attendanceRuleService)
     {
         $this->attendanceRuleService = $attendanceRuleService;
-        $this->attendanceRuleRepository = $attendanceRuleRepository;
     }
 
-    public function index(): JsonResponse
+    public function index()
     {
         try {
-            $rules = $this->attendanceRuleRepository->get();
+            $rules = $this->attendanceRuleService->get();
 
             return ResponseHelper::success(
                 AttendanceRuleResource::collection($rules),
@@ -37,11 +32,11 @@ class AttendanceRuleController extends Controller
         }
     }
 
-    public function store(StoreAttendanceRuleRequest $request): JsonResponse
+    public function store(StoreAttendanceRuleRequest $request)
     {
         try {
             $rule = $this->attendanceRuleService->store($request);
-            
+
             return ResponseHelper::success(
                 new AttendanceRuleResource($rule),
                 'Aturan kehadiran berhasil disimpan',
@@ -52,15 +47,15 @@ class AttendanceRuleController extends Controller
         }
     }
 
-    public function getByDay(string $day): JsonResponse
+    public function getByDay(string $day)
     {
         try {
-            $rule = $this->attendanceRuleRepository->getByDay($day);
-            
+            $rule = $this->attendanceRuleService->getByDay($day);
+
             if (!$rule) {
                 return ResponseHelper::notFound('Aturan kehadiran untuk hari tersebut tidak ditemukan');
             }
-            
+
             return ResponseHelper::success(
                 new AttendanceRuleResource($rule),
                 'Data aturan kehadiran berhasil diambil'
@@ -70,16 +65,14 @@ class AttendanceRuleController extends Controller
         }
     }
 
-    public function updateByDay(UpdateAttendanceRuleByDayRequest $request, string $day): JsonResponse
+    public function updateByDay(UpdateAttendanceRuleByDayRequest $request, string $day)
     {
         try {
-            $data = $request->validated();
-
-            $rule = $this->attendanceRuleService->updateOrCreateByDay($data, $day);
+            $validated = $request->validated();
+            $rule = $this->attendanceRuleService->updateOrCreateByDay($validated, $day);
 
             $dayLabel = collect(DayEnum::cases())->firstWhere('value', $day)?->label() ?? $day;
-
-            $exists = $this->attendanceRuleRepository->getByDay($day);
+            $exists = $this->attendanceRuleService->getByDay($day);
 
             $message = $exists
                 ? "Aturan kehadiran hari {$dayLabel} berhasil diperbarui"

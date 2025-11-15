@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use App\Enums\DayEnum;
-use Illuminate\Foundation\Http\FormRequest;
 
 class StoreAttendanceRuleRequest extends ApiRequest
 {

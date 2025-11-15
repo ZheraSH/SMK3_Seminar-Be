@@ -3,15 +3,31 @@ namespace App\Services;
 
 use App\Contracts\Interfaces\AttendanceRuleInterface;
 use App\Http\Requests\StoreAttendanceRuleRequest;
+use App\Http\Requests\UpdateAttendanceRuleByDayRequest;
 use App\Models\AttendanceRule;
 
 class AttendanceRuleService
 {
-    private AttendanceRuleInterface $attendanceRule;
+    private AttendanceRuleInterface $attendanceRuleInterface;
 
-    public function __construct(AttendanceRuleInterface $attendanceRule)
+    public function __construct(AttendanceRuleInterface $attendanceRuleInterface)
     {
-        $this->attendanceRule = $attendanceRule;
+        $this->attendanceRuleInterface = $attendanceRuleInterface;
+    }
+
+    public function get(): mixed
+    {
+        return $this->attendanceRuleInterface->get();
+    }
+
+    public function getByDay(string $day): mixed
+    {
+        return $this->attendanceRuleInterface->getByDay($day);
+    }
+
+    public function show(string $id): mixed
+    {
+        return $this->attendanceRuleInterface->show($id);
     }
 
     public function store(StoreAttendanceRuleRequest $request): AttendanceRule
@@ -22,13 +38,22 @@ class AttendanceRuleService
             $this->validateTimeRanges($data);
         }
 
-        $existingRule = $this->attendanceRule->getByDay($data['day']);
+        $existingRule = $this->attendanceRuleInterface->getByDay($data['day']);
         
         if ($existingRule) {
             throw new \Exception('Aturan untuk hari ' . $data['day'] . ' sudah ada');
         }
 
-        return $this->attendanceRule->store($data);
+        return $this->attendanceRuleInterface->store($data);
+    }
+
+    public function update(string $id, array $data): bool
+    {
+        if (!($data['is_holiday'] ?? false)) {
+            $this->validateTimeRanges($data);
+        }
+
+        return $this->attendanceRuleInterface->update($id, $data);
     }
 
     public function updateOrCreateByDay(array $data, string $day): AttendanceRule
@@ -37,36 +62,20 @@ class AttendanceRuleService
             $this->validateTimeRanges($data);
         }
 
-        $existingRule = $this->attendanceRule->getByDay($day);
+        $existingRule = $this->attendanceRuleInterface->getByDay($day);
         
         if ($existingRule) {
-            $this->attendanceRule->update($existingRule->id, $data);
+            $this->attendanceRuleInterface->update($existingRule->id, $data);
             return $existingRule->fresh();
         }
 
         $data['day'] = $day;
-        return $this->attendanceRule->store($data);
+        return $this->attendanceRuleInterface->store($data);
     }
 
-    public function delete(AttendanceRule $attendanceRule): bool
+    public function delete(string $id): bool
     {
-        $this->attendanceRule->delete($attendanceRule->id);
-        return true;
-    }
-
-    public function get(): mixed
-    {
-        return $this->attendanceRule->get();
-    }
-
-    public function getByDay(string $day): mixed
-    {
-        return $this->attendanceRule->getByDay($day);
-    }
-
-    public function show(string $id): mixed
-    {
-        return $this->attendanceRule->show($id);
+        return $this->attendanceRuleInterface->delete($id);
     }
 
     private function validateTimeRanges(array $data): void
