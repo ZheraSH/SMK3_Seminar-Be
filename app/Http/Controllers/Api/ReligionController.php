@@ -5,38 +5,42 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ReligionResource;
-use App\Models\Religion;
+use App\Contracts\Interfaces\ReligionInterface;
 
 class ReligionController extends Controller
 {
+    private ReligionInterface $religionInterface;
+
+    public function __construct(ReligionInterface $religionInterface)
+    {
+        $this->religionInterface = $religionInterface;
+    }
+
     public function index()
     {
-        try{
-            $religions = Religion::all();
+        try {
+            $data = $this->religionInterface->get();
 
             return ResponseHelper::success(
-                ReligionResource::collection($religions),
-                'Data Religion Berhasil Diambil'
+                ReligionResource::collection($data),
+                'Data agama berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage());
+            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
         }
     }
 
     public function show(string $id)
     {
         try {
-            $religion = Religion::findOrFail($id);
+            $data = $this->religionInterface->show($id);
 
-            if (!$religion) {
-                return ResponseHelper::notFound('Data Religion tidak ditemukan');
-            }
             return ResponseHelper::success(
-                new ReligionResource($religion),
-                'Detail Data Religion Berhasil Diambil'
+                new ReligionResource($data),
+                'Detail data agama berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::notFound('Data agama tidak ditemukan');
         }
     }
 }
