@@ -28,7 +28,8 @@
         },
         "files": [
             "app/Helpers/ResponseHelper.php",
-            "app/Helpers/ImageCompressing.php"
+            "app/Helpers/ImageCompressing.php",
+            "app/Helpers/SemesterHelper.php"
         ]
     },
     "autoload-dev": {
