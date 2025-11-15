@@ -1,21 +1,22 @@
 <?php
-
 namespace App\Services;
 
 use App\Contracts\Interfaces\LessonScheduleInterface;
+use App\Contracts\Interfaces\ClassroomInterface;
 use App\Http\Requests\StoreLessonSchedulesRequest;
 use App\Http\Requests\UpdateLessonSchedulesRequest;
 use App\Models\LessonSchedule;
-use App\Models\Classroom;
 use Exception;
 
 class LessonScheduleService
 {
     private LessonScheduleInterface $lessonSchedule;
+    private ClassroomInterface $classroom;
 
-    public function __construct(LessonScheduleInterface $lessonSchedule)
+    public function __construct(LessonScheduleInterface $lessonSchedule, ClassroomInterface $classroom)
     {
         $this->lessonSchedule = $lessonSchedule;
+        $this->classroom = $classroom;
     }
 
     public function store(StoreLessonSchedulesRequest $request): LessonSchedule
@@ -28,29 +29,17 @@ class LessonScheduleService
 
     public function update(string $id, UpdateLessonSchedulesRequest $request): LessonSchedule
     {
-        $lessonSchedule = LessonSchedule::findOrFail($id);
         $data = $request->validated();
-        
         $this->validateScheduleConflict($data, $id);
 
         $this->lessonSchedule->update($id, $data);
 
-        return $lessonSchedule->fresh([
-            'classroom.schoolYear',
-            'employee.user',
-            'lessonHour',
-            'subject',
-        ]);
+        return $this->lessonSchedule->show($id);
     }
 
     public function show(string $id): LessonSchedule
     {
-        return LessonSchedule::with([
-            'classroom.schoolYear',
-            'employee.user',
-            'lessonHour',
-            'subject',
-        ])->findOrFail($id);
+        return $this->lessonSchedule->show($id);
     }
 
     public function delete(string $id): bool
@@ -58,33 +47,15 @@ class LessonScheduleService
         return $this->lessonSchedule->delete($id);
     }
 
-        public function getAllClassroomsWithSchedules()
+    public function getAllClassroomsWithSchedules()
     {
-        return Classroom::with([
-            'employee.user',
-            'schoolYear', 
-            'major',
-            'levelClass',
-            'classroomStudents.student.user',
-            'lessonSchedules.lessonHour',
-            'lessonSchedules.subject',
-            'lessonSchedules.employee.user'
-        ])->get();
+        return $this->classroom->getWithSchedules();
     }
 
     public function getByClassroom(string $classroomId): array
     {
-        $classroom = Classroom::with([
-            'employee.user',
-            'schoolYear', 
-            'major',
-            'levelClass',
-            'classroomStudents.student.user',
-            'lessonSchedules.lessonHour',
-            'lessonSchedules.subject',
-            'lessonSchedules.employee.user'
-        ])->findOrFail($classroomId);
-
+        $classroom = $this->classroom->getWithSchedulesById($classroomId);
+        
         $schedules = $classroom->lessonSchedules
             ->sortBy('lesson_hour_id')
             ->groupBy('day');
@@ -97,23 +68,8 @@ class LessonScheduleService
 
     public function getByClassroomAndDay(string $classroomId, string $day): array
     {
-        $classroom = Classroom::with([
-            'employee.user',
-            'schoolYear', 
-            'major',
-            'levelClass',
-            'classroomStudents.student.user'
-        ])->findOrFail($classroomId);
-
-        $schedules = LessonSchedule::with([
-            'lessonHour', 
-            'subject', 
-            'employee.user'
-        ])
-        ->where('classroom_id', $classroomId)
-        ->where('day', $day)
-        ->orderBy('lesson_hour_id')
-        ->get();
+        $classroom = $this->classroom->getWithSchedulesById($classroomId);
+        $schedules = $this->lessonSchedule->getByClassroomAndDay($classroomId, $day);
 
         return [
             'classroom' => $classroom,
@@ -124,27 +80,11 @@ class LessonScheduleService
 
     private function validateScheduleConflict(array $data, ?string $excludeId = null): void
     {
-        $classroomConflict = LessonSchedule::where('classroom_id', $data['classroom_id'])
-            ->where('day', $data['day'])
-            ->where('lesson_hour_id', $data['lesson_hour_id']);
-
-        if ($excludeId) {
-            $classroomConflict->where('id', '!=', $excludeId);
-        }
-
-        if ($classroomConflict->exists()) {
+        if ($this->lessonSchedule->checkClassroomConflict($data['classroom_id'], $data['day'], $data['lesson_hour_id'], $excludeId)) {
             throw new Exception('Kelas sudah memiliki jadwal di hari dan jam yang sama.');
         }
 
-        $teacherConflict = LessonSchedule::where('employee_id', $data['employee_id'])
-            ->where('day', $data['day'])
-            ->where('lesson_hour_id', $data['lesson_hour_id']);
-
-        if ($excludeId) {
-            $teacherConflict->where('id', '!=', $excludeId);
-        }
-
-        if ($teacherConflict->exists()) {
+        if ($this->lessonSchedule->checkTeacherConflict($data['employee_id'], $data['day'], $data['lesson_hour_id'], $excludeId)) {
             throw new Exception('Guru sudah memiliki jadwal mengajar di hari dan jam yang sama.');
         }
     }

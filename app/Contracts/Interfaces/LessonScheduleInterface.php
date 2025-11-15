@@ -1,5 +1,5 @@
 <?php
-        
+
 namespace App\Contracts\Interfaces;
         
 use App\Contracts\Interfaces\Eloquent\DeleteInterface; 
@@ -11,4 +11,8 @@ use App\Contracts\Interfaces\Eloquent\UpdateInterface;
 interface LessonScheduleInterface extends GetInterface, StoreInterface, UpdateInterface, ShowInterface, DeleteInterface
 {
     public function getByDay(string $day): mixed;
+    public function getFirstLessonByClassroomAndDay(string $classroomId, string $day): mixed;
+    public function checkClassroomConflict(string $classroomId, string $day, string $lessonHourId, ?string $excludeId = null): bool;
+    public function checkTeacherConflict(string $employeeId, string $day, string $lessonHourId, ?string $excludeId = null): bool;
+    public function getByClassroomAndDay(string $classroomId, string $day): mixed;
 }

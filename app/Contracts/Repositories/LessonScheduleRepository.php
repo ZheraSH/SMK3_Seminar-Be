@@ -49,4 +49,52 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
             ->orderBy('lesson_hour_id')
             ->get();
     }
+
+    public function getFirstLessonByClassroomAndDay(string $classroomId, string $day): mixed
+    {
+        return $this->model->query()
+            ->with(['lessonHour'])
+            ->where('classroom_id', $classroomId)
+            ->where('day', $day)
+            ->orderBy('lesson_hour_id')
+            ->first();
+    }
+
+    public function checkClassroomConflict(string $classroomId, string $day, string $lessonHourId, ?string $excludeId = null): bool
+    {
+        $query = $this->model->query()
+            ->where('classroom_id', $classroomId)
+            ->where('day', $day)
+            ->where('lesson_hour_id', $lessonHourId);
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        return $query->exists();
+    }
+
+    public function checkTeacherConflict(string $employeeId, string $day, string $lessonHourId, ?string $excludeId = null): bool
+    {
+        $query = $this->model->query()
+            ->where('employee_id', $employeeId)
+            ->where('day', $day)
+            ->where('lesson_hour_id', $lessonHourId);
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        return $query->exists();
+    }
+
+    public function getByClassroomAndDay(string $classroomId, string $day): mixed
+    {
+        return $this->model->query()
+            ->with(['lessonHour', 'subject', 'employee.user'])
+            ->where('classroom_id', $classroomId)
+            ->where('day', $day)
+            ->orderBy('lesson_hour_id')
+            ->get();
+    }
 }

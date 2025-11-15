@@ -9,8 +9,6 @@ use App\Http\Resources\ClassroomScheduleResource;
 use App\Http\Resources\ClassroomDayScheduleResource;
 use App\Services\LessonScheduleService;
 use App\Helpers\ResponseHelper;
-use Illuminate\Http\JsonResponse;
-use Throwable;
 
 class LessonSchedulesController extends Controller
 {
@@ -21,64 +19,64 @@ class LessonSchedulesController extends Controller
         $this->lessonScheduleService = $lessonScheduleService;
     }
 
-    public function index(): JsonResponse
+    public function index()
     {
         try {
-            $schedules = $this->lessonScheduleService->getAllClassroomsWithSchedules();
+            $data = $this->lessonScheduleService->getAllClassroomsWithSchedules();
             
             return ResponseHelper::success(
-                ClassroomScheduleResource::collection($schedules),
+                ClassroomScheduleResource::collection($data),
                 'Data jadwal pelajaran semua kelas berhasil diambil'
             );
-        } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
         }
     }
 
-    public function store(StoreLessonSchedulesRequest $request): JsonResponse
+    public function store(StoreLessonSchedulesRequest $request)
     {
         try {
-            $lessonSchedule = $this->lessonScheduleService->store($request);
+            $data = $this->lessonScheduleService->store($request);
             
             return ResponseHelper::success(
-                new LessonScheduleResource($lessonSchedule),
+                new LessonScheduleResource($data),
                 'Jadwal pelajaran berhasil disimpan',
                 201
             );
-        } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
         }
     }
 
-    public function show(string $id): JsonResponse
+    public function show(string $id)
     {
         try {
-            $lessonSchedule = $this->lessonScheduleService->show($id);
+            $data = $this->lessonScheduleService->show($id);
             
             return ResponseHelper::success(
-                new LessonScheduleResource($lessonSchedule),
+                new LessonScheduleResource($data),
                 'Detail jadwal pelajaran berhasil diambil'
             );
-        } catch (Throwable $th) {
+        } catch (\Throwable $th) {
             return ResponseHelper::notFound('Jadwal pelajaran tidak ditemukan');
         }
     }
 
-    public function update(UpdateLessonSchedulesRequest $request, string $id): JsonResponse
+    public function update(UpdateLessonSchedulesRequest $request, string $id)
     {
         try {
-            $lessonSchedule = $this->lessonScheduleService->update($id, $request);
+            $data = $this->lessonScheduleService->update($id, $request);
             
             return ResponseHelper::success(
-                new LessonScheduleResource($lessonSchedule),
+                new LessonScheduleResource($data),
                 'Jadwal pelajaran berhasil diperbarui'
             );
-        } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
         }
     }
 
-    public function destroy(string $id): JsonResponse
+    public function destroy(string $id)
     {
         try {
             $this->lessonScheduleService->delete($id);
@@ -87,12 +85,12 @@ class LessonSchedulesController extends Controller
                 null,
                 'Jadwal pelajaran berhasil dihapus'
             );
-        } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
         }
     }
 
-    public function getByClassroom(string $classroomId): JsonResponse
+    public function getByClassroom(string $classroomId)
     {
         try {
             $data = $this->lessonScheduleService->getByClassroom($classroomId);
@@ -101,12 +99,12 @@ class LessonSchedulesController extends Controller
                 new ClassroomScheduleResource($data),
                 'Data jadwal pelajaran kelas berhasil diambil'
             );
-        } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
         }
     }
 
-    public function getByClassroomAndDay(string $classroomId, string $day): JsonResponse
+    public function getByClassroomAndDay(string $classroomId, string $day)
     {
         try {
             $data = $this->lessonScheduleService->getByClassroomAndDay($classroomId, $day);
@@ -115,8 +113,8 @@ class LessonSchedulesController extends Controller
                 new ClassroomDayScheduleResource($data),
                 'Data jadwal pelajaran kelas per hari berhasil diambil'
             );
-        } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
         }
     }
 }
