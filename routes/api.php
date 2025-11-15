@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\StudentLessonScheduleController;
 use App\Http\Controllers\Api\AttendanceRuleController;
 use App\Http\Controllers\Api\LessonHourController;
 use App\Http\Controllers\Api\SubjectController;
@@ -30,7 +31,7 @@ Route::post('login', [LoginController::class, 'login']);
     // Employees
     Route::apiResource('employees', EmployeeController::class);
 
-    // Religions
+    // Religions        
     Route::apiResource('religions', ReligionController::class)->only(['index', 'show']);
 
     // Majors
@@ -53,12 +54,14 @@ Route::post('login', [LoginController::class, 'login']);
     // Classroom Students
     Route::apiResource('classroomStudents', ClassroomStudentsController::class)->only('index');
 
-    // School Years
-     Route::prefix('school-years')->group(function () {
-    Route::get('/active', [SchoolYearsController::class, 'active']); // tahun ajaran aktif
-    Route::get('/cron-status', [SchoolYearsController::class, 'cronStatus']); // status cron
-    Route::apiResource('school-years', SchoolYearsController::class)->except(['update']);
-    });
+ Route::prefix('school-years')->controller(SchoolYearsController::class)->group(function () {
+    Route::get('/active', 'active');
+    Route::get('/cron-status', 'cronStatus');
+});
+
+Route::apiResource('school-years', SchoolYearsController::class)->except(['update']);
+
+    
 
     // Semesters
     Route::get('semesters/active', [SemesterController::class, 'active']); // semester aktif
@@ -87,6 +90,10 @@ Route::post('login', [LoginController::class, 'login']);
         Route::post('/day/{day}', [AttendanceRuleController::class, 'updateByDay']); // update aturan absensi per hari
         Route::get('/day/{day}', [AttendanceRuleController::class, 'getByDay']); // aturan absensi per hari
     });
+
+    //Student Lesson Schedule
+Route::apiResource('students.lesson-schedules', StudentLessonScheduleController::class)
+    ->only(['index']);
 
     // Rfid
     // Route::apiResource('rfids', RfidController::class);

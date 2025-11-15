@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\SchoolYear;
 use App\Contracts\Repositories\SchoolYearRepository;
 use App\Http\Requests\StoreSchoolYearRequest;
 use App\Http\Requests\UpdateSchoolYearRequest;
@@ -80,54 +81,31 @@ class SchoolYearsController extends Controller
             return ResponseHelper::error(500, $th->getMessage());
         }
     }
+public function active()
+{
+    $active = SchoolYear::where('active', true)->first();
 
-    public function active()
-    {
-        try {
-            $data = $this->schoolYear->get()->where('active', true)->first();
+    return response()->json([
+        'status' => true,
+        'message' => $active
+            ? 'Cronjob aktif dan tahun ajaran terbaru telah diatur'
+            : 'Cronjob aktif tetapi belum mengatur tahun ajaran',
+        'data' => $active
+    ], 200);
+}
 
-            if (! $data) {
-                return ResponseHelper::notFound('Tidak ada tahun ajaran yang aktif');
-            }
 
-            return ResponseHelper::success(
-                new SchoolYearResource($data),
-                'Tahun ajaran aktif ditemukan'
-            );
-        } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
-        }
-    }
+public function cronStatus()
+{
+    $active = SchoolYear::where('active', true)->first();
 
-    public function cronStatus()
-    {
-        try {
-            $latest = \App\Models\SchoolYear::orderByDesc('created_at')->first();
+    return response()->json([
+        'status' => true,
+        'message' => $active
+            ? 'Cronjob berjalan dan tahun ajaran sudah aktif'
+            : 'Cronjob berjalan tetapi belum ada tahun ajaran aktif',
+        'data' => $active
+    ], 200);
+}
 
-            if (! $latest) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Belum ada data tahun ajaran',
-                    'data' => null
-                ], 404);
-            }
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Status cron job tahun ajaran berhasil diambil',
-                'data' => [
-                    'id' => $latest->id,
-                    'name' => $latest->name,
-                    'active' => $latest->active,
-                    'created_at' => $latest->created_at->format('Y-m-d H:i:s'),
-                ]
-            ]);
-        } catch (Throwable $th) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Terjadi kesalahan saat mengambil status cron job',
-                'error' => $th->getMessage(),
-            ], 500);
-        }
-    }
 }
