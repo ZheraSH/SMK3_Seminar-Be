@@ -7,8 +7,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 trait BelongsToStudentWithUser
 {
-    public function studentWithUser(): BelongsTo
+    public function student(): BelongsTo
     {
-        return $this->belongsTo(Student::class, 'student_id')->with('user');
+        return $this->belongsTo(Student::class, 'student_id')
+            ->with([
+                'user',
+                'classroomStudents.classroom'
+            ]);
     }
 }

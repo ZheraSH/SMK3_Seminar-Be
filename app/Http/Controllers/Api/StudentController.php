@@ -3,103 +3,95 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Contracts\Repositories\StudentRepository;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Http\Resources\StudentResource;
 use App\Services\StudentService;
 use App\Models\Student;
-use Illuminate\Http\Request;
 use App\Helpers\ResponseHelper;
-use Throwable;
+use Illuminate\Http\Request;
 
 class StudentController extends Controller
 {
     private StudentService $studentService;
-    private StudentRepository $studentRepository;
 
-    public function __construct(StudentService $studentService, StudentRepository $studentRepository)
+    public function __construct(StudentService $studentService)
     {
         $this->studentService = $studentService;
-        $this->studentRepository = $studentRepository;
     }
 
     public function index(Request $request)
     {
         try {
-            $students = $this->studentRepository->search($request)
-                ->load(['user', 'religion']);
+            $data = $this->studentService->getWithFilter($request);
 
+            if ($request->has('page')) {
+                return ResponseHelper::pagination($data, StudentResource::class, 'List data siswa berhasil diambil');
+            }
+            
             return ResponseHelper::success(
-                StudentResource::collection($students),
-                'List Data Siswa Berhasil Diambil'
+                StudentResource::collection($data),
+                'List data siswa berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
         }
     }
 
     public function store(StoreStudentRequest $request)
     {
         try {
-            $student = $this->studentService->store($request);
+            $data = $this->studentService->store($request);
+            
             return ResponseHelper::success(
-                new StudentResource($student),
-                'Data Siswa Berhasil Dibuat',
+                new StudentResource($data),
+                'Data siswa berhasil dibuat',
                 201
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
         }
     }
 
     public function show(string $id)
     {
         try {
-            $student = Student::with(['user', 'religion'])->find($id);
-            if (! $student) {
-                return ResponseHelper::notFound('Data siswa tidak ditemukan');
-            }
+            $data = $this->studentService->show($id);
+            
             return ResponseHelper::success(
-                new StudentResource($student),
-                'Detail Data Siswa Berhasil Diambil'
+                new StudentResource($data),
+                'Detail data siswa berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::notFound('Data siswa tidak ditemukan');
         }
     }
 
-    public function update(UpdateStudentRequest $request, string $id)
+    public function update(UpdateStudentRequest $request, Student $student)
     {
         try {
-            $student = Student::find($id);
-            if (! $student) {
-                return ResponseHelper::notFound('Data siswa tidak ditemukan');
-            }
-            $updated = $this->studentService->update($student, $request);
+            $data = $this->studentService->update($student->id, $request);
+            
             return ResponseHelper::success(
-                new StudentResource($updated),
-                'Data Siswa Berhasil Diperbarui'
+                new StudentResource($data),
+                'Data siswa berhasil diperbarui'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
         }
     }
 
-    public function destroy(string $id)
+    public function destroy(Student $student)
     {
         try {
-            $student = Student::find($id);
-            if (! $student) {
-                return ResponseHelper::notFound('Data siswa tidak ditemukan');
-            }
-            $deleted = $this->studentService->delete($student);
-            if (! $deleted) {
-                return ResponseHelper::notFound('Gagal menghapus data siswa');
-            }
-            return ResponseHelper::success(null, 'Data Siswa Berhasil Dihapus', 200);
+            $this->studentService->delete($student->id);
+            
+            return ResponseHelper::success(
+                null, 
+                'Data siswa berhasil dihapus'
+            );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
         }
     }
 }

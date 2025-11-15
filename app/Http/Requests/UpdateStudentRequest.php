@@ -12,13 +12,12 @@ class UpdateStudentRequest extends ApiRequest
 
     public function rules(): array
     {
-        $studentId = $this->route('id') ?? $this->input('id');
-
+        $studentId = $this->route('student')?->id ?? $this->route('id') ?? $this->input('id');
         $student = Student::find($studentId);
         $userId = $student?->user_id;
 
         return [
-            'name' => 'required',
+            'name' => 'required|string|max:255',
             'email' => 'required|email',
             'image' => 'nullable|mimes:png,jpeg,jpg',
             'nisn' => 'required|numeric',
@@ -29,7 +28,7 @@ class UpdateStudentRequest extends ApiRequest
             'address' => 'required',
             'number_kk' => 'required|numeric|min:0',
             'number_akta' => 'required|numeric|min:0',
-            'order_child' => 'required|numeric|min:1',
+            'order_child' => 'nullable|numeric|min:1',
             'count_siblings' => 'nullable|numeric|min:0',
         ];
     }

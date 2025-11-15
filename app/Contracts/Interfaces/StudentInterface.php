@@ -9,8 +9,13 @@ use App\Contracts\Interfaces\Eloquent\SearchInterface;
 use App\Contracts\Interfaces\Eloquent\ShowInterface;
 use App\Contracts\Interfaces\Eloquent\StoreInterface;
 use App\Contracts\Interfaces\Eloquent\UpdateInterface;
+use Illuminate\Database\Eloquent\Collection;
 
 interface StudentInterface extends GetInterface, StoreInterface, UpdateInterface, ShowInterface, DeleteInterface, PaginateInterface, SearchInterface
 {
+    public function showWithActiveClassroom(mixed $id): mixed;
+    public function getWithActiveClassrooms(): Collection;
+    public function countActiveStudents(): mixed;
     public function getActiveStudents(): mixed;
+    public function count(): mixed;
 }

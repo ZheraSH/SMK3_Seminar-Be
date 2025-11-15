@@ -3,6 +3,7 @@
 namespace App\Traits\Models;
 
 use App\Models\Student;
+use App\Models\ClassroomStudents;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 trait HasManyStudents
@@ -11,11 +12,14 @@ trait HasManyStudents
     {
         return $this->hasManyThrough(
             Student::class,
-            \App\Models\ClassroomStudents::class,
+            ClassroomStudents::class,
             'classroom_id',
             'id',
             'id',
             'student_id'
-        )->where('classroom_students.status', \App\Enums\ClassroomStudentStatusEnum::ACTIVE->value);
+        )
+        ->where(function ($q) {
+            $q->where('classroom_students.status', \App\Enums\StudentStatusEnum::ACTIVE->value);
+        });
     }
 }

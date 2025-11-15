@@ -5,53 +5,50 @@ namespace App\Http\Resources;
 use App\Enums\RoleEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class StudentResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
         $user = $this->user;
-        $photo = $user?->image ?? $this->image;
+        $activeClassroom = $this->getActiveClassroom();
 
         return [
             'id' => $this->id,
             'name' => $user?->name,
             'email' => $user?->email,
-            'image' => $this->resolveImageUrl($photo),
             'nisn' => $this->nisn,
             'gender' => $this->gender?->label(),
-            'religion' => $this->religion?->name,
-            'birth_place' => $this->birth_place,
             'birth_date' => $this->birth_date,
-            'number_kk' => $this->number_kk,
-            'number_akta' => $this->number_akta,
-            'order_child' => $this->order_child,
-            'count_siblings' => $this->count_siblings,
+            'birth_place' => $this->birth_place,
             'address' => $this->address,
+            'status' => $this->status?->label(),
+            'classroom' => $activeClassroom ? [
+                'name' => $activeClassroom->name,
+                'major' => $activeClassroom->major?->code,
+                'level_class' => $activeClassroom->levelClass?->name,
+                'school_year' => $activeClassroom->schoolYear?->name,
+            ] : [
+                'message' => 'Siswa belum memiliki kelas aktif'
+            ],
             'roles' => $user?->roles?->map(function ($role) {
                 return [
                     'value' => $role->name,
                     'label' => RoleEnum::tryFrom($role->name)?->label() ?? $role->name,
                 ];
-}) ?? [],
+            }) ?? []
         ];
     }
 
-    private function resolveImageUrl(?string $photo): string
+    private function getActiveClassroom()
     {
-        if (!$photo) {
-            return asset('admin_assets/dist/image/profile/student.jpg');
+        if (!$this->relationLoaded('classroomStudents')) {
+            return null;
         }
 
-        if (Storage::exists($photo)) {
-            return url('storage/' . $photo);
-        }
-
-        if (file_exists(public_path($photo))) {
-            return asset($photo);
-        }
-
-        return asset('admin_assets/dist/image/profile/student.jpg');
+        return $this->classroomStudents
+            ->where('status', \App\Enums\StudentStatusEnum::ACTIVE->value)
+            ->first()
+            ?->classroom;
     }
 }
