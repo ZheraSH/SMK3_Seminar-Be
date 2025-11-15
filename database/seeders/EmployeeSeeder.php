@@ -18,7 +18,6 @@ class EmployeeSeeder extends Seeder
     {
         $faker = \Faker\Factory::create('id_ID');
 
-        // Hanya buat role untuk employee saja
         $employeeRoles = [
             RoleEnum::TEACHER->value,
             RoleEnum::STAFF->value, 
@@ -36,84 +35,36 @@ class EmployeeSeeder extends Seeder
             ['id' => (string) Str::uuid()]
         );
 
-        // Data dummy employees
-        $employees = [
-            // Guru biasa
-            [
-                'name' => 'Guru Matematika',
-                'email' => 'guru.matematika@skaniga.com',
-                'roles' => [RoleEnum::TEACHER->value],
-                'NIP' => '19800000000001',
-                'gender' => GenderEnum::MALE->value,
-            ],
-            [
-                'name' => 'Guru Bahasa',
-                'email' => 'guru.bahasa@skaniga.com', 
-                'roles' => [RoleEnum::TEACHER->value],
-                'NIP' => '19800000000002',
-                'gender' => GenderEnum::FEMALE->value,
-            ],
-            
-            // Staff TU
-            [
-                'name' => 'Staff Tu',
-                'email' => 'staff.administrasi@skaniga.com',
-                'roles' => [RoleEnum::STAFF->value],
-                'NIP' => '19900000000001',
-                'gender' => GenderEnum::FEMALE->value,
-            ],
-            
-            // Wali Kelas (multiple roles)
-            [
-                'name' => 'Wali Kelas',
-                'email' => 'wali.kelas.x@skaniga.com',
-                'roles' => [RoleEnum::TEACHER->value, RoleEnum::HOMEROOM_TEACHER->value],
-                'NIP' => '19750000000001',
-                'gender' => GenderEnum::MALE->value,
-            ],
-            
-            // Guru BK (multiple roles)  
-            [
-                'name' => 'BK',
-                'email' => 'guru.bimbingan@skaniga.com',
-                'roles' => [RoleEnum::TEACHER->value, RoleEnum::COUNSELOR->value],
-                'NIP' => '19850000000001',
-                'gender' => GenderEnum::FEMALE->value,
-            ],
-            
-            // Waka Kurikulum (multiple roles)
-            [
-                'name' => 'Waka Kurikulum',
-                'email' => 'waka.kurikulum@skaniga.com',
-                'roles' => [RoleEnum::TEACHER->value, RoleEnum::CURRICULUM_COORDINATOR->value],
-                'NIP' => '19700000000001',
-                'gender' => GenderEnum::MALE->value,
-            ],
-        ];
+        for ($i = 1; $i <= 17; $i++) {
+            $gender = $faker->randomElement([GenderEnum::MALE->value, GenderEnum::FEMALE->value]);
+            $name = $this->generateRandomName($faker, $gender);
+            $email = "employee{$i}@skaniga.com";
 
-        foreach ($employees as $employeeData) {
             $user = User::updateOrCreate(
-                ['email' => $employeeData['email']],
+                ['email' => $email],
                 [
                     'id' => (string) Str::uuid(),
-                    'name' => $employeeData['name'],
-                    'slug' => Str::slug($employeeData['name']),
+                    'name' => $name,
+                    'slug' => Str::slug($name),
                     'password' => Hash::make('employee123'),
                     'email_verified_at' => now(),
                 ]
             );
 
-            $user->syncRoles($employeeData['roles']);
+            $roleCount = $faker->numberBetween(1, 2);
+            $roles = $faker->randomElements($employeeRoles, $roleCount);
+            
+            $user->syncRoles($roles);
 
             Employee::updateOrCreate(
                 ['user_id' => $user->id],
                 [
                     'id' => (string) Str::uuid(),
                     'image' => null,
-                    'NIP' => $employeeData['NIP'],
+                    'NIP' => $this->generateNIP($i),
                     'NIK' => $faker->unique()->numerify('################'),
                     'religion_id' => $religion->id,
-                    'gender' => $employeeData['gender'],
+                    'gender' => $gender,
                     'birth_date' => $faker->dateTimeBetween('-45 years', '-25 years')->format('Y-m-d'),
                     'birth_place' => $faker->city(),
                     'address' => $faker->address(),
@@ -121,5 +72,26 @@ class EmployeeSeeder extends Seeder
                 ]
             );
         }
+    }
+
+    private function generateRandomName($faker, string $gender): string
+    {
+        $maleFirstNames = ['Ahmad', 'Budi', 'Cahyo', 'Dedi', 'Eko', 'Fajar', 'Gunawan', 'Hadi', 'Irfan', 'Joko'];
+        $femaleFirstNames = ['Ani', 'Bunga', 'Citra', 'Dewi', 'Eka', 'Fitri', 'Gita', 'Hani', 'Indah', 'Juli'];
+        $lastNames = ['Santoso', 'Wijaya', 'Pratama', 'Kusuma', 'Setiawan', 'Hidayat', 'Nugroho', 'Saputra'];
+        
+        $firstName = $gender === GenderEnum::MALE->value 
+            ? $faker->randomElement($maleFirstNames)
+            : $faker->randomElement($femaleFirstNames);
+            
+        $lastName = $faker->randomElement($lastNames);
+        
+        return "{$firstName} {$lastName}";
+    }
+
+    private function generateNIP(int $index): string
+    {
+        $baseYear = 19800000000000;
+        return (string) ($baseYear + $index);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\GenderEnum;
+use App\Traits\Models\BelongsToManySubjects;
 use App\Traits\Models\BelongsToReligion;
 use App\Traits\Models\BelongsToUser;
 use App\Traits\Models\HasManyClassrooms;
@@ -15,7 +16,7 @@ class Employee extends Model
 
     use HasFactory, BelongsToUser,
     BelongsToReligion, HasManyClassrooms,
-    SoftDeletes;
+    BelongsToManySubjects, SoftDeletes;
 
     public $incrementing = false;
     protected $keyType = 'string';

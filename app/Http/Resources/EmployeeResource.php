@@ -3,12 +3,14 @@
 namespace App\Http\Resources;
 
 use App\Enums\RoleEnum;
+use App\Traits\ResolvesImageUrlTrait;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class EmployeeResource extends JsonResource
 {
+    use ResolvesImageUrlTrait;
+
     public function toArray(Request $request): array
     {
         $user = $this->user;
@@ -18,7 +20,7 @@ class EmployeeResource extends JsonResource
             'id' => $this->id,
             'name' => $user?->name,
             'email' => $user?->email,
-            'image' => $this->resolveImageUrl($photo),
+            'image' => $this->resolveImageUrl($photo, 'admin_assets/dist/image/profile/teacher.jpg'),
             'gender' => $this->gender?->label(),
             'phone_number' => $this->phone_number,
             'religion' => $this->religion?->name,
@@ -32,24 +34,23 @@ class EmployeeResource extends JsonResource
                     'value' => $role->name,
                     'label' => RoleEnum::tryFrom($role->name)?->label() ?? $role->name,
                 ];
-}) ?? [],
+            }) ?? [],
+            'subjects' => $this->whenLoaded('subjects', function () {
+                if ($this->subjects->isEmpty()) {
+                    return [
+                        'message' => 'Guru ini belum memiliki mapel yang assign di lessonShcedule'
+                    ];
+                }
+                
+                return $this->subjects->map(function ($subject) {
+                    return [
+                        'id' => $subject->id,
+                        'name' => $subject->name,
+                    ];
+                });
+            }, [
+                'message' => 'Data mapel belum dimuat'
+            ]),
         ];
-    }
-
-    private function resolveImageUrl(?string $photo): string
-    {
-        if (!$photo) {
-            return asset('admin_assets/dist/image/profile/teacher.jpg');
-        }
-
-        if (Storage::exists($photo)) {
-            return url('storage/' . $photo);
-        }
-
-        if (file_exists(public_path($photo))) {
-            return asset($photo);
-        }
-
-        return asset('admin_assets/dist/image/profile/teacher.jpg');
     }
 }

@@ -3,103 +3,97 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Contracts\Repositories\EmployeeRepository;
 use App\Http\Requests\StoreEmployeeRequest;
 use App\Http\Requests\UpdateEmployeeRequest;
 use App\Http\Resources\EmployeeResource;
 use App\Services\EmployeeService;
 use App\Models\Employee;
-use Illuminate\Http\Request;
 use App\Helpers\ResponseHelper;
-use Throwable;
+use Illuminate\Http\Request;
 
 class EmployeeController extends Controller
 {
     private EmployeeService $employeeService;
-    private EmployeeRepository $employeeRepository;
 
-    public function __construct(EmployeeService $employeeService, EmployeeRepository $employeeRepository)
+    public function __construct(EmployeeService $employeeService)
     {
         $this->employeeService = $employeeService;
-        $this->employeeRepository = $employeeRepository;
     }
 
     public function index(Request $request)
     {
         try {
-            $employees = $this->employeeRepository->search($request)
-                ->load(['user', 'religion']);
-
+            $data = $this->employeeService->getWithFilter($request);
+    
+            if ($request->has('page')) {
+                return ResponseHelper::pagination($data, EmployeeResource::class, 'Daftar karyawan berhasil diambil');
+            }
+    
             return ResponseHelper::success(
-                EmployeeResource::collection($employees),
-                'Daftar Karyawan berhasil diambil'
+                EmployeeResource::collection($data),
+                'Daftar karyawan berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
         }
     }
 
     public function store(StoreEmployeeRequest $request)
     {
         try {
-            $employee = $this->employeeService->store($request);
+            $data = $this->employeeService->store($request);
+
+            $data->load(['user.roles', 'religion', 'subjects']);
+            
             return ResponseHelper::success(
-                new EmployeeResource($employee),
-                'Data Karyawan berhasil dibuat',
+                new EmployeeResource($data),
+                'Data karyawan berhasil dibuat',
                 201
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
         }
     }
 
     public function show(string $id)
     {
         try {
-            $employee = Employee::with(['user', 'religion'])->find($id);
-            if (! $employee) {
-                return ResponseHelper::notFound('Data karyawan tidak ditemukan');
-            }
+            $data = $this->employeeService->show($id);
+            
             return ResponseHelper::success(
-                new EmployeeResource($employee),
-                'Detail Data karyawan Berhasil Diambil'
+                new EmployeeResource($data),
+                'Detail data karyawan berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::notFound('Data karyawan tidak ditemukan');
         }
     }
 
-    public function update(UpdateEmployeeRequest $request, string $id)
+    public function update(UpdateEmployeeRequest $request, Employee $employee)
     {
         try {
-            $employee = Employee::find($id);
-            if (! $employee) {
-                return ResponseHelper::notFound('Data karyawan tidak ditemukan');
-            }
-            $updated = $this->employeeService->update($employee, $request);
+            $data = $this->employeeService->update($employee, $request);
+            
             return ResponseHelper::success(
-                new EmployeeResource($updated),
-                'Data Karyawan berhasil diperbarui'
+                new EmployeeResource($data),
+                'Data karyawan berhasil diperbarui'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
         }
     }
 
-    public function destroy(string $id)
+    public function destroy(Employee $employee)
     {
         try {
-            $employee = Employee::find($id);
-            if (! $employee) {
-                return ResponseHelper::notFound('Data karyawan tidak ditemukan');
-            }
-            $deleted = $this->employeeService->delete($employee);
-            if (! $deleted) {
-                return ResponseHelper::notFound('Gagal menghapus data karyawan');
-            }
-            return ResponseHelper::success(null, 'Data Karyawan berhasil dihapus', 200);
+            $this->employeeService->delete($employee);
+            
+            return ResponseHelper::success(
+                null,
+                'Data karyawan berhasil dihapus'
+            );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
         }
     }
 }

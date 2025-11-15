@@ -85,7 +85,7 @@ class EmployeeService
 
         $this->employee->update($employee->id, $employeeData);
 
-        return $employee->fresh(['user','religion']);
+        return $employee->fresh(['user.roles', 'religion', 'subjects']);
     }
 
     public function delete(Employee $employee): bool
@@ -104,6 +104,11 @@ class EmployeeService
     {
         if ($oldFile) $this->remove($oldFile);
         return $this->upload(UploadDiskEnum::TEACHER->value, $file);
+    }
+
+    public function show(string $id): Employee
+    {
+        return $this->employee->show($id);
     }
 
     public function getWithFilter(Request $request, int $pagination = 8): mixed

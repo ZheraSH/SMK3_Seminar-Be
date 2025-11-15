@@ -17,7 +17,9 @@ class EmployeeRepository extends BaseRepository implements EmployeeInterface
 
     public function get(): mixed
     {
-        return $this->model->query()->get();
+        return $this->model->query()
+            ->with(['user', 'religion', 'subjects'])
+            ->get();
     }
 
     public function store(array $data): mixed
@@ -27,7 +29,9 @@ class EmployeeRepository extends BaseRepository implements EmployeeInterface
 
     public function show(mixed $id): mixed
     {
-        return $this->model->query()->findOrFail($id);
+        return $this->model->query()
+            ->with(['user', 'religion', 'subjects'])
+            ->findOrFail($id);
     }
 
     public function update(mixed $id, array $data): mixed
@@ -48,19 +52,34 @@ class EmployeeRepository extends BaseRepository implements EmployeeInterface
     public function search(Request $request, int $pagination = 8): mixed
     {
         return $this->model->query()
+            ->with([
+                'user.roles',
+                'religion',
+                'subjects'
+                ])
             ->when($request->search, function ($query) use ($request) {
-                $query->where(function($q) use ($request) {
+                $query->where(function ($q) use ($request) {
                     $q->whereHas('user', function ($sub) use ($request) {
-                    $sub->where('name', 'LIKE', '%' . $request->search . '%');
-                })
-                ->orWhere('NIP', 'LIKE', '%' . $request->search . '%');
-            });
+                        $sub->where('name', 'LIKE', '%' . $request->search . '%');
+                    })
+                    ->orWhere('NIP', 'LIKE', '%' . $request->search . '%');
+                });
             })
             ->when($request->role, function ($query) use ($request) {
-                $query->where('role', $request->role);
+                $roles = explode(',', $request->role);
+                $query->whereHas('user.roles', function ($q) use ($roles) {
+                    $q->whereIn('name', $roles);
+                });
             })
-            ->when($request->subject_id, function ($query) use ($request) {
-                $query->where('subject_id', $request->subject_id);
+            ->when($request->gender, function ($query) use ($request) {
+                $genders = explode(',', $request->gender);
+                $query->whereIn('gender', $genders);
+            })
+            ->when($request->subject, function ($query) use ($request) {
+                $subjectNames = explode(',', $request->subject);
+                $query->whereHas('subjects', function ($q) use ($subjectNames) {
+                    $q->whereIn('name', $subjectNames);
+                });
             })
             ->latest()
             ->paginate($pagination);
