@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             LevelClassSeeder::class,
             SubjectSeeder::class,
             ClassroomSeeder::class, //Data dummy
+            ClassroomStudentSeeder::class, //Data dummy
             LessonHourSeeder::class, //Data dummy
             LessonScheduleSeeder::class, //Data dummy
             AttendanceRuleSeeder::class, //Data dummy

@@ -4,22 +4,34 @@ namespace App\Http\Controllers\Api;
 
 use App\Services\ClassroomStudentsService;
 use App\Http\Resources\ClassroomStudentsResource;
-use Illuminate\Http\Request;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 
 class ClassroomStudentsController extends Controller
 {
-    public function __construct(
-        protected ClassroomStudentsService $service
-    ) {}
+    private ClassroomStudentsService $classroomStudentsService;
+
+    public function __construct(ClassroomStudentsService $classroomStudentsService)
+    {
+        $this->classroomStudentsService = $classroomStudentsService;
+    }
 
     public function index(Request $request)
     {
-        $data = $this->service->search($request);
-        return ResponseHelper::success(
-            ClassroomStudentsResource::collection($data),
-            'Data siswa kelas berhasil diambil'
-        );
+        try {
+            $data = $this->classroomStudentsService->search($request);
+
+            if ($request->has('page')) {
+                return ResponseHelper::pagination($data, 'Data siswa kelas berhasil diambil');
+            }
+            
+            return ResponseHelper::success(
+                ClassroomStudentsResource::collection($data),
+                'Data siswa kelas berhasil diambil'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+        }
     }
 }

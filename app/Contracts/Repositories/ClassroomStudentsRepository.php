@@ -44,7 +44,7 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
     public function paginate(): mixed
     {
         return $this->model->query()
-            ->with(['major', 'levelClass', 'schoolYear', 'teacher.user'])
+            ->with(['student.user', 'classroom.major', 'classroom.levelClass', 'classroom.schoolYear', 'classroom.teacher.user'])
             ->latest()
             ->paginate(8);
     }

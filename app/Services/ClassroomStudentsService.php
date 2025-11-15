@@ -7,15 +7,20 @@ use Illuminate\Http\Request;
 
 class ClassroomStudentsService
 {
-    private ClassroomStudentsInterface $classroomStudentsRepository;
+    private ClassroomStudentsInterface $classroomStudentsInterface;
 
-    public function __construct(ClassroomStudentsInterface $classroomStudentsRepository)
+    public function __construct(ClassroomStudentsInterface $classroomStudentsInterface)
     {
-        $this->classroomStudentsRepository = $classroomStudentsRepository;
+        $this->classroomStudentsInterface = $classroomStudentsInterface;
     }
 
     public function search(Request $request)
     {
-        return $this->classroomStudentsRepository->search($request);
+        return $this->classroomStudentsInterface->search($request);
+    }
+
+    public function paginate()
+    {
+        return $this->classroomStudentsInterface->paginate();
     }
 }
