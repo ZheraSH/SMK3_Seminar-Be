@@ -6,18 +6,15 @@ use App\Contracts\Interfaces\RoleInterface;
 
 class RoleService
 {
-    private RoleInterface $roleRepository;
+    private RoleInterface $roleInterface;
 
-    public function __construct(RoleInterface $roleRepository)
+    public function __construct(RoleInterface $roleInterface)
     {
-        $this->roleRepository = $roleRepository;
+        $this->roleInterface = $roleInterface;
     }
 
-    /**
-     * Get all roles for dropdown
-     */
-    public function getAllRoles(): mixed
+    public function get(): mixed
     {
-        return $this->roleRepository->get();
+        return $this->roleInterface->get();
     }
 }

@@ -36,19 +36,4 @@ class RoleRepository extends BaseRepository implements RoleInterface
     {
         return $this->show($id)->delete();
     }
-    
-    private function getRoleLabel(string $roleName): string
-    {
-        $labels = [
-            'school_operator' => 'Operator Sekolah',
-            'student' => 'Siswa',
-            'teacher' => 'Guru Pengajar',
-            'staff_tu' => 'Staff TU',
-            'homeroom_teacher' => 'Wali Kelas',
-            'counselor' => 'Guru BK',
-            'curriculum_coordinator' => 'Waka Kurikulum',
-        ];
-
-        return $labels[$roleName] ?? ucfirst(str_replace('_', ' ', $roleName));
-    }
 }

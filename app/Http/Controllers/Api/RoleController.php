@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Helpers\ResponseHelper;
 use App\Services\RoleService;
-use Throwable;
 
 class RoleController extends Controller
 {
@@ -19,7 +18,7 @@ class RoleController extends Controller
     public function index()
     {
         try {
-            $roles = $this->roleService->getAllRoles();
+            $roles = $this->roleService->get();
 
             return ResponseHelper::success($roles, 'Daftar role berhasil diambil');
         } catch (\Throwable $th) {
