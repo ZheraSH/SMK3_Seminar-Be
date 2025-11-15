@@ -22,7 +22,7 @@ class UpdateClassroomRequest extends ApiRequest
     {
         
         return [
-            'teacher_id' => 'required','exists:employees,id',
+            'teacher_id' => 'required|exists:employees,id',
         ];
     }
 

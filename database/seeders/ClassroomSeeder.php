@@ -20,7 +20,7 @@ class ClassroomSeeder extends Seeder
             $level = LevelClass::where('name', $levelName)->first();
             if (! $level) continue;
 
-            for ($i = 1; $i <= 2; $i++) {
+            for ($i = 1; $i <= 3; $i++) {
                 $className = "{$levelName} PPLG {$i}";
                 $teacher = $teachers[$teacherIndex++ % $teachers->count()];
 

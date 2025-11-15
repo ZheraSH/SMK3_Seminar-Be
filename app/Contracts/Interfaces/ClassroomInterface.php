@@ -1,5 +1,5 @@
 <?php
-        
+
 namespace App\Contracts\Interfaces;
         
 use App\Contracts\Interfaces\Eloquent\DeleteInterface; 
@@ -20,4 +20,6 @@ interface ClassroomInterface extends GetInterface, StoreInterface, UpdateInterfa
     public function getActiveStudents(string $classroomId): Collection;
     public function getAvailableStudents(string $classroomId, string $search = null, int $limit = 10): Collection;
     public function graduateClass(string $classroomId): void;
+    public function getWithSchedules(): mixed;
+    public function getWithSchedulesById(string $id): mixed;
 }
