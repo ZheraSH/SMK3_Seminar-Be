@@ -13,18 +13,22 @@ class ClassroomScheduleResource extends JsonResource
     
     public function toArray(Request $request): array
     {
-        $classroom = $this->resource['classroom'];
-        $schedules = $this->resource['schedules'];
+        $classroom = $this->resource;
+        $schedules = $classroom->lessonSchedules
+            ->sortBy('lesson_hour_id')
+            ->groupBy('day');
 
         return [
             'classroom' => [
                 'id' => $classroom->id,
                 'name' => $classroom->name,
-                'homeroom_teacher' => $classroom->employee?->user?->name,
-                'total_students' => $classroom->classroomStudents?->where('status', \App\Enums\StudentStatusEnum::ACTIVE)->count() ?? 0,
-                'school_year' => $classroom->schoolYear?->name,
-                'major' => $classroom->major?->name,
-                'level_class' => $classroom->levelClass?->name,
+                'homeroom_teacher' => $classroom->employee?->user?->name ?? 'Belum ada wali kelas',
+                'total_students' => $classroom->classroomStudents 
+                    ->where('status', \App\Enums\StudentStatusEnum::ACTIVE->value)
+                    ->count(),
+                'school_year' => $classroom->schoolYear?->name ?? 'Belum ada tahun ajaran',
+                'major' => $classroom->major?->name ?? 'Belum ada jurusan',
+                'level_class' => $classroom->levelClass?->name ?? 'Belum ada tingkat',
             ],
             'schedules' => $this->getStructuredSchedules($schedules),
             'summary' => [
@@ -60,10 +64,10 @@ class ClassroomScheduleResource extends JsonResource
     {
         return [
             'id' => $schedule->id,
-            'placement' => $schedule->lessonHour?->name,
+            'placement' => $schedule->lessonHour?->name ?? 'Jam tidak ditemukan',
             'time' => $this->formatTimeRange($schedule->lessonHour?->start, $schedule->lessonHour?->end),
-            'subject' => $schedule->subject?->name,
-            'subject_teacher' => $schedule->employee?->user?->name,
+            'subject' => $schedule->subject?->name ?? 'Mata pelajaran tidak ditemukan',
+            'subject_teacher' => $schedule->employee?->user?->name ?? 'Guru tidak ditemukan',
         ];
     }
 }

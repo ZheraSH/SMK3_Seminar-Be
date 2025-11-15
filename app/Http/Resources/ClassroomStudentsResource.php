@@ -9,22 +9,22 @@ class ClassroomStudentsResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $activeStudents = $this->classroomStudents
-            ->where('status', \App\Enums\StudentStatusEnum::ACTIVE);
-
         return [
             'id' => $this->id,
-            'name' => $this->name,
-            'homeroom_teacher' => $this->teacher?->user?->name,
-            'total_students' => $activeStudents->count(),
-            'students' => $activeStudents->map(function ($classroomStudent) {
-                return [
-                    'id' => $classroomStudent->student->id,
-                    'name' => $classroomStudent->student->user->name,
-                    'nisn' => $classroomStudent->student->nisn,
-                    'status' => $classroomStudent->status->label(),
-                ];
-            })->values(),
+            'student' => [
+                'id' => $this->student->id,
+                'name' => $this->student->user->name,
+                'nisn' => $this->student->nisn,
+                'email' => $this->student->user->email,
+                'gender' => $this->student->gender?->label() ?? 'Tidak diketahui',
+            ],
+            'classroom' => [
+                'id' => $this->classroom->id,
+                'name' => $this->classroom->name,
+                'major' => $this->classroom->major->name,
+                'level_class' => $this->classroom->levelClass->name,
+            ],
+            'status' => $this->status->label(),
         ];
     }
 }

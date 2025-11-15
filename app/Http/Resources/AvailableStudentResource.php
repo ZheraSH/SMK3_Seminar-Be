@@ -13,7 +13,7 @@ class AvailableStudentResource extends JsonResource
             'id' => $this->id,
             'name' => $this->user->name,
             'nisn' => $this->nisn,
-            'gender' => $this->gender?->getLabel(),
+            'gender' => $this->gender?->label(),
             'email' => $this->user->email,
         ];
     }
