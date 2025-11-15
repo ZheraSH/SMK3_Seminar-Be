@@ -13,6 +13,7 @@ use App\Traits\UploadTrait;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class EmployeeService
 {
@@ -111,7 +112,7 @@ class EmployeeService
         return $this->employee->show($id);
     }
 
-    public function getWithFilter(Request $request, int $pagination = 8): mixed
+    public function getWithFilter(Request $request, int $pagination = 8): LengthAwarePaginator
     {
         return $this->employee->search($request, $pagination);
     }
