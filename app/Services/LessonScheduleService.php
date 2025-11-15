@@ -49,7 +49,11 @@ class LessonScheduleService
 
     public function getAllClassroomsWithSchedules()
     {
-        return $this->classroom->getWithSchedules();
+        $classrooms = $this->classroom->getWithSchedules();
+
+        return $classrooms->filter(function($classroom) {
+            return $classroom && $classroom->id;
+        });
     }
 
     public function getByClassroom(string $classroomId): array

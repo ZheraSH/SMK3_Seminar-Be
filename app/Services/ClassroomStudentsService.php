@@ -23,4 +23,9 @@ class ClassroomStudentsService
     {
         return $this->classroomStudentsInterface->paginate();
     }
+
+    public function get()
+    {
+        return $this->classroomStudentsInterface->get();
+    }
 }

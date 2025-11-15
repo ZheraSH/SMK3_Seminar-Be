@@ -20,15 +20,29 @@ class ClassroomStudentsController extends Controller
     public function index(Request $request)
     {
         try {
-            $data = $this->classroomStudentsService->search($request);
-
-            if ($request->has('page')) {
-                return ResponseHelper::pagination($data, 'Data siswa kelas berhasil diambil');
+            if ($request->has('search') && !empty($request->search)) {
+                $data = $this->classroomStudentsService->search($request);
+            } else {
+                $data = $this->classroomStudentsService->paginate();
             }
-            
+
             return ResponseHelper::success(
                 ClassroomStudentsResource::collection($data),
                 'Data siswa kelas berhasil diambil'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+        }
+    }
+
+    public function search(Request $request)
+    {
+        try {
+            $data = $this->classroomStudentsService->search($request);
+            
+            return ResponseHelper::success(
+                ClassroomStudentsResource::collection($data),
+                'Hasil pencarian siswa kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());

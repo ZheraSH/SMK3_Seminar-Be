@@ -249,7 +249,10 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
                 'schoolYear', 
                 'major',
                 'levelClass',
-                'classroomStudents.student.user',
+                'classroomStudents' => function($query) {
+                    $query->where('status', \App\Enums\StudentStatusEnum::ACTIVE->value)
+                          ->with(['student.user']);
+                },
                 'lessonSchedules.lessonHour',
                 'lessonSchedules.subject',
                 'lessonSchedules.employee.user'
