@@ -4,39 +4,50 @@ namespace App\Services;
 use App\Contracts\Interfaces\LessonHourInterface;
 use App\Http\Requests\StoreLessonHourRequest;
 use App\Models\LessonHour;
+use Illuminate\Http\Request;
 
 class LessonHourService
 {
-    private LessonHourInterface $lessonHour;
+    private LessonHourInterface $lessonHourInterface;
 
-    public function __construct(LessonHourInterface $lessonHour)
+    public function __construct(LessonHourInterface $lessonHourInterface)
     {
-        $this->lessonHour = $lessonHour;
+        $this->lessonHourInterface = $lessonHourInterface;
     }
 
+    
     public function store(StoreLessonHourRequest $request): LessonHour
     {
         $data = $request->validated();
         
         $this->validateUniqueName($data['name'], $data['day']);
-        
         $this->validateTimeOverlap($data);
         
-        return $this->lessonHour->store($data);
+        return $this->lessonHourInterface->store($data);
+    }
+    
+    public function show(string $id): LessonHour
+    {
+        return $this->lessonHourInterface->show($id);
     }
 
-    public function delete(LessonHour $lessonHour): bool
+    public function delete(string $id): bool
     {
-        if ($this->isUsedInSchedules($lessonHour->id)) {
+        if ($this->lessonHourInterface->isUsedInSchedules($id)) {
             throw new \Exception('Tidak dapat menghapus jam pelajaran karena sedang digunakan dalam jadwal');
         }
         
-        return $this->lessonHour->delete($lessonHour->id);
+        return $this->lessonHourInterface->delete($id);
+    }
+    
+    public function getAll(Request $request)
+    {
+        return $this->lessonHourInterface->get();
     }
 
     public function getAllGroupedByDay()
     {
-        $lessonHours = $this->lessonHour->get();
+        $lessonHours = $this->lessonHourInterface->get();
         
         return $lessonHours->groupBy('day')->map(function ($hours) {
             return $hours->map(function ($hour) {
@@ -51,37 +62,23 @@ class LessonHourService
         });
     }
 
-    private function validateUniqueName(string $name, string $day): void
+    public function getByDay(string $day)
     {
-        $existing = LessonHour::where('name', $name)
-            ->where('day', $day)
-            ->exists();
+        return $this->lessonHourInterface->getByDay($day);
+    }
 
-        if ($existing) {
+    private function validateUniqueName(string $name, string $day, ?string $excludeId = null): void
+    {
+        if ($this->lessonHourInterface->checkNameExists($name, $day, $excludeId)) {
             throw new \Exception('Nama jam pelajaran "' . $name . '" sudah digunakan untuk hari ' . $day);
         }
     }
 
     private function validateTimeOverlap(array $data, ?string $excludeId = null): void
     {
-        $overlapQuery = LessonHour::where('day', $data['day'])
-            ->where(function ($query) use ($data) {
-                $query->where('start', '<', $data['end'])
-                      ->where('end', '>', $data['start']);
-            });
-
-        if ($excludeId) {
-            $overlapQuery->where('id', '!=', $excludeId);
-        }
-
-        if ($overlapQuery->exists()) {
+        if ($this->lessonHourInterface->checkTimeOverlap($data['day'], $data['start'], $data['end'], $excludeId)) {
             throw new \Exception('Waktu jam pelajaran bertabrakan dengan jam pelajaran lainnya di hari yang sama');
         }
-    }
-
-    private function isUsedInSchedules(string $lessonHourId): bool
-    {
-        return \App\Models\LessonSchedule::where('lesson_hour_id', $lessonHourId)->exists();
     }
 
     private function formatTimeForResponse($time): string

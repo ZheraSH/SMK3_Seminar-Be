@@ -46,4 +46,38 @@ class LessonHourRepository extends BaseRepository implements LessonHourInterface
             ->orderBy('start')
             ->get();
     }
+    
+    public function checkNameExists(string $name, string $day, ?string $excludeId = null): bool
+    {
+        $query = $this->model->query()
+            ->where('name', $name)
+            ->where('day', $day);
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        return $query->exists();
+    }
+
+    public function checkTimeOverlap(string $day, string $start, string $end, ?string $excludeId = null): bool
+    {
+        $query = $this->model->query()
+            ->where('day', $day)
+            ->where(function ($q) use ($start, $end) {
+                $q->where('start', '<', $end)
+                  ->where('end', '>', $start);
+            });
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        return $query->exists();
+    }
+
+    public function isUsedInSchedules(string $lessonHourId): bool
+    {
+        return \App\Models\LessonSchedule::where('lesson_hour_id', $lessonHourId)->exists();
+    }
 }

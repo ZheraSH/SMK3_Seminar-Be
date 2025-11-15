@@ -15,8 +15,12 @@ class StoreLessonHourRequest extends ApiRequest
     {
         return [
             'day' => 'required|in:' . implode(',', DayEnum::values()),
-            'name' => ['required','string','max:100',
-                Rule::unique('lesson_hours', 'name')->where('day', $this->day)->whereNull('deleted_at')],
+            'name' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('lesson_hours', 'name')->where('day', $this->day)->whereNull('deleted_at')
+            ],
             'start' => 'required|date_format:H:i',
             'end' => 'required|date_format:H:i|after:start',
         ];
