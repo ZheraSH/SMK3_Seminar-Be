@@ -2,6 +2,8 @@
 
 namespace App\Helpers;
 
+use Illuminate\Http\Resources\Json\ResourceCollection;
+
 class ResponseHelper
 {
     public static function success($data = null, $message = 'Success', int $code = 200)
@@ -32,12 +34,12 @@ class ResponseHelper
         ], 404);
     }
 
-    public static function pagination($data, $message = 'Success')
+    public static function pagination($data, $resourceClass, $message = 'Success')
     {
         return response()->json([
             'status' => true,
             'message' => $message,
-            'data' => $data->items(),
+            'data' => $resourceClass::collection($data->items()),
             'meta' => [
                 'current_page' => $data->currentPage(),
                 'per_page' => $data->perPage(),
