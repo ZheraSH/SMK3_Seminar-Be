@@ -29,7 +29,7 @@ class ClassroomController extends Controller
             $data = $this->classroomService->search($request);
 
             if ($request->has('page')) {
-                return ResponseHelper::pagination($data, 'List data kelas berhasil diambil');
+                return ResponseHelper::pagination($data, ClassroomResource::class, 'List data kelas berhasil diambil');
             }
 
             return ResponseHelper::success(
@@ -40,7 +40,7 @@ class ClassroomController extends Controller
             return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
         }
     }
-    
+
     public function store(StoreClassroomRequest $request)
     {
         try {
