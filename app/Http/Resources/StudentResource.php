@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources;
 
-use App\Enums\RoleEnum;
+use App\Enums\StudentStatusEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -19,36 +19,40 @@ class StudentResource extends JsonResource
             'email' => $user?->email,
             'nisn' => $this->nisn,
             'gender' => $this->gender?->label(),
+            'religion' => $this->religion?->name,
             'birth_date' => $this->birth_date,
             'birth_place' => $this->birth_place,
+            'number_kk' => $this->number_kk,
+            'number_akta' => $this->number_akta,
+            'order_child' => $this->order_child,
+            'count_siblings' => $this->count_siblings,
             'address' => $this->address,
-            'status' => $this->status?->label(),
             'classroom' => $activeClassroom ? [
+                'id' => $activeClassroom->id,
                 'name' => $activeClassroom->name,
                 'major' => $activeClassroom->major?->code,
-                'level_class' => $activeClassroom->levelClass?->name,
-                'school_year' => $activeClassroom->schoolYear?->name,
-            ] : [
+                'level_class' => $activeClassroom->levelClass->name,
+                ] : [
                 'message' => 'Siswa belum memiliki kelas aktif'
             ],
-            'roles' => $user?->roles?->map(function ($role) {
-                return [
-                    'value' => $role->name,
-                    'label' => RoleEnum::tryFrom($role->name)?->label() ?? $role->name,
-                ];
-            }) ?? []
+            'rfid' => $this->whenLoaded('rfid', function () {
+                if ($this->rfid) {
+                    return [
+                        'id' => $this->rfid->id,
+                        'rfid' => $this->rfid->number,
+                    ];
+                }
+                return null;
+            }, null),
         ];
     }
 
     private function getActiveClassroom()
     {
-        if (!$this->relationLoaded('classroomStudents')) {
-            return null;
-        }
+        $activeClassroomStudent = $this->classroomStudents
+            ->where('status', StudentStatusEnum::ACTIVE->value)
+            ->first();
 
-        return $this->classroomStudents
-            ->where('status', \App\Enums\StudentStatusEnum::ACTIVE->value)
-            ->first()
-            ?->classroom;
+        return $activeClassroomStudent?->classroom;
     }
 }

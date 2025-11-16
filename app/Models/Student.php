@@ -7,7 +7,7 @@ use App\Enums\StudentStatusEnum;
 use App\Traits\Models\BelongsToReligion;
 use App\Traits\Models\HasOneRfid;
 use App\Traits\Models\BelongsToUser;
-use App\Traits\Models\HasManyClassroomStudents;
+use App\Traits\Models\StudentHasManyClassroomStudents;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -16,7 +16,7 @@ class Student extends Model
 {
 
     use HasFactory, BelongsToUser,
-    BelongsToReligion, HasManyClassroomStudents,
+    BelongsToReligion, StudentHasManyClassroomStudents,
     HasOneRfid, SoftDeletes;
 
     public $incrementing = false;

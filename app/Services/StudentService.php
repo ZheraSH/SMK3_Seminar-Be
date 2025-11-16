@@ -112,61 +112,18 @@ class StudentService
 
     public function getActiveClassroom(string $studentId)
     {
-        try {
-            Log::info('Getting active classroom for student', ['student_id' => $studentId]);
-            
-            $student = $this->student->showWithActiveClassroom($studentId);
-            
-            Log::info('Student classroom students data', [
-                'student_id' => $studentId,
-                'classroom_students_count' => $student->classroomStudents->count(),
-                'classroom_students' => $student->classroomStudents->map(function($cs) {
-                    return [
-                        'id' => $cs->id,
-                        'classroom_id' => $cs->classroom_id,
-                        'status' => $cs->status,
-                        'classroom_name' => $cs->classroom->name ?? null,
-                    ];
-                })->toArray()
-            ]);
+        $student = $this->student->showWithActiveClassroom($studentId);
 
-            $activeClassroom = $student->classroomStudents
-                ->where('status', StudentStatusEnum::ACTIVE->value)
-                ->first()?->classroom;
-
-            Log::info('Active classroom result', [
-                'student_id' => $studentId,
-                'active_classroom_found' => !is_null($activeClassroom),
-                'active_classroom_name' => $activeClassroom->name ?? null
-            ]);
-
-            return $activeClassroom;
-
-        } catch (\Exception $e) {
-            Log::error('Error getting active classroom', [
-                'student_id' => $studentId,
-                'error' => $e->getMessage()
-            ]);
-            return null;
-        }
+        return $student->classroomStudents
+            ->firstWhere('status', StudentStatusEnum::ACTIVE->value)?->classroom;
     }
 
     public function getActiveClassroomStudent(string $studentId)
     {
-        try {
-            $student = $this->student->showWithActiveClassroom($studentId);
-            
-            return $student->classroomStudents
-                ->where('status', StudentStatusEnum::ACTIVE->value)
-                ->first();
-                
-        } catch (\Exception $e) {
-            Log::error('Error getting active classroom student', [
-                'student_id' => $studentId,
-                'error' => $e->getMessage()
-            ]);
-            return null;
-        }
+        $student = $this->student->showWithActiveClassroom($studentId);
+
+        return $student->classroomStudents
+            ->firstWhere('status', StudentStatusEnum::ACTIVE->value);
     }
 
     public function hasActiveClassroom(string $studentId): bool
