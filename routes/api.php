@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\StudentLessonScheduleController;
+use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\AttendanceRuleController;
 use App\Http\Controllers\Api\LessonHourController;
 use App\Http\Controllers\Api\SubjectController;
@@ -16,13 +17,14 @@ use App\Http\Controllers\Api\LevelClassController;
 use App\Http\Controllers\Api\ClassroomStudentsController;
 use App\Http\Controllers\Api\LessonSchedulesController;
 use App\Http\Controllers\Api\RfidController;
+use App\Http\Controllers\Api\RfidTapController;
 use App\Http\Controllers\Api\RoleController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('login', [LoginController::class, 'login']);
 
 // Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
-// Roles
+    // Roles
     Route::apiResource('roles', RoleController::class)->only('index');
 
     // Students
@@ -38,7 +40,7 @@ Route::post('login', [LoginController::class, 'login']);
     Route::apiResource('majors', MajorController::class)->only(['index', 'show']);
 
     // Level Classes
-    Route::apiResource('levelclasses', LevelClassController::class)->only(['index', 'show']);
+    Route::apiResource('levelClass', LevelClassController::class)->only(['index', 'show']);
 
     // Classrooms
     Route::apiResource('classrooms', ClassroomController::class);
@@ -54,21 +56,18 @@ Route::post('login', [LoginController::class, 'login']);
     // Classroom Students
     Route::apiResource('classroomStudents', ClassroomStudentsController::class)->only('index');
 
- Route::prefix('school-years')->controller(SchoolYearsController::class)->group(function () {
-    Route::get('/active', 'active');
-    Route::get('/cron-status', 'cronStatus');
-});
-
-Route::apiResource('school-years', SchoolYearsController::class)->except(['update']);
-
-    
+    // School Years
+    Route::apiResource('school-years', SchoolYearsController::class)->except(['update']);
+    Route::prefix('school-years')->controller(SchoolYearsController::class)->group(function () {
+    Route::get('/active', 'active'); // tahun ajaran aktif
+    Route::get('/cron-status', 'cronStatus'); // status crom
+    });
 
     // Semesters
     Route::get('semesters/active', [SemesterController::class, 'active']); // semester aktif
 
     // Subjects
     Route::apiResource('subjects', SubjectController::class);
-
 
     // Lesson Hours
     Route::apiResource('lessonHours', LessonHourController::class)->except(['update']);
@@ -91,15 +90,32 @@ Route::apiResource('school-years', SchoolYearsController::class)->except(['updat
         Route::get('/day/{day}', [AttendanceRuleController::class, 'getByDay']); // aturan absensi per hari
     });
 
-    //Student Lesson Schedule
-Route::apiResource('students.lesson-schedules', StudentLessonScheduleController::class)
-    ->only(['index']);
-
-    // Rfid
+    // // RFID Management
     // Route::apiResource('rfids', RfidController::class);
-    // Route::prefix('rfids')->group(function () {
-    //     Route::get('/status/used', [RfidController::class, 'used']);
-    //     Route::get('/status/not-used', [RfidController::class, 'notUsed']);
-    // });
-// });
+    // Route::get('rfids/used', [RfidController::class, 'used']);
+    // Route::get('rfids/not-used', [RfidController::class, 'notUsed']);
+    // Route::post('rfids/validate', [RfidController::class, 'validateRfid']);
     
+    // // RFID Tap Routes
+    // Route::prefix('attendance')->group(function () {
+    //     Route::post('/rfid-tap', [RfidTapController::class, 'tap']);
+    //     Route::get('/statistics', [RfidTapController::class, 'statistics']);
+    // });
+
+    // // Attendance Routes
+    // Route::apiResource('attendances', AttendanceController::class);
+    // Route::prefix('attendances')->group(function () {
+    //     Route::get('/classroom/{classroomId}', [AttendanceController::class, 'getByClassroom']);
+    //     Route::get('/student/{studentId}/monthly', [AttendanceController::class, 'getStudentMonthly']);
+    //     Route::get('/student/{studentId}/today', [AttendanceController::class, 'getTodayByStudent']);
+    //     Route::get('/by-date', [AttendanceController::class, 'getByDate']);
+    // });
+
+// });
+
+// Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
+    //Student Lesson Schedule
+    Route::apiResource('students.lesson-schedules', StudentLessonScheduleController::class)->only(['index']);
+
+
+//});
