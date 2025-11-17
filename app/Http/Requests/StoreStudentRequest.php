@@ -23,7 +23,7 @@ class StoreStudentRequest extends ApiRequest
                 'email',
                 Rule::unique(User::class, 'email'),
             ],
-            'image' => 'nullable|mimes:png,jpeg,jpg|max:2048',
+            'image' => 'nullable|mimes:png,jpeg,jpg|max:1024',
             'nisn' => [
                 'required',
                 'numeric',
@@ -50,7 +50,7 @@ class StoreStudentRequest extends ApiRequest
             'email.email' => 'Email tidak valid',
             'email.unique' => 'Email sudah digunakan',
             'image.mimes' => 'Foto harus berekstensi png, jpg, atau jpeg',
-            'image.max' => 'Ukuran foto maksimal 2MB',
+            'image.max' => 'Ukuran foto maksimal 1MB',
             'nisn.required' => 'NISN tidak boleh kosong',
             'nisn.numeric' => 'NISN harus berupa angka',
             'nisn.digits' => 'NISN harus 10 digit',
