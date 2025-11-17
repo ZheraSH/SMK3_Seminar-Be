@@ -12,5 +12,5 @@ use App\Contracts\Interfaces\Eloquent\UpdateInterface;
         
 interface ClassroomStudentsInterface extends GetInterface, StoreInterface, UpdateInterface, ShowInterface, DeleteInterface, SearchInterface, PaginateInterface
 {
-    // Define your methods here
+    public function getByStudentId(string $studentId): mixed;
 }

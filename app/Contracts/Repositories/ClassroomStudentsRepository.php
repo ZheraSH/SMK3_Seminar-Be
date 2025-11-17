@@ -3,6 +3,7 @@
 namespace App\Contracts\Repositories;
 
 use App\Contracts\Interfaces\ClassroomStudentsInterface;
+use App\Enums\StudentStatusEnum;
 use App\Models\ClassroomStudents;
 use App\Traits\PaginationTrait;
 use Illuminate\Http\Request;
@@ -71,4 +72,13 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
     {
         return $this->model->query()->count();
     }
+
+    public function getByStudentId(string $studentId): mixed
+{
+    return $this->model->query()
+        ->with(['student.user', 'classroom.major', 'classroom.levelClass'])
+        ->where('student_id', $studentId)
+        ->where('status', StudentStatusEnum::ACTIVE->value)
+        ->first();
+}
 }

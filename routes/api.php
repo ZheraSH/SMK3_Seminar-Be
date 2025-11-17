@@ -94,27 +94,44 @@ Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth:san
     // RFID Management
     Route::apiResource('rfids', RfidController::class);
     Route::post('rfids/validate', [RfidController::class, 'validateRfid']);
+
+    // RFID Tap Routes
+    Route::post('rfidTap', [RfidTapController::class, 'tap']); // absensi tap siswa
     
-    // // RFID Tap Routes
-    // Route::prefix('attendance')->group(function () {
-    //     Route::post('/rfid-tap', [RfidTapController::class, 'tap']);
-    //     Route::get('/statistics', [RfidTapController::class, 'statistics']);
-    // });
-
-    // // Attendance Routes
-    // Route::apiResource('attendances', AttendanceController::class);
-    // Route::prefix('attendances')->group(function () {
-    //     Route::get('/classroom/{classroomId}', [AttendanceController::class, 'getByClassroom']);
-    //     Route::get('/student/{studentId}/monthly', [AttendanceController::class, 'getStudentMonthly']);
-    //     Route::get('/student/{studentId}/today', [AttendanceController::class, 'getTodayByStudent']);
-    //     Route::get('/by-date', [AttendanceController::class, 'getByDate']);
-    // });
-
 // });
 
 // Route::middleware(['auth:sanctum', 'role:student'])->group(function () {
     //Student Lesson Schedule
     Route::apiResource('students.lesson-schedules', StudentLessonScheduleController::class)->only(['index']);
+
+//});
+
+// Route::middleware(['auth:sanctum', 'role:teacher'])->group(function () {
+    // Attendance Routes
+    Route::apiResource('attendances', AttendanceController::class);
+    Route::prefix('attendances')->group(function () {
+    Route::get('/classroom/{classroomId}', [AttendanceController::class, 'getByClassroom']);
+    Route::get('/student/{studentId}/monthly', [AttendanceController::class, 'getStudentMonthly']);
+    Route::get('/student/{studentId}/today', [AttendanceController::class, 'getTodayByStudent']);
+    Route::get('/by-date', [AttendanceController::class, 'getByDate']);
+});
+
+//});
+
+// Route::middleware(['auth:sanctum', 'role:homeroom_teacher'])->group(function () {
+
+
+
+//});
+
+// Route::middleware(['auth:sanctum', 'role:counselor'])->group(function () {
+
+
+
+//});
+
+// Route::middleware(['auth:sanctum', 'role:curriculum_coordinator'])->group(function () {
+
 
 
 //});
