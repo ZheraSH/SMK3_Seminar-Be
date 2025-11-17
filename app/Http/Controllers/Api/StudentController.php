@@ -34,7 +34,7 @@ class StudentController extends Controller
                 'List data siswa berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 500);
         }
     }
 
@@ -49,7 +49,7 @@ class StudentController extends Controller
                 201
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 400);
         }
     }
 
@@ -63,7 +63,7 @@ class StudentController extends Controller
                 'Detail data siswa berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::notFound('Data siswa tidak ditemukan');
+            return ResponseHelper::error('Data siswa tidak ditemukan',404);
         }
     }
 
@@ -77,7 +77,7 @@ class StudentController extends Controller
                 'Data siswa berhasil diperbarui'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 400);
         }
     }
 
@@ -87,11 +87,11 @@ class StudentController extends Controller
             $this->studentService->delete($student->id);
             
             return ResponseHelper::success(
-                null, 
+                null,
                 'Data siswa berhasil dihapus'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 400);
         }
     }
 }

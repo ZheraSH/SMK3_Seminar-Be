@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Contracts\Interfaces\AttendanceInterface;
-use App\Models\Attendance;
 use App\Http\Requests\StoreAttendanceRequest;
 use App\Http\Requests\UpdateAttendanceRequest;
+use App\Models\Attendance;
 use Illuminate\Http\Request;
 
 class AttendanceService
@@ -14,14 +14,12 @@ class AttendanceService
 
     public function store(StoreAttendanceRequest $request): Attendance
     {
-        $data = $request->validated();
-        return $this->attendance->store($data);
+        return $this->attendance->store($request->validated());
     }
 
     public function update(Attendance $attendance, UpdateAttendanceRequest $request): Attendance
     {
-        $data = $request->validated();
-        return $this->attendance->update($attendance, $data);
+        return $this->attendance->update($attendance, $request->validated());
     }
 
     public function delete(Attendance $attendance): bool
@@ -38,8 +36,8 @@ class AttendanceService
     {
         return $this->attendance->show($id);
     }
-    
-    public function getStudentMonthlyAttendance(string $studentId, string $month, string $year): mixed
+
+    public function getStudentMonthlyAttendance(string $studentId, int $month, int $year): mixed
     {
         return $this->attendance->getStudentMonthlyAttendance($studentId, $month, $year);
     }
@@ -57,5 +55,29 @@ class AttendanceService
     public function getByClassroomAndDate(string $classroomId, string $date): mixed
     {
         return $this->attendance->getByClassroomAndDate($classroomId, $date);
+    }
+
+    public function validateDate(array $data): string
+    {
+        if (empty($data['date']) || !strtotime($data['date'])) {
+            throw new \InvalidArgumentException('Tanggal tidak valid');
+        }
+        return $data['date'];
+    }
+
+    public function validateMonthYear(array $data): array
+    {
+        $month = $data['month'] ?? null;
+        $year = $data['year'] ?? null;
+
+        if (!is_numeric($month) || $month < 1 || $month > 12) {
+            throw new \InvalidArgumentException('Bulan tidak valid');
+        }
+
+        if (!is_numeric($year) || $year < 2020) {
+            throw new \InvalidArgumentException('Tahun tidak valid');
+        }
+
+        return [(int)$month, (int)$year];
     }
 }

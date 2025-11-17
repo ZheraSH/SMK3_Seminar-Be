@@ -24,17 +24,17 @@ class EmployeeController extends Controller
     {
         try {
             $data = $this->employeeService->getWithFilter($request);
-    
+
             if ($request->has('page')) {
                 return ResponseHelper::pagination($data, EmployeeResource::class, 'Daftar karyawan berhasil diambil');
             }
-    
+
             return ResponseHelper::success(
                 EmployeeResource::collection($data),
                 'Daftar karyawan berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
         }
     }
 
@@ -42,16 +42,15 @@ class EmployeeController extends Controller
     {
         try {
             $data = $this->employeeService->store($request);
-
             $data->load(['user.roles', 'religion', 'subjects']);
-            
+
             return ResponseHelper::success(
                 new EmployeeResource($data),
                 'Data karyawan berhasil dibuat',
                 201
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 
@@ -59,7 +58,6 @@ class EmployeeController extends Controller
     {
         try {
             $data = $this->employeeService->show($id);
-            
             return ResponseHelper::success(
                 new EmployeeResource($data),
                 'Detail data karyawan berhasil diambil'
@@ -73,13 +71,13 @@ class EmployeeController extends Controller
     {
         try {
             $data = $this->employeeService->update($employee, $request);
-            
+
             return ResponseHelper::success(
                 new EmployeeResource($data),
                 'Data karyawan berhasil diperbarui'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 
@@ -87,13 +85,13 @@ class EmployeeController extends Controller
     {
         try {
             $this->employeeService->delete($employee);
-            
+
             return ResponseHelper::success(
                 null,
                 'Data karyawan berhasil dihapus'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 }

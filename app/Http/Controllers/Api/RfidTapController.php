@@ -7,11 +7,11 @@ use App\Helpers\ResponseHelper;
 use App\Http\Requests\TapRfidRequest;
 use App\Http\Resources\TapResultResource;
 use App\Services\RfidTapService;
-use Illuminate\Http\Request;
 
 class RfidTapController extends Controller
 {
-    private $rfidTapService;
+    private RfidTapService $rfidTapService;
+
     public function __construct(RfidTapService $rfidTapService)
     {
         $this->rfidTapService = $rfidTapService;
@@ -29,9 +29,8 @@ class RfidTapController extends Controller
                 $result['message'],
                 $statusCode
             );
-
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(),500);
         }
     }
 }

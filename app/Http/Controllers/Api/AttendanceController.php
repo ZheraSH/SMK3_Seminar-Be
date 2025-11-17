@@ -26,7 +26,7 @@ class AttendanceController extends Controller
             $data = $this->attendanceService->search($request);
 
             if ($request->has('page')) {
-                return ResponseHelper::pagination($data, 'Data absensi berhasil diambil');
+                return ResponseHelper::pagination($data, AttendanceResource::class, 'Data absensi berhasil diambil');
             }
 
             return ResponseHelper::success(
@@ -34,7 +34,7 @@ class AttendanceController extends Controller
                 'Data absensi berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage() ?: 'Internal Server Error',$th->getCode() >= 400 ? $th->getCode() : 500);
         }
     }
 
@@ -49,7 +49,7 @@ class AttendanceController extends Controller
                 201
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
+            return ResponseHelper::error($th->getMessage() ?: 'Bad Request',$th->getCode() >= 400 ? $th->getCode() : 400);
         }
     }
 
@@ -58,12 +58,14 @@ class AttendanceController extends Controller
         try {
             $data = $this->attendanceService->show($id);
 
+            if (!$data) return ResponseHelper::notFound('Data absensi tidak ditemukan');
+
             return ResponseHelper::success(
                 new AttendanceResource($data),
                 'Detail absensi berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::notFound('Data absensi tidak ditemukan');
+            return ResponseHelper::error($th->getMessage() ?: 'Internal Server Error',$th->getCode() >= 400 ? $th->getCode() : 500);
         }
     }
 
@@ -77,7 +79,7 @@ class AttendanceController extends Controller
                 'Absensi berhasil diperbarui'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
+            return ResponseHelper::error($th->getMessage() ?: 'Bad Request',$th->getCode() >= 400 ? $th->getCode() : 400);
         }
     }
 
@@ -91,44 +93,37 @@ class AttendanceController extends Controller
                 'Absensi berhasil dihapus'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
+            return ResponseHelper::error($th->getMessage() ?: 'Bad Request',$th->getCode() >= 400 ? $th->getCode() : 400);
         }
     }
 
     public function getByClassroom(Request $request, string $classroomId)
     {
         try {
-            $request->validate([
-                'date' => 'required|date'
-            ]);
-
-            $data = $this->attendanceService->getByClassroomAndDate($classroomId, $request->date);
+            $date = $this->attendanceService->validateDate($request->all());
+            $data = $this->attendanceService->getByClassroomAndDate($classroomId, $date);
 
             return ResponseHelper::success(
                 AttendanceResource::collection($data),
                 'Data absensi kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(),$th->getCode() >= 400 ? $th->getCode() : 400);
         }
     }
 
     public function getStudentMonthly(Request $request, string $studentId)
     {
         try {
-            $request->validate([
-                'month' => 'required|integer|between:1,12',
-                'year'  => 'required|integer|min:2020'
-            ]);
-
-            $data = $this->attendanceService->getStudentMonthlyAttendance($studentId, $request->month, $request->year);
+            [$month, $year] = $this->attendanceService->validateMonthYear($request->all());
+            $data = $this->attendanceService->getStudentMonthlyAttendance($studentId, $month, $year);
 
             return ResponseHelper::success(
                 AttendanceResource::collection($data),
                 'Data absensi bulanan siswa berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(),$th->getCode() >= 400 ? $th->getCode() : 400);
         }
     }
 
@@ -142,25 +137,22 @@ class AttendanceController extends Controller
                 'Data absensi hari ini berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(),$th->getCode() >= 400 ? $th->getCode() : 400);
         }
     }
 
     public function getByDate(Request $request)
     {
         try {
-            $request->validate([
-                'date' => 'required|date'
-            ]);
-
-            $data = $this->attendanceService->getByDate($request->date);
+            $date = $this->attendanceService->validateDate($request->all());
+            $data = $this->attendanceService->getByDate($date);
 
             return ResponseHelper::success(
                 AttendanceResource::collection($data),
                 'Data absensi berdasarkan tanggal berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(),$th->getCode() >= 400 ? $th->getCode() : 400);
         }
     }
 }

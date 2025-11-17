@@ -26,7 +26,7 @@ class ReligionController extends Controller
                 'Data agama berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 500);
         }
     }
 
@@ -40,7 +40,7 @@ class ReligionController extends Controller
                 'Detail data agama berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::notFound('Data agama tidak ditemukan');
+            return ResponseHelper::error('Data agama tidak ditemukan',404);
         }
     }
 }

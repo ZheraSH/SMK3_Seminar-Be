@@ -31,7 +31,7 @@ class ClassroomStudentsController extends Controller
                 'Data siswa kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 500);
         }
     }
 
@@ -45,7 +45,7 @@ class ClassroomStudentsController extends Controller
                 'Hasil pencarian siswa kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 500);
         }
     }
 }

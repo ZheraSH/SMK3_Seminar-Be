@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
 use App\Enums\DayEnum;
@@ -25,10 +26,10 @@ class AttendanceRuleController extends Controller
 
             return ResponseHelper::success(
                 AttendanceRuleResource::collection($rules),
-                'List Data aturan kehadiran berhasil diambil'
+                'List data aturan kehadiran berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage() ?: 'Internal Server Error',$th->getCode() >= 400 ? $th->getCode() : 500);
         }
     }
 
@@ -43,7 +44,7 @@ class AttendanceRuleController extends Controller
                 201
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage() ?: 'Internal Server Error',$th->getCode() >= 400 ? $th->getCode() : 500);
         }
     }
 
@@ -52,16 +53,14 @@ class AttendanceRuleController extends Controller
         try {
             $rule = $this->attendanceRuleService->getByDay($day);
 
-            if (!$rule) {
-                return ResponseHelper::notFound('Aturan kehadiran untuk hari tersebut tidak ditemukan');
-            }
+            if (!$rule) return ResponseHelper::notFound('Aturan kehadiran untuk hari tersebut tidak ditemukan');
 
             return ResponseHelper::success(
                 new AttendanceRuleResource($rule),
                 'Data aturan kehadiran berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage() ?: 'Internal Server Error',$th->getCode() >= 400 ? $th->getCode() : 500);
         }
     }
 
@@ -83,7 +82,7 @@ class AttendanceRuleController extends Controller
                 $message
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage() ?: 'Internal Server Error',$th->getCode() >= 400 ? $th->getCode() : 500);
         }
     }
 }

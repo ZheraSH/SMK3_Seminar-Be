@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -23,13 +24,13 @@ class LessonSchedulesController extends Controller
     {
         try {
             $data = $this->lessonScheduleService->getAllClassroomsWithSchedules();
-            
+
             return ResponseHelper::success(
                 ClassroomScheduleResource::collection($data),
                 'Data jadwal pelajaran semua kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
         }
     }
 
@@ -37,14 +38,14 @@ class LessonSchedulesController extends Controller
     {
         try {
             $data = $this->lessonScheduleService->store($request);
-            
+
             return ResponseHelper::success(
                 new LessonScheduleResource($data),
                 'Jadwal pelajaran berhasil disimpan',
                 201
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 
@@ -52,7 +53,7 @@ class LessonSchedulesController extends Controller
     {
         try {
             $data = $this->lessonScheduleService->show($id);
-            
+
             return ResponseHelper::success(
                 new LessonScheduleResource($data),
                 'Detail jadwal pelajaran berhasil diambil'
@@ -66,13 +67,13 @@ class LessonSchedulesController extends Controller
     {
         try {
             $data = $this->lessonScheduleService->update($id, $request);
-            
+
             return ResponseHelper::success(
                 new LessonScheduleResource($data),
                 'Jadwal pelajaran berhasil diperbarui'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 
@@ -80,13 +81,13 @@ class LessonSchedulesController extends Controller
     {
         try {
             $this->lessonScheduleService->delete($id);
-            
+
             return ResponseHelper::success(
                 null,
                 'Jadwal pelajaran berhasil dihapus'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 
@@ -94,13 +95,13 @@ class LessonSchedulesController extends Controller
     {
         try {
             $data = $this->lessonScheduleService->getByClassroom($classroomId);
-            
+
             return ResponseHelper::success(
                 new ClassroomScheduleResource($data),
                 'Data jadwal pelajaran kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
         }
     }
 
@@ -108,13 +109,13 @@ class LessonSchedulesController extends Controller
     {
         try {
             $data = $this->lessonScheduleService->getByClassroomAndDay($classroomId, $day);
-            
+
             return ResponseHelper::success(
                 new ClassroomDayScheduleResource($data),
                 'Data jadwal pelajaran kelas per hari berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
         }
     }
 }

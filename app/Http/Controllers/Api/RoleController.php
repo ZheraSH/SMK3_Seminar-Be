@@ -22,7 +22,7 @@ class RoleController extends Controller
 
             return ResponseHelper::success($roles, 'Daftar role berhasil diambil');
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 500);
         }
     }
 }

@@ -25,12 +25,13 @@ class RfidController extends Controller
     {
         try {
             $rfids = $this->rfidService->getWithFilter($request);
+
             return ResponseHelper::success(
-                RfidResource::collection($rfids), 
+                RfidResource::collection($rfids),
                 'Data RFID berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 500);
         }
     }
 
@@ -38,13 +39,14 @@ class RfidController extends Controller
     {
         try {
             $rfid = $this->rfidService->store($request);
+
             return ResponseHelper::success(
-                new RfidResource($rfid), 
-                'RFID berhasil ditambahkan', 
+                new RfidResource($rfid),
+                'RFID berhasil ditambahkan',
                 201
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(400, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 400);
         }
     }
 
@@ -52,12 +54,13 @@ class RfidController extends Controller
     {
         try {
             $rfid = $this->rfidService->show($id);
+
             return ResponseHelper::success(
-                new RfidResource($rfid), 
+                new RfidResource($rfid),
                 'Detail RFID berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(404, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(),404);
         }
     }
 
@@ -65,12 +68,13 @@ class RfidController extends Controller
     {
         try {
             $updatedRfid = $this->rfidService->update($request, $rfid);
+
             return ResponseHelper::success(
-                new RfidResource($updatedRfid), 
+                new RfidResource($updatedRfid),
                 'RFID berhasil diperbarui'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(400, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 400);
         }
     }
 
@@ -78,9 +82,10 @@ class RfidController extends Controller
     {
         try {
             $this->rfidService->delete($rfid);
-            return ResponseHelper::success(null, 'RFID berhasil dihapus');
+
+            return ResponseHelper::success(null,'RFID berhasil dihapus');
         } catch (\Throwable $th) {
-            return ResponseHelper::error(400, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 400);
         }
     }
 }

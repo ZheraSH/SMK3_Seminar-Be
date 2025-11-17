@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
 use App\Helpers\ResponseHelper;
@@ -27,7 +28,7 @@ class LessonHourController extends Controller
                 'Daftar jam pelajaran berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
         }
     }
 
@@ -42,7 +43,7 @@ class LessonHourController extends Controller
                 201
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 
@@ -50,7 +51,7 @@ class LessonHourController extends Controller
     {
         try {
             $data = $this->lessonHourService->show($id);
-            
+
             return ResponseHelper::success(
                 new LessonHourResource($data),
                 'Detail jam pelajaran berhasil diambil'
@@ -64,13 +65,13 @@ class LessonHourController extends Controller
     {
         try {
             $this->lessonHourService->delete($id);
-            
+
             return ResponseHelper::success(
                 null,
                 'Jam pelajaran berhasil dihapus'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 
@@ -84,7 +85,7 @@ class LessonHourController extends Controller
                 'Jam pelajaran untuk hari ' . $day . ' berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
         }
     }
 
@@ -98,7 +99,7 @@ class LessonHourController extends Controller
                 'Data jam pelajaran dikelompokkan per hari berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
         }
     }
 }

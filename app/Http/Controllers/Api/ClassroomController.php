@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -37,7 +38,7 @@ class ClassroomController extends Controller
                 'List data kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage() ?: 'Internal Server Error',$th->getCode() >= 400 ? $th->getCode() : 500);
         }
     }
 
@@ -45,14 +46,14 @@ class ClassroomController extends Controller
     {
         try {
             $data = $this->classroomService->store($request->validated());
-            
+
             return ResponseHelper::success(
                 new ClassroomResource($data->load(['major', 'levelClass', 'schoolYear', 'teacher.user'])),
                 'Data kelas berhasil dibuat',
                 201
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
+            return ResponseHelper::error($th->getMessage() ?: 'Bad Request',$th->getCode() >= 400 ? $th->getCode() : 400);
         }
     }
 
@@ -61,12 +62,14 @@ class ClassroomController extends Controller
         try {
             $data = $this->classroomService->show($id);
 
+            if (!$data) return ResponseHelper::notFound('Data kelas tidak ditemukan');
+
             return ResponseHelper::success(
                 new ClassroomDetailResource($data),
                 'Detail data kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::notFound('Data kelas tidak ditemukan');
+            return ResponseHelper::error($th->getMessage() ?: 'Internal Server Error',$th->getCode() >= 400 ? $th->getCode() : 500);
         }
     }
 
@@ -74,13 +77,13 @@ class ClassroomController extends Controller
     {
         try {
             $data = $this->classroomService->update($id, $request->validated());
-            
+
             return ResponseHelper::success(
                 new ClassroomResource($data->load(['major', 'levelClass', 'schoolYear', 'teacher.user'])),
                 'Data kelas berhasil diperbarui'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
+            return ResponseHelper::error($th->getMessage() ?: 'Bad Request',$th->getCode() >= 400 ? $th->getCode() : 400);
         }
     }
 
@@ -95,7 +98,7 @@ class ClassroomController extends Controller
                 'Siswa berhasil ditambahkan ke kelas'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
+            return ResponseHelper::error($th->getMessage() ?: 'Bad Request',$th->getCode() >= 400 ? $th->getCode() : 400);
         }
     }
 
@@ -110,7 +113,7 @@ class ClassroomController extends Controller
                 'Siswa berhasil dihapus dari kelas'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
+            return ResponseHelper::error($th->getMessage() ?: 'Bad Request',$th->getCode() >= 400 ? $th->getCode() : 400);
         }
     }
 
@@ -125,7 +128,7 @@ class ClassroomController extends Controller
                 'Data siswa kelas berhasil disinkronisasi'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 400, $th->getMessage());
+            return ResponseHelper::error($th->getMessage() ?: 'Bad Request',$th->getCode() >= 400 ? $th->getCode() : 400);
         }
     }
 
@@ -140,7 +143,7 @@ class ClassroomController extends Controller
                 'Data siswa aktif berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage() ?: 'Internal Server Error',$th->getCode() >= 400 ? $th->getCode() : 500);
         }
     }
 
@@ -150,15 +153,15 @@ class ClassroomController extends Controller
             $classroom = $this->classroomService->show($id);
             $search = $request->query('search');
             $limit = $request->query('limit', 10);
-            
+
             $data = $this->classroomService->getAvailableStudents($classroom, $search, $limit);
-    
+
             return ResponseHelper::success(
                 AvailableStudentResource::collection($data),
                 'Data siswa yang tersedia berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage() ?: 'Internal Server Error',$th->getCode() >= 400 ? $th->getCode() : 500);
         }
     }
 }

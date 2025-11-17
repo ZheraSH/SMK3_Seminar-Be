@@ -9,38 +9,38 @@ use App\Contracts\Interfaces\MajorInterface;
 
 class MajorController extends Controller
 {
-    private MajorInterface $majorInteface;
+    private MajorInterface $majorInterface;
 
-    public function __construct(MajorInterface $majorInteface)
+    public function __construct(MajorInterface $majorInterface)
     {
-        $this->majorInteface = $majorInteface;
+        $this->majorInterface = $majorInterface;
     }
 
     public function index()
     {
         try {
-            $data = $this->majorInteface->get();
-    
+            $data = $this->majorInterface->get();
+
             return ResponseHelper::success(
                 MajorResource::collection($data),
                 'Data jurusan berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getCode() ?: 500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 500);
         }
     }
 
     public function show(string $id)
     {
         try {
-            $data = $this->majorInteface->show($id);
-    
+            $data = $this->majorInterface->show($id);
+
             return ResponseHelper::success(
                 new MajorResource($data),
                 'Detail data jurusan berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::notFound('Data jurusan tidak ditemukan');
+            return ResponseHelper::error('Data jurusan tidak ditemukan',404);
         }
     }
 }
