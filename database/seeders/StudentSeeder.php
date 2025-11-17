@@ -37,6 +37,7 @@ class StudentSeeder extends Seeder
 
             $name = "Siswa {$i}";
             $email = "siswa{$i}@skaniga.com";
+            $nisn = '99' . str_pad((string) $i, 8, '0', STR_PAD_LEFT);
 
             $user = User::updateOrCreate(
                 ['email' => $email],
@@ -44,14 +45,12 @@ class StudentSeeder extends Seeder
                     'id' => (string) Str::uuid(),
                     'name' => $name,
                     'slug' => Str::slug($name),
-                    'password' => Hash::make('murid123'),
+                    'password' => Hash::make($nisn),
                     'email_verified_at' => now(),
                 ]
             );
 
             $user->syncRoles([RoleEnum::STUDENT->value]);
-
-            $nisn = '99' . str_pad((string) $i, 8, '0', STR_PAD_LEFT);
 
             Student::updateOrCreate(
                 ['user_id' => $user->id],

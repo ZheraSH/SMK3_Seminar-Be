@@ -47,6 +47,7 @@ class EmployeeSeeder extends Seeder
 
             $name = $this->generateRandomName($faker, $gender);
             $email = "employee{$i}@skaniga.com";
+            $nip = $this->generateNIP($i);
 
             $user = User::updateOrCreate(
                 ['email' => $email],
@@ -54,7 +55,7 @@ class EmployeeSeeder extends Seeder
                     'id' => (string) Str::uuid(),
                     'name' => $name,
                     'slug' => Str::slug($name),
-                    'password' => Hash::make('employee123'),
+                    'password' => Hash::make($nip),
                     'email_verified_at' => now(),
                 ]
             );
@@ -67,7 +68,7 @@ class EmployeeSeeder extends Seeder
                 [
                     'id' => (string) Str::uuid(),
                     'image' => $gender === GenderEnum::MALE->value ? $imageMale : $imageFemale,
-                    'NIP' => $this->generateNIP($i),
+                    'NIP' => $nip,
                     'NIK' => $faker->unique()->numerify('################'),
                     'religion_id' => $religion->id,
                     'gender' => $gender,

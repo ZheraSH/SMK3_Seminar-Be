@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Helpers\ResponseHelper;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Symfony\Component\HttpFoundation\Response as ResponseCode;
 
 abstract class ApiRequest extends FormRequest
@@ -34,11 +35,18 @@ abstract class ApiRequest extends FormRequest
      * @return void
      */
 
-    protected function failedValidation(Validator $validator): void
-    {
-        $errors = $validator->errors()->messages();
-        ResponseHelper::error($errors, "Form validation errors", ResponseCode::HTTP_UNPROCESSABLE_ENTITY);
-    }
+     protected function failedValidation(Validator $validator): void
+     {
+         $errors = $validator->errors()->messages();
+ 
+         throw new HttpResponseException(
+             ResponseHelper::error(
+                 "Form validation errors",
+                 ResponseCode::HTTP_UNPROCESSABLE_ENTITY,
+                 $errors
+             )
+         );
+     }
 
     /**
      * Return failed authorization
@@ -46,8 +54,14 @@ abstract class ApiRequest extends FormRequest
      * @return void
      */
 
-    protected function failedAuthorization(): void
-    {
-        ResponseHelper::error(null, "Form validation errors", ResponseCode::HTTP_UNAUTHORIZED);
-    }
+     protected function failedAuthorization(): void
+     {
+         throw new HttpResponseException(
+             ResponseHelper::error(
+                 "Unauthorized",
+                 ResponseCode::HTTP_UNAUTHORIZED,
+                 null
+             )
+         );
+     }
 }

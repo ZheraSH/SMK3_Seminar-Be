@@ -20,13 +20,12 @@ class LoginController extends Controller
     public function login(LoginRequest $request)
     {
         try {
-            $result = $this->loginService->handleLogin($request);
-            return $result;
+            return $this->loginService->login($request);
 
         } catch (\Throwable $th) {
             return ResponseHelper::error(
-                $th->getCode() ?: 500, 
-                $th->getMessage()
+                $th->getMessage(),
+                $th->getCode() ?: 500
             );
         }
     }
@@ -34,15 +33,13 @@ class LoginController extends Controller
     public function logout(Request $request)
     {
         try {
-            $result = $this->loginService->handleLogout();
-            return $result;
+            return $this->loginService->logout();
 
         } catch (\Throwable $th) {
             return ResponseHelper::error(
-                500, 
-                'Logout gagal: ' . $th->getMessage()
+                'Logout gagal: ' . $th->getMessage(),
+                500
             );
         }
     }
-
 }
