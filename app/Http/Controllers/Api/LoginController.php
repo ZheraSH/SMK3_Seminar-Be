@@ -24,8 +24,8 @@ class LoginController extends Controller
 
         } catch (\Throwable $th) {
             return ResponseHelper::error(
-                $th->getMessage(),
-                $th->getCode() ?: 500
+                $th->getCode(),
+                $th->getMessage()?: 500
             );
         }
     }
@@ -37,8 +37,8 @@ class LoginController extends Controller
 
         } catch (\Throwable $th) {
             return ResponseHelper::error(
+                500,
                 'Logout gagal: ' . $th->getMessage(),
-                500
             );
         }
     }
