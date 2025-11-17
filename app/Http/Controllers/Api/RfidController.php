@@ -1,0 +1,108 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreRfidRequest;
+use App\Http\Requests\UpdateRfidRequest;
+use App\Http\Resources\RfidResource;
+use App\Models\Rfid;
+use App\Services\RfidService;
+use App\Helpers\ResponseHelper;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class RfidController extends Controller
+{
+    private RfidService $rfidService;
+
+    public function __construct(RfidService $rfidService)
+    {
+        $this->rfidService = $rfidService;
+    }
+
+    public function index(Request $request): JsonResponse
+    {
+        try {
+            $rfids = $this->rfidService->getWithFilter($request);
+            return ResponseHelper::success(
+                RfidResource::collection($rfids), 
+                'Data RFID berhasil diambil'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error(500, $th->getMessage());
+        }
+    }
+
+    public function store(StoreRfidRequest $request): JsonResponse
+    {
+        try {
+            $rfid = $this->rfidService->store($request);
+            return ResponseHelper::success(
+                new RfidResource($rfid), 
+                'RFID berhasil ditambahkan', 
+                201
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error(400, $th->getMessage());
+        }
+    }
+
+    public function show(string $id): JsonResponse
+    {
+        try {
+            $rfid = $this->rfidService->show($id);
+            return ResponseHelper::success(
+                new RfidResource($rfid), 
+                'Detail RFID berhasil diambil'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error(404, $th->getMessage());
+        }
+    }
+
+    public function update(UpdateRfidRequest $request, Rfid $rfid): JsonResponse
+    {
+        try {
+            $updatedRfid = $this->rfidService->update($request, $rfid);
+            return ResponseHelper::success(
+                new RfidResource($updatedRfid), 
+                'RFID berhasil diperbarui'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error(400, $th->getMessage());
+        }
+    }
+
+    public function destroy(Rfid $rfid): JsonResponse
+    {
+        try {
+            $this->rfidService->delete($rfid);
+            return ResponseHelper::success(null, 'RFID berhasil dihapus');
+        } catch (\Throwable $th) {
+            return ResponseHelper::error(400, $th->getMessage());
+        }
+    }
+
+    public function validateRfid(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'rfid' => 'required|string'
+            ]);
+
+            $rfid = $this->rfidService->validateRfidForAttendance($request->rfid);
+            
+            if (!$rfid) {
+                return ResponseHelper::error(404, 'RFID tidak valid atau tidak terdaftar');
+            }
+
+            return ResponseHelper::success(
+                new RfidResource($rfid),
+                'RFID valid untuk absensi'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error(400, $th->getMessage());
+        }
+    }
+}

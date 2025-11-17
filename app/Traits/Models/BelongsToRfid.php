@@ -4,10 +4,10 @@ namespace App\Traits\Models;
 
 use App\Models\Rfid;
 
-trait HasOneRfid
+trait BelongsToRfid
 {
     public function rfid()
     {
-        return $this->hasOne(Rfid::class, 'student_id');
+        return $this->belongsTo(Rfid::class);
     }
 }
