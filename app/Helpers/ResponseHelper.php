@@ -13,7 +13,7 @@ class ResponseHelper
         ], $code);
     }
 
-    public static function error(string $message, int $code = 400, $errors = null)
+    public static function error(int $code = 400, string $message = 'Error', $errors = null)
     {
         return response()->json([
             'status' => false,

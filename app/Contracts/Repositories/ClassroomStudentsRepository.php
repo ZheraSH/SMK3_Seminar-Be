@@ -45,15 +45,33 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
     public function paginate(): mixed
     {
         return $this->model->query()
-            ->with(['student.user', 'classroom.major', 'classroom.levelClass', 'classroom.schoolYear', 'classroom.teacher.user'])
-            ->latest()
-            ->paginate(8);
+        ->with([
+            'student.user',
+            'student.classroomStudents.classroom.major',
+            'student.classroomStudents.classroom.levelClass',
+            'student.classroomStudents.classroom.schoolYear',
+            'student.rfid',
+            'classroom.major',
+            'classroom.levelClass',
+            'classroom.schoolYear',
+            'classroom.teacher.user'
+        ])
+        ->latest()
+        ->paginate(8);
+    
     }
 
     public function search(Request $request, int $pagination = 8): mixed
     {
         return $this->model->query()
-            ->with(['student.user', 'classroom'])
+            ->with([
+                'student.user',
+                'student.classroomStudents.classroom.major',
+                'student.classroomStudents.classroom.levelClass',
+                'student.classroomStudents.classroom.schoolYear',
+                'student.rfid',
+                'classroom'
+                ])        
             ->when($request->search, function ($query) use ($request) {
                 $query->where(function ($q) use ($request) {
                     $q->whereHas('student.user', function ($sub) use ($request) {
@@ -74,11 +92,18 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
     }
 
     public function getByStudentId(string $studentId): mixed
-{
-    return $this->model->query()
-        ->with(['student.user', 'classroom.major', 'classroom.levelClass'])
-        ->where('student_id', $studentId)
-        ->where('status', StudentStatusEnum::ACTIVE->value)
-        ->first();
-}
+    {
+        return $this->model->query()
+            ->with([
+                'student.user',
+                'student.classroomStudents.classroom.major',
+                'student.classroomStudents.classroom.levelClass',
+                'student.classroomStudents.classroom.schoolYear',
+                'student.rfid',
+                'classroom'
+            ])
+            ->where('student_id', $studentId)
+            ->where('status', StudentStatusEnum::ACTIVE->value)
+            ->first();
+    }
 }
