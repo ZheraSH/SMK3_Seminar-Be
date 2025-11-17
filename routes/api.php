@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\RoleController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('login', [LoginController::class, 'login']);
+Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth:sanctum');
 
 // Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
     // Roles
@@ -90,11 +91,9 @@ Route::post('login', [LoginController::class, 'login']);
         Route::get('/day/{day}', [AttendanceRuleController::class, 'getByDay']); // aturan absensi per hari
     });
 
-    // // RFID Management
-    // Route::apiResource('rfids', RfidController::class);
-    // Route::get('rfids/used', [RfidController::class, 'used']);
-    // Route::get('rfids/not-used', [RfidController::class, 'notUsed']);
-    // Route::post('rfids/validate', [RfidController::class, 'validateRfid']);
+    // RFID Management
+    Route::apiResource('rfids', RfidController::class);
+    Route::post('rfids/validate', [RfidController::class, 'validateRfid']);
     
     // // RFID Tap Routes
     // Route::prefix('attendance')->group(function () {
@@ -113,7 +112,7 @@ Route::post('login', [LoginController::class, 'login']);
 
 // });
 
-// Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
+// Route::middleware(['auth:sanctum', 'role:student'])->group(function () {
     //Student Lesson Schedule
     Route::apiResource('students.lesson-schedules', StudentLessonScheduleController::class)->only(['index']);
 
