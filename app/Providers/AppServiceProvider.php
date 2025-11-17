@@ -31,17 +31,13 @@ use App\Contracts\Repositories\RfidRepository;
 use App\Contracts\Repositories\RoleRepository;
 use App\Contracts\Repositories\StudentRepository;
 use App\Contracts\Repositories\UserRepository;
+use App\Contracts\Repositories\SchoolYearRepository;
+use App\Contracts\Repositories\SubjectRepository;
+use App\Contracts\Repositories\LessonHourRepository;
 use App\Models\Student;
 use App\Models\Employee;
 use App\Models\Religion;
 use App\Models\User;
-use App\Observers\StudentObserver;
-use App\Observers\EmployeeObserver;
-use App\Observers\ReligionObserver;
-use App\Observers\UserObserver;
-use App\Contracts\Repositories\SchoolYearRepository;
-use App\Contracts\Repositories\SubjectRepository;
-use App\Contracts\Repositories\LessonHourRepository;
 use App\Models\Attendance;
 use App\Models\AttendanceRule;
 use App\Models\Classroom;
@@ -53,6 +49,10 @@ use App\Models\Rfid;
 use App\Models\SchoolYear;
 use App\Models\Subject;
 use App\Models\LessonHour;
+use App\Observers\StudentObserver;
+use App\Observers\EmployeeObserver;
+use App\Observers\ReligionObserver;
+use App\Observers\UserObserver;
 use App\Observers\AttendanceObserver;
 use App\Observers\AttendanceRuleObserver;
 use App\Observers\ClassroomObserver;
@@ -84,7 +84,7 @@ class AppServiceProvider extends ServiceProvider
         LessonScheduleInterface::class => LessonScheduleRepository::class,
         AttendanceRuleInterface::class => AttendanceRuleRepository::class,
         RfidInterface::class => RfidRepository::class,
-        // AttendanceInterface::class => AttendanceRepository::class,
+        AttendanceInterface::class => AttendanceRepository::class,
     ];
 
     public function register(): void
@@ -112,6 +112,6 @@ class AppServiceProvider extends ServiceProvider
         LessonSchedule::observe(LessonScheduleObserver::class);
         AttendanceRule::observe(AttendanceRuleObserver::class);
         Rfid::observe(RfidObserver::class);
-        // Attendance::observe(AttendanceObserver::class);
+        Attendance::observe(AttendanceObserver::class);
     }
 }
