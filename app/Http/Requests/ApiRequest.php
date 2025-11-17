@@ -38,13 +38,13 @@ abstract class ApiRequest extends FormRequest
      protected function failedValidation(Validator $validator): void
      {
          $errors = $validator->errors()->messages();
- 
+
          throw new HttpResponseException(
-             ResponseHelper::error(
-                 "Form validation errors",
-                 ResponseCode::HTTP_UNPROCESSABLE_ENTITY,
-                 $errors
-             )
+             response()->json([
+                 'status' => false,
+                 'message' => 'Form validation errors',
+                 'errors' => $errors
+             ], ResponseCode::HTTP_UNPROCESSABLE_ENTITY)
          );
      }
 
@@ -57,11 +57,11 @@ abstract class ApiRequest extends FormRequest
      protected function failedAuthorization(): void
      {
          throw new HttpResponseException(
-             ResponseHelper::error(
-                 "Unauthorized",
-                 ResponseCode::HTTP_UNAUTHORIZED,
-                 null
-             )
+             response()->json([
+                 'status' => false,
+                 'message' => 'Unauthorized',
+                 'errors' => null
+             ], ResponseCode::HTTP_UNAUTHORIZED)
          );
      }
 }
