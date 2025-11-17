@@ -2,39 +2,33 @@
 
 namespace App\Helpers;
 
-use Illuminate\Http\Resources\Json\ResourceCollection;
-
 class ResponseHelper
 {
-    public static function success($data = null, $message = 'Success', int $code = 200)
+    public static function success($data = null, string $message = 'Success', int $code = 200)
     {
         return response()->json([
             'status' => true,
             'message' => $message,
-            'data' => $data
+            'data' => $data,
         ], $code);
     }
 
-    public static function error($errors = null, $message = 'Error', int $code = 400)
+    public static function error(string $message, int $code = 400, $errors = null)
     {
         return response()->json([
             'status' => false,
+            'message' => $message,
             'errors' => $errors,
-            'message' => $message,
-            'data' => null
+            'data' => null,
         ], $code);
     }
 
-    public static function notFound($message = 'Data not found')
+    public static function notFound(string $message = 'Data not found')
     {
-        return response()->json([
-            'status' => false,
-            'message' => $message,
-            'data' => null
-        ], 404);
+        return self::error($message, 404);
     }
 
-    public static function pagination($data, $resourceClass, $message = 'Success')
+    public static function pagination($data, $resourceClass, string $message = 'Success')
     {
         return response()->json([
             'status' => true,
