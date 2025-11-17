@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Contracts\Interfaces\AttendanceInterface;
 use App\Contracts\Interfaces\LessonHourInterface;
 use App\Contracts\Interfaces\AttendanceRuleInterface;
 use App\Contracts\Interfaces\SubjectInterface;
@@ -17,6 +18,7 @@ use App\Contracts\Interfaces\RfidInterface;
 use App\Contracts\Interfaces\RoleInterface;
 use App\Contracts\Interfaces\StudentInterface;
 use App\Contracts\Interfaces\UserInterface;
+use App\Contracts\Repositories\AttendanceRepository;
 use App\Contracts\Repositories\AttendanceRuleRepository;
 use App\Contracts\Repositories\ClassroomRepository;
 use App\Contracts\Repositories\ClassroomStudentsRepository;
@@ -40,6 +42,7 @@ use App\Observers\UserObserver;
 use App\Contracts\Repositories\SchoolYearRepository;
 use App\Contracts\Repositories\SubjectRepository;
 use App\Contracts\Repositories\LessonHourRepository;
+use App\Models\Attendance;
 use App\Models\AttendanceRule;
 use App\Models\Classroom;
 use App\Models\ClassroomStudents;
@@ -50,6 +53,7 @@ use App\Models\Rfid;
 use App\Models\SchoolYear;
 use App\Models\Subject;
 use App\Models\LessonHour;
+use App\Observers\AttendanceObserver;
 use App\Observers\AttendanceRuleObserver;
 use App\Observers\ClassroomObserver;
 use App\Observers\ClassroomStudentsObserver;
@@ -79,7 +83,8 @@ class AppServiceProvider extends ServiceProvider
         LessonHourInterface::class => LessonHourRepository::class,
         LessonScheduleInterface::class => LessonScheduleRepository::class,
         AttendanceRuleInterface::class => AttendanceRuleRepository::class,
-        // RfidInterface::class => RfidRepository::class,
+        RfidInterface::class => RfidRepository::class,
+        // AttendanceInterface::class => AttendanceRepository::class,
     ];
 
     public function register(): void
@@ -93,7 +98,6 @@ class AppServiceProvider extends ServiceProvider
     {
         config(['app.locale' => 'id']);
         \Carbon\Carbon::setLocale('id');
-
         User::observe(UserObserver::class);
         Religion::observe(ReligionObserver::class);
         Student::observe(StudentObserver::class);
@@ -107,6 +111,7 @@ class AppServiceProvider extends ServiceProvider
         LessonHour::observe(LessonHourObserver::class);
         LessonSchedule::observe(LessonScheduleObserver::class);
         AttendanceRule::observe(AttendanceRuleObserver::class);
-        // Rfid::observe(RfidObserver::class);
+        Rfid::observe(RfidObserver::class);
+        // Attendance::observe(AttendanceObserver::class);
     }
 }
