@@ -10,6 +10,8 @@ class ClassroomStudentsResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $activeClassroomData = $this->getActiveClassroomData();
+
         return [
             'id' => $this->id,
             'student' => [
@@ -20,15 +22,21 @@ class ClassroomStudentsResource extends JsonResource
                 'gender' => $this->student->gender?->label() ?? 'Tidak diketahui',
             ],
             'status' => $this->status->label(),
-            'classroom' => $this->getActiveClassroomData(),
+            'teacher' => $activeClassroomData['teacher'],
+            'classroom' => $activeClassroomData['classroom'],
             'rfid' => $this->getRfidData(),
+            'total_students' => $activeClassroomData['total_students'],
         ];
     }
 
-    private function getActiveClassroomData()
+    private function getActiveClassroomData(): array
     {
         if (!$this->relationLoaded('student') || !$this->student->relationLoaded('classroomStudents')) {
-            return ['message' => 'Relasi student.classroomStudents belum diload'];
+            return [
+                'classroom' => ['message' => 'Relasi student.classroomStudents belum diload'],
+                'teacher' => null,
+                'total_students' => 0
+            ];
         }
 
         $activeClassroomStudent = $this->student->classroomStudents
@@ -36,25 +44,39 @@ class ClassroomStudentsResource extends JsonResource
             ->first();
 
         if (!$activeClassroomStudent) {
-            return ['message' => 'Siswa belum memiliki kelas aktif'];
+            return [
+                'classroom' => ['message' => 'Siswa belum memiliki kelas aktif'],
+                'teacher' => null,
+                'total_students' => 0
+            ];
         }
 
-        $activeClassroom = $activeClassroomStudent->classroom;
+        $classroom = $activeClassroomStudent->classroom;
 
         return [
-            'id' => $activeClassroom->id,
-            'name' => $activeClassroom->name,
-            'major' => $activeClassroom->major->code,
-            'level_class' => $activeClassroom->levelClass->name,
-            'schoolyear' => $activeClassroom->schoolyear->name,
+            'classroom' => [
+                'id' => $classroom->id,
+                'name' => $classroom->name,
+                'major' => $classroom->major->code,
+                'level_class' => $classroom->levelClass->name,
+                'schoolyear' => $classroom->schoolyear->name,
+            ],
+            'teacher' => $classroom->teacher ? [
+                'id' => $classroom->teacher->id,
+                'name' => $classroom->teacher->user->name,
+            ] : null,
+            'total_students' => $classroom->classroomStudents
+                ->where('status', StudentStatusEnum::ACTIVE->value)
+                ->count(),
         ];
     }
-    private function getRfidData()
+
+    private function getRfidData(): array
     {
         if (
-            $this->relationLoaded('student')
-            && $this->student->relationLoaded('rfid')
-            && $this->student->rfid
+            $this->relationLoaded('student') &&
+            $this->student->relationLoaded('rfid') &&
+            $this->student->rfid
         ) {
             return [
                 'id' => $this->student->rfid->id,
