@@ -26,7 +26,7 @@ class StoreEmployeeRequest extends ApiRequest
                 'email',
                 Rule::unique(User::class, 'email'),
             ],
-            'image' => 'nullable|mimes:png,jpg,jpeg|max:2048',
+            'image' => 'nullable|mimes:png,jpg,jpeg|max:1024',
             'NIP' => [
                 'required',
                 'string',
@@ -53,7 +53,7 @@ class StoreEmployeeRequest extends ApiRequest
             'email.email' => 'Email tidak valid',
             'email.unique' => 'Email sudah digunakan',
             'image.mimes' => 'Foto harus berekstensi png, jpg, atau jpeg',
-            'image.max' => 'Ukuran foto maksimal 2MB',
+            'image.max' => 'Ukuran foto maksimal 1MB',
             'NIP.required' => 'NIP tidak boleh kosong',
             'NIP.unique' => 'NIP sudah digunakan',
             'NIP.max' => 'NIP maksimal 18 karakter',

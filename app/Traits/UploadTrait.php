@@ -8,31 +8,32 @@ use Illuminate\Support\Facades\Storage;
 
 trait UploadTrait
 {
- 
-    public function remove(string $file) : void
-    {
-        if ($this->exist($file)) {
-        Storage::disk('public')->delete($file);
-        }
-    }
-
     public function exist(string $file) : bool
     {
         return Storage::disk('public')->exists($file);
     }
 
-    public function upload(string $disk, UploadedFile $file, bool $originalName = false): string
+    public function upload(string $path, UploadedFile $file, bool $originalName = false): string
     {
-        if (!$this->exist($disk)) {
-            Storage::makeDirectory($disk);
+        if (!Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->makeDirectory($path);
         }
-
+    
         if ($originalName) {
-            return $file->storageAs($disk, $this->originalName($file));
+            $filename = $file->getClientOriginalName();
+            return $file->storeAs($path, $filename, 'public');
         }
-
-        return Storage::put($disk, $file);
+    
+        return $file->store($path, 'public');
     }
+    
+    public function remove(string $file): void
+    {
+        if (Storage::disk('public')->exists($file)) {
+            Storage::disk('public')->delete($file);
+        }
+    }
+    
 
     public function originalName(UploadedFile $file): string
     {

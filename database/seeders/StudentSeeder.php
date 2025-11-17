@@ -25,14 +25,23 @@ class StudentSeeder extends Seeder
             ['id' => (string) Str::uuid()]
         );
 
+        $imageMale = 'admin_assets/dist/image/profile/student-boy.png';
+        $imageFemale = 'admin_assets/dist/image/profile/student-girl.png';
+
         for ($i = 1; $i <= 24; $i++) {
+
+            $gender = $faker->randomElement([
+                GenderEnum::MALE->value,
+                GenderEnum::FEMALE->value
+            ]);
+
             $name = "Siswa {$i}";
-            $email = "siswa{$i}@Skaniga.com";
+            $email = "siswa{$i}@skaniga.com";
 
             $user = User::updateOrCreate(
                 ['email' => $email],
                 [
-                    'id' => (String) Str::uuid(),
+                    'id' => (string) Str::uuid(),
                     'name' => $name,
                     'slug' => Str::slug($name),
                     'password' => Hash::make('murid123'),
@@ -42,21 +51,16 @@ class StudentSeeder extends Seeder
 
             $user->syncRoles([RoleEnum::STUDENT->value]);
 
-            $studentId = $user->id;
-
             $nisn = '99' . str_pad((string) $i, 8, '0', STR_PAD_LEFT);
 
             Student::updateOrCreate(
                 ['user_id' => $user->id],
                 [
-                    'id' => $studentId,
-                    'image' => "admin_assets/dist/images/profile/student-" . $i . ".jpg",
+                    'id' => $user->id,
+                    'image' => $gender === GenderEnum::MALE->value ? $imageMale : $imageFemale,
                     'nisn' => $nisn,
                     'religion_id' => $religion->id,
-                    'gender' => $faker->randomElement([
-                        GenderEnum::MALE->value,
-                        GenderEnum::FEMALE->value,
-                    ]),
+                    'gender' => $gender,
                     'birth_date' => $faker->dateTimeBetween('-17 years', '-15 years')->format('Y-m-d'),
                     'birth_place' => $faker->city(),
                     'address' => $faker->address(),

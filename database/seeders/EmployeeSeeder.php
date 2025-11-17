@@ -35,8 +35,16 @@ class EmployeeSeeder extends Seeder
             ['id' => (string) Str::uuid()]
         );
 
+        $imageMale = 'admin_assets/dist/image/profile/teacher-1.png';
+        $imageFemale = 'admin_assets/dist/image/profile/teacher-2.png';
+
         for ($i = 1; $i <= 17; $i++) {
-            $gender = $faker->randomElement([GenderEnum::MALE->value, GenderEnum::FEMALE->value]);
+
+            $gender = $faker->randomElement([
+                GenderEnum::MALE->value,
+                GenderEnum::FEMALE->value
+            ]);
+
             $name = $this->generateRandomName($faker, $gender);
             $email = "employee{$i}@skaniga.com";
 
@@ -51,21 +59,19 @@ class EmployeeSeeder extends Seeder
                 ]
             );
 
-            $roleCount = $faker->numberBetween(1, 2);
-            $roles = $faker->randomElements($employeeRoles, $roleCount);
-            
+            $roles = $faker->randomElements($employeeRoles, $faker->numberBetween(1, 2));
             $user->syncRoles($roles);
 
             Employee::updateOrCreate(
                 ['user_id' => $user->id],
                 [
                     'id' => (string) Str::uuid(),
-                    'image' => null,
+                    'image' => $gender === GenderEnum::MALE->value ? $imageMale : $imageFemale,
                     'NIP' => $this->generateNIP($i),
                     'NIK' => $faker->unique()->numerify('################'),
                     'religion_id' => $religion->id,
                     'gender' => $gender,
-                    'birth_date' => $faker->dateTimeBetween('-45 years', '-25 years')->format('Y-m-d'),
+                    'birth_date' => $faker->date('Y-m-d'),
                     'birth_place' => $faker->city(),
                     'address' => $faker->address(),
                     'phone_number' => $faker->phoneNumber(),
@@ -79,13 +85,13 @@ class EmployeeSeeder extends Seeder
         $maleFirstNames = ['Ahmad', 'Budi', 'Cahyo', 'Dedi', 'Eko', 'Fajar', 'Gunawan', 'Hadi', 'Irfan', 'Joko'];
         $femaleFirstNames = ['Ani', 'Bunga', 'Citra', 'Dewi', 'Eka', 'Fitri', 'Gita', 'Hani', 'Indah', 'Juli'];
         $lastNames = ['Santoso', 'Wijaya', 'Pratama', 'Kusuma', 'Setiawan', 'Hidayat', 'Nugroho', 'Saputra'];
-        
-        $firstName = $gender === GenderEnum::MALE->value 
+
+        $firstName = $gender === GenderEnum::MALE->value
             ? $faker->randomElement($maleFirstNames)
             : $faker->randomElement($femaleFirstNames);
-            
+
         $lastName = $faker->randomElement($lastNames);
-        
+
         return "{$firstName} {$lastName}";
     }
 
