@@ -30,7 +30,7 @@ class StudentResource extends JsonResource
             'classroom' => $activeClassroom ? [
                 'id' => $activeClassroom->id,
                 'name' => $activeClassroom->name,
-                'major' => $activeClassroom->major?->code,
+                'major' => $activeClassroom->major->code,
                 'level_class' => $activeClassroom->levelClass->name,
                 ] : [
                 'message' => 'Siswa belum memiliki kelas aktif'
@@ -38,8 +38,8 @@ class StudentResource extends JsonResource
             'rfid' => $this->whenLoaded('rfid', function () {
                 if ($this->rfid) {
                     return [
-                        'id' => $this->rfid->id,
-                        'rfid' => $this->rfid->number,
+                        'id' => $this->rfid?->id,
+                        'rfid' => $this->rfid?->rfid,
                     ];
                 }
                 return null;
