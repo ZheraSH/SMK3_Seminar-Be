@@ -27,7 +27,7 @@ class RfidService
             throw new \Exception('Nomor RFID sudah terdaftar');
         }
 
-        if ($this->rfid->getByStudentId($data['student_id'])) {
+        if (isset($data['student_id']) && $this->rfid->getByStudentId($data['student_id'])) {
             throw new \Exception('Siswa sudah memiliki kartu RFID');
         }
 
@@ -41,7 +41,6 @@ class RfidService
     {
         $data = $request->validated();
 
-        // Validasi RFID number uniqueness hanya jika rfid di-update
         if (isset($data['rfid'])) {
             $existingRfid = $this->rfid->getByRfidNumber($data['rfid']);
             if ($existingRfid && $existingRfid->id !== $rfid->id) {
@@ -49,7 +48,6 @@ class RfidService
             }
         }
 
-        // Validasi student uniqueness hanya jika student_id di-update
         if (isset($data['student_id'])) {
             $existingStudentRfid = $this->rfid->getByStudentId($data['student_id']);
             if ($existingStudentRfid && $existingStudentRfid->id !== $rfid->id) {
@@ -74,20 +72,5 @@ class RfidService
     public function show(string $id): mixed
     {
         return $this->rfid->show($id);
-    }
-
-    public function validateRfidForAttendance(string $rfidNumber): ?Rfid
-    {
-        $rfid = $this->rfid->getByRfidNumber($rfidNumber);
-        
-        if (!$rfid) {
-            return null;
-        }
-
-        if ($rfid->status !== RfidStatusEnum::ACTIVE->value || !$rfid->student_id) {
-            return null;
-        }
-
-        return $rfid;
     }
 }

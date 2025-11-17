@@ -83,26 +83,4 @@ class RfidController extends Controller
             return ResponseHelper::error(400, $th->getMessage());
         }
     }
-
-    public function validateRfid(Request $request): JsonResponse
-    {
-        try {
-            $request->validate([
-                'rfid' => 'required|string'
-            ]);
-
-            $rfid = $this->rfidService->validateRfidForAttendance($request->rfid);
-            
-            if (!$rfid) {
-                return ResponseHelper::error(404, 'RFID tidak valid atau tidak terdaftar');
-            }
-
-            return ResponseHelper::success(
-                new RfidResource($rfid),
-                'RFID valid untuk absensi'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::error(400, $th->getMessage());
-        }
-    }
 }
