@@ -19,12 +19,15 @@ class StoreStudentRequest extends ApiRequest
         return [
             'name' => 'required|string|max:255',
             'email' => [
-                'required|email',
+                'required',
+                'email',
                 Rule::unique(User::class, 'email'),
             ],
             'image' => 'nullable|mimes:png,jpeg,jpg|max:2048',
             'nisn' => [
-                'required|numeric|digits:10',
+                'required',
+                'numeric',
+                'digits:10',
                 Rule::unique(Student::class, 'nisn'),
             ],
             'religion_id' => 'required|exists:religions,id',

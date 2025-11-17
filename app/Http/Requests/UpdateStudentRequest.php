@@ -29,7 +29,7 @@ class UpdateStudentRequest extends ApiRequest
             ],
             'image' => 'nullable|mimes:png,jpeg,jpg|max:2048',
             'nisn' => [
-                'required',
+                'sometimes',
                 'numeric',
                 'digits:10',
                 Rule::unique(Student::class, 'nisn')->ignore($studentId),
