@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\DayEnum;
+
 class UpdateAttendanceRuleByDayRequest extends ApiRequest
 {
     public function authorize(): bool
@@ -16,7 +18,7 @@ class UpdateAttendanceRuleByDayRequest extends ApiRequest
             'checkin_end' => 'required_if:is_holiday,false|nullable|date_format:H:i|after:checkin_start',
             'checkout_start' => 'required_if:is_holiday,false|nullable|date_format:H:i|after:checkin_end',
             'checkout_end' => 'required_if:is_holiday,false|nullable|date_format:H:i|after:checkout_start',
-            'is_holiday' => 'boolean',
+            'is_holiday' => 'sometimes|boolean',
         ];
     }
 
@@ -24,12 +26,28 @@ class UpdateAttendanceRuleByDayRequest extends ApiRequest
     {
         return [
             'checkin_start.required_if' => 'Waktu mulai check-in wajib diisi ketika bukan hari libur',
+            'checkin_start.date_format' => 'Format waktu check-in harus HH:MM',
             'checkin_end.required_if' => 'Waktu akhir check-in wajib diisi ketika bukan hari libur',
+            'checkin_end.date_format' => 'Format waktu check-in harus HH:MM',
             'checkin_end.after' => 'Waktu akhir check-in harus setelah waktu mulai check-in',
             'checkout_start.required_if' => 'Waktu mulai check-out wajib diisi ketika bukan hari libur',
+            'checkout_start.date_format' => 'Format waktu check-out harus HH:MM',
             'checkout_start.after' => 'Waktu mulai check-out harus setelah waktu akhir check-in',
             'checkout_end.required_if' => 'Waktu akhir check-out wajib diisi ketika bukan hari libur',
+            'checkout_end.date_format' => 'Format waktu check-out harus HH:MM',
             'checkout_end.after' => 'Waktu akhir check-out harus setelah waktu mulai check-out',
+            'is_holiday.boolean' => 'Status hari libur harus true atau false',
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'checkin_start' => 'waktu mulai check-in',
+            'checkin_end' => 'waktu akhir check-in',
+            'checkout_start' => 'waktu mulai check-out',
+            'checkout_end' => 'waktu akhir check-out',
+            'is_holiday' => 'hari libur',
         ];
     }
 

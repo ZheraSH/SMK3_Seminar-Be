@@ -1,5 +1,8 @@
 <?php
+
 namespace App\Http\Requests;
+
+use App\Enums\DayEnum;
 
 class UpdateLessonSchedulesRequest extends ApiRequest
 {
@@ -10,12 +13,14 @@ class UpdateLessonSchedulesRequest extends ApiRequest
 
     public function rules(): array
     {
+        $scheduleId = $this->route('lesson_schedule')?->id ?? $this->route('id');
+
         return [
-            'classroom_id' => 'required|exists:classrooms,id',
-            'day' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
-            'subject_id' => 'required|exists:subjects,id',
-            'employee_id' => 'required|exists:employees,id',
-            'lesson_hour_id' => 'required|exists:lesson_hours,id',
+            'classroom_id' => 'sometimes|required|exists:classrooms,id',
+            'day' => 'sometimes|required|in:' . implode(',', DayEnum::values()),
+            'subject_id' => 'sometimes|required|exists:subjects,id',
+            'employee_id' => 'sometimes|required|exists:employees,id',
+            'lesson_hour_id' => 'sometimes|required|exists:lesson_hours,id',
         ];
     }
 

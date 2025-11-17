@@ -27,4 +27,12 @@ class AddStudentToClassroomRequest extends ApiRequest
             'student_ids.*.exists' => 'Siswa tidak ditemukan',
         ];
     }
+
+    public function attributes(): array
+    {
+        return [
+            'student_ids' => 'data siswa',
+            'student_ids.*' => 'ID siswa',
+        ];
+    }
 }

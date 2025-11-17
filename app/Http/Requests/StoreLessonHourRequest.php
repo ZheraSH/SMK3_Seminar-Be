@@ -1,8 +1,9 @@
 <?php
+
 namespace App\Http\Requests;
 
-use App\Enums\DayEnum;
 use Illuminate\Validation\Rule;
+use App\Enums\DayEnum;
 
 class StoreLessonHourRequest extends ApiRequest
 {
@@ -38,6 +39,16 @@ class StoreLessonHourRequest extends ApiRequest
             'end.required' => 'Waktu selesai wajib diisi',
             'end.date_format' => 'Format waktu selesai harus HH:MM',
             'end.after' => 'Waktu selesai harus setelah waktu mulai',
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'day' => 'hari',
+            'name' => 'nama jam pelajaran',
+            'start' => 'waktu mulai',
+            'end' => 'waktu selesai',
         ];
     }
 

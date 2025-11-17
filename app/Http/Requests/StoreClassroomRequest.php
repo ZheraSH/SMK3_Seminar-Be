@@ -3,21 +3,14 @@
 namespace App\Http\Requests;
 
 use Illuminate\Validation\Rule;
-use App\Models\Classroom;
 
 class StoreClassroomRequest extends ApiRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
     public function rules(): array
     {
         return [
@@ -31,22 +24,10 @@ class StoreClassroomRequest extends ApiRequest
                                  ->where('school_year_id', $this->school_year_id);
                 })
             ],
-            'major_id' => [
-                'required',
-                'exists:majors,id',
-            ],
-            'level_class_id' => [
-                'required',
-                'exists:level_classes,id',
-            ],
-            'school_year_id' => [
-                'required',
-                'exists:school_years,id',
-            ],
-            'teacher_id' => [
-                'required',
-                'exists:employees,id',
-            ],
+            'major_id' => 'required|exists:majors,id',
+            'level_class_id' => 'required|exists:level_classes,id',
+            'school_year_id' => 'required|exists:school_years,id',
+            'teacher_id' => 'required|exists:employees,id',
         ];
     }
 
@@ -63,6 +44,17 @@ class StoreClassroomRequest extends ApiRequest
             'school_year_id.exists' => 'Tahun ajaran tidak ditemukan',
             'teacher_id.required' => 'Guru/Wali tidak boleh kosong',
             'teacher_id.exists' => 'Guru/Wali kelas tidak ditemukan',
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'name' => 'nama kelas',
+            'major_id' => 'jurusan',
+            'level_class_id' => 'tingkatan kelas',
+            'school_year_id' => 'tahun ajaran',
+            'teacher_id' => 'guru/wali kelas',
         ];
     }
 }

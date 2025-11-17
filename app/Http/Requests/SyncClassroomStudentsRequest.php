@@ -12,7 +12,7 @@ class SyncClassroomStudentsRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'student_ids' => 'required|array',
+            'student_ids' => 'required|array|min:1',
             'student_ids.*' => 'required|exists:students,id',
         ];
     }
@@ -22,8 +22,17 @@ class SyncClassroomStudentsRequest extends ApiRequest
         return [
             'student_ids.required' => 'Data siswa tidak boleh kosong',
             'student_ids.array' => 'Data siswa harus berupa array',
+            'student_ids.min' => 'Minimal 1 siswa harus dipilih',
             'student_ids.*.required' => 'ID siswa tidak boleh kosong',
             'student_ids.*.exists' => 'Siswa tidak ditemukan',
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'student_ids' => 'data siswa',
+            'student_ids.*' => 'ID siswa',
         ];
     }
 }

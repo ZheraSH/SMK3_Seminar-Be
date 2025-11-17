@@ -1,5 +1,8 @@
 <?php
+
 namespace App\Http\Requests;
+
+use App\Enums\DayEnum;
 
 class StoreLessonSchedulesRequest extends ApiRequest
 {
@@ -12,7 +15,7 @@ class StoreLessonSchedulesRequest extends ApiRequest
     {
         return [
             'classroom_id' => 'required|exists:classrooms,id',
-            'day' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+            'day' => 'required|in:' . implode(',', DayEnum::values()),
             'subject_id' => 'required|exists:subjects,id',
             'employee_id' => 'required|exists:employees,id',
             'lesson_hour_id' => 'required|exists:lesson_hours,id',
