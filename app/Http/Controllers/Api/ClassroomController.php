@@ -65,7 +65,7 @@ class ClassroomController extends Controller
             if (!$data) return ResponseHelper::notFound('Data kelas tidak ditemukan');
 
             return ResponseHelper::success(
-                new ClassroomDetailResource($data),
+                new ClassroomStudentsResource($data),
                 'Detail data kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
