@@ -53,10 +53,9 @@ Route::controller(LoginController::class)->group(function () {
     Route::apiResource('classroomStudents', ClassroomStudentsController::class)->only('index');
     // School Years
     Route::apiResource('schoolYears', SchoolYearsController::class)->except(['update']);
-    Route::prefix('schoolYears')->controller(SchoolYearsController::class)->group(function () {
-        Route::get('active', 'active'); // tahun ajaran aktif
-        Route::get('cron-status', 'cronStatus'); // status cron
-    });
+    Route::patch('school-years/{id}/activate', [SchoolYearsController::class, 'activate']);
+    Route::get('school-years/active', [SchoolYearsController::class, 'active'
+    ]);
     // Semesters
     Route::prefix('semesters')->controller(SemesterController::class)->group(function () {
         Route::get('active', 'active'); // semester aktif

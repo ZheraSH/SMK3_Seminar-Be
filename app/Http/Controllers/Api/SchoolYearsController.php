@@ -4,64 +4,45 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\SchoolYear;
-use App\Contracts\Repositories\SchoolYearRepository;
-use App\Http\Requests\StoreSchoolYearRequest;
-use App\Http\Requests\UpdateSchoolYearRequest;
-use App\Http\Resources\SchoolYearResource;
-use App\Helpers\ResponseHelper;
 use Illuminate\Http\Request;
+use App\Helpers\ResponseHelper;
 use Throwable;
 
 class SchoolYearsController extends Controller
 {
-    private SchoolYearRepository $schoolYear;
-
-    public function __construct(SchoolYearRepository $schoolYear)
-    {
-        $this->schoolYear = $schoolYear;
-    }
-
     public function index(Request $request)
     {
         try {
-            $data = $this->schoolYear->search($request, 12);
+            $data = SchoolYear::latest()->paginate(12);
 
             return ResponseHelper::success(
-                SchoolYearResource::collection($data),
-                'Data tahun ajaran berhasil diambil'
+                $data,
+                'Daftar tahun ajaran berhasil diambil'
             );
+
         } catch (Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
         }
     }
 
-    public function store(StoreSchoolYearRequest $request)
+    public function store(Request $request)
     {
         try {
-            $data = $this->schoolYear->store($request->validated());
+            $request->validate([
+                'name' => 'required|unique:school_years,name'
+            ]);
+
+            $data = SchoolYear::create([
+                'name' => $request->name,
+                'active' => false
+            ]);
 
             return ResponseHelper::success(
-                new SchoolYearResource($data),
+                $data,
                 'Tahun ajaran berhasil ditambahkan',
                 201
             );
-        } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
-        }
-    }
 
-    public function show($id)
-    {
-        try {
-            $data = $this->schoolYear->show($id);
-            if (! $data) {
-                return ResponseHelper::notFound('Data tidak ditemukan');
-            }
-
-            return ResponseHelper::success(
-                new SchoolYearResource($data),
-                'Detail tahun ajaran ditemukan'
-            );
         } catch (Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
         }
@@ -70,42 +51,41 @@ class SchoolYearsController extends Controller
     public function destroy($id)
     {
         try {
-            $deleted = $this->schoolYear->delete($id);
+            $year = SchoolYear::findOrFail($id);
+            $year->delete();
 
-            if (! $deleted) {
-                return ResponseHelper::notFound('Data tidak ditemukan');
-            }
+            return ResponseHelper::success(null, 'Tahun ajaran berhasil dihapus');
 
-            return ResponseHelper::success(null, 'Data tahun ajaran berhasil dihapus');
         } catch (Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
         }
     }
-public function active()
-{
-    $active = SchoolYear::where('active', true)->first();
 
-    return response()->json([
-        'status' => true,
-        'message' => $active
-            ? 'Cronjob aktif dan tahun ajaran terbaru telah diatur'
-            : 'Cronjob aktif tetapi belum mengatur tahun ajaran',
-        'data' => $active
-    ], 200);
-}
+    public function activate($id)
+    {
+        try {
+            SchoolYear::where('active', true)->update(['active' => false]);
 
+            $year = SchoolYear::findOrFail($id);
+            $year->update(['active' => true]);
 
-public function cronStatus()
-{
-    $active = SchoolYear::where('active', true)->first();
+            return ResponseHelper::success(
+                $year,
+                'Tahun ajaran berhasil diaktifkan'
+            );
 
-    return response()->json([
-        'status' => true,
-        'message' => $active
-            ? 'Cronjob berjalan dan tahun ajaran sudah aktif'
-            : 'Cronjob berjalan tetapi belum ada tahun ajaran aktif',
-        'data' => $active
-    ], 200);
-}
+        } catch (Throwable $th) {
+            return ResponseHelper::error(500, $th->getMessage());
+        }
+    }
 
+    public function active()
+    {
+        $active = SchoolYear::where('active', true)->first();
+
+        return ResponseHelper::success(
+            $active,
+            'Tahun ajaran aktif berhasil diambil'
+        );
+    }
 }
