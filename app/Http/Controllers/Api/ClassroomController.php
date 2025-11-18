@@ -89,7 +89,7 @@ class ClassroomController extends Controller
             $data = $this->classroomService->addStudents($classroom, $request->student_ids);
 
             return ResponseHelper::success(
-                new ClassroomStudentsResource($data),
+                ClassroomStudentsResource::collection($data->classroomStudents),
                 'Siswa berhasil ditambahkan ke kelas'
             );
         } catch (\Throwable $th) {
@@ -104,7 +104,7 @@ class ClassroomController extends Controller
             $data = $this->classroomService->removeStudent($classroom, $studentId);
 
             return ResponseHelper::success(
-                new ClassroomStudentsResource($data),
+                ClassroomStudentsResource::collection($data->classroomStudents),
                 'Siswa berhasil dihapus dari kelas'
             );
         } catch (\Throwable $th) {
@@ -119,7 +119,7 @@ class ClassroomController extends Controller
             $data = $this->classroomService->syncStudents($classroom, $request->student_ids);
 
             return ResponseHelper::success(
-                new ClassroomStudentsResource($data),
+                ClassroomStudentsResource::collection($data->classroomStudents),
                 'Data siswa kelas berhasil disinkronisasi'
             );
         } catch (\Throwable $th) {

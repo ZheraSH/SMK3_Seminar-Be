@@ -54,7 +54,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
         return $this->loadRelations($model);
     }    
 
-    public function show(mixed $id):mixed
+    public function show(mixed $id): mixed
     {
         return $this->model->query()
             ->with([
@@ -62,12 +62,17 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
                 'levelClass',
                 'schoolYear',
                 'teacher.user',
+    
                 'classroomStudents' => function ($q) {
                     $q->with([
                         'student' => function ($s) {
                             $s->with([
                                 'user',
                                 'rfid',
+                                'classroomStudents.classroom.teacher.user',
+                                'classroomStudents.classroom.major',
+                                'classroomStudents.classroom.levelClass',
+                                'classroomStudents.classroom.schoolYear',
                             ]);
                         }
                     ]);
