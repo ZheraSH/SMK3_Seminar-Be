@@ -20,36 +20,33 @@ class ClassroomDetailResource extends JsonResource
                 return $this->teacher?->user ? [
                     'id' => $this->teacher->id,
                     'name' => $this->teacher->user->name,
-                    'email' => $this->teacher->user->email
                 ] : null;
             }),
+            'students' => $this->whenLoaded('classroomStudents', function() {
+                return $this->classroomStudents
+                ->where('status', \App\Enums\StudentStatusEnum::ACTIVE)
+                ->map(function($classroomStudent) {
+                        $student = $classroomStudent->student;
+                        
+                        return [
+                            'id' => $student->id,
+                            'name' => $student->user->name,
+                            'nisn' => $student->nisn,
+                            'gender' => $student->gender?->label(),
+                            'status' => $classroomStudent->status?->label(),
+                        
+                            'rfid' => $student->rfid ? [
+                                'id' => $student->rfid->id,
+                                'rfid' => $student->rfid->rfid,
+                            ] : null,
+                        ];
+                    })->values();
+            }, []),
             'statistics' => [
                 'total_students' => $this->whenLoaded('classroomStudents', function() {
                     return $this->classroomStudents->where('status', \App\Enums\StudentStatusEnum::ACTIVE)->count();
                 }, 0),
             ],
-            'students' => $this->whenLoaded('classroomStudents', function() {
-                return $this->classroomStudents
-                    ->where('status', \App\Enums\StudentStatusEnum::ACTIVE)
-                    ->map(function($classroomStudent) {
-                        return [
-                            'id' => $classroomStudent->student->id,
-                            'name' => $classroomStudent->student->user->name,
-                            'nisn' => $classroomStudent->student->nisn,
-                            'gender' => $classroomStudent->student->gender?->label(),
-                            'status' => $classroomStudent->status?->label(),
-                        ];
-                    })->values();
-            }, []),
-            'schedules_overview' => $this->whenLoaded('lessonSchedules', function() {
-                return $this->lessonSchedules->groupBy('day')->map(function($schedules, $day) {
-                    return [
-                        'day' => $day,
-                        'day_label' => \App\Enums\DayEnum::tryFrom($day)?->label(),
-                        'total_lessons' => $schedules->count(),
-                    ];
-                })->values();
-            }, []),
         ];
     }
 }

@@ -20,7 +20,18 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
     {
         $this->model = $classroom;
     }
-
+    private array $defaultRelations = [
+        'major',
+        'levelClass',
+        'schoolYear',
+        'teacher.user',
+    ];
+    
+    public function loadRelations($model)
+    {
+        return $model->load($this->defaultRelations);
+    }
+    
     public function get(): mixed
     {
         return $this->model->query()
@@ -39,20 +50,27 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
 
     public function store(array $data): mixed
     {
-        return $this->model->query()->create($data);
-    }
+        $model = $this->model->create($data);
+        return $this->loadRelations($model);
+    }    
 
-    public function show(mixed $id): mixed
+    public function show(mixed $id):mixed
     {
         return $this->model->query()
             ->with([
-                'major', 
-                'levelClass', 
-                'schoolYear', 
+                'major',
+                'levelClass',
+                'schoolYear',
                 'teacher.user',
-                'classroomStudents' => function($query) {
-                    $query->where('status', StudentStatusEnum::ACTIVE->value)
-                          ->with(['student.user']);
+                'classroomStudents' => function ($q) {
+                    $q->with([
+                        'student' => function ($s) {
+                            $s->with([
+                                'user',
+                                'rfid',
+                            ]);
+                        }
+                    ]);
                 }
             ])
             ->findOrFail($id);
@@ -60,8 +78,11 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
 
     public function update(mixed $id, array $data): mixed
     {
-        return $this->show($id)->update($data);
-    }
+        $model = $this->model->findOrFail($id);
+        $model->update($data);
+    
+        return $this->loadRelations($model);
+    }    
 
     public function delete(mixed $id): mixed
     {

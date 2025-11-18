@@ -44,11 +44,9 @@ class ClassroomService
     public function update(string $id, array $data): Classroom
     {
         return DB::transaction(function () use ($id, $data) {
-            $this->classroomInterface->update($id, [
+            return $this->classroomInterface->update($id, [
                 'teacher_id' => $data['teacher_id']
             ]);
-            
-            return $this->classroomInterface->show($id);
         });
     }
 

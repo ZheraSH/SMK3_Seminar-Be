@@ -48,12 +48,9 @@ class ClassroomController extends Controller
             $data = $this->classroomService->store($request->validated());
 
             return ResponseHelper::success(
-                new ClassroomResource($data->load(['major', 'levelClass', 'schoolYear', 'teacher.user'])),
-                'Data kelas berhasil dibuat',
-                201
-            );
+                new ClassroomResource($data),'Data kelas berhasil dibuat',201);
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage() ?: 'Bad Request',$th->getCode() >= 400 ? $th->getCode() : 400);
+            return ResponseHelper::error($th->getMessage(), $th->getCode() >= 400 ? $th->getCode() : 400);
         }
     }
 
@@ -65,7 +62,7 @@ class ClassroomController extends Controller
             if (!$data) return ResponseHelper::notFound('Data kelas tidak ditemukan');
 
             return ResponseHelper::success(
-                new ClassroomStudentsResource($data),
+                new ClassroomDetailResource($data),
                 'Detail data kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
@@ -79,11 +76,9 @@ class ClassroomController extends Controller
             $data = $this->classroomService->update($id, $request->validated());
 
             return ResponseHelper::success(
-                new ClassroomResource($data->load(['major', 'levelClass', 'schoolYear', 'teacher.user'])),
-                'Data kelas berhasil diperbarui'
-            );
+                new ClassroomResource($data),'Data kelas berhasil diperbarui');
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage() ?: 'Bad Request',$th->getCode() >= 400 ? $th->getCode() : 400);
+            return ResponseHelper::error($th->getMessage(), $th->getCode() >= 400 ? $th->getCode() : 400);
         }
     }
 
