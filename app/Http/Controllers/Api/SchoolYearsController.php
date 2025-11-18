@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Resources\SchoolYearResource;
 use App\Http\Controllers\Controller;
 use App\Models\SchoolYear;
 use Illuminate\Http\Request;
@@ -31,21 +32,22 @@ class SchoolYearsController extends Controller
             $request->validate([
                 'name' => 'required|unique:school_years,name'
             ]);
+            SchoolYear::where('active', true)->update(['active' => false]);
 
             $data = SchoolYear::create([
                 'name' => $request->name,
-                'active' => false
+                'active' => true
             ]);
 
             return ResponseHelper::success(
-                $data,
-                'Tahun ajaran berhasil ditambahkan',
-                201
-            );
+            new SchoolYearResource($data),
+            'Tahun ajaran berhasil ditambahkan dan diaktifkan',
+            201
+        );
 
         } catch (Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
-        }
+        }   
     }
 
     public function destroy($id)
