@@ -16,9 +16,8 @@ interface ClassroomInterface extends GetInterface, StoreInterface, UpdateInterfa
 {
     public function addStudentsToClassroom(string $classroomId, array $studentIds): Classroom;
     public function removeStudentFromClassroom(string $classroomId, string $studentId): Classroom;
-    public function syncClassroomStudents(string $classroomId, array $studentIds): Classroom;
     public function getActiveStudents(string $classroomId): Collection;
-    public function getAvailableStudents(string $classroomId, string $search = null, int $limit = 10): Collection;
+    public function getAvailableStudents(Classroom $classroom, string $search = null, int $limit = 10): Collection;
     public function graduateClass(string $classroomId): void;
     public function getWithSchedules(): mixed;
     public function getWithSchedulesById(string $id): mixed;

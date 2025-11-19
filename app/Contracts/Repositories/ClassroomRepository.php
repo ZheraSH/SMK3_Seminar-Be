@@ -200,31 +200,6 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
         });
     }
 
-    public function syncClassroomStudents(string $classroomId, array $studentIds): Classroom
-    {
-        return DB::transaction(function () use ($classroomId, $studentIds) {
-            $classroom = $this->model->findOrFail($classroomId);
-
-            ClassroomStudents::where('classroom_id', $classroom->id)
-                ->whereNotIn('student_id', $studentIds)
-                ->update(['status' => StudentStatusEnum::INACTIVE->value]);
-
-            foreach ($studentIds as $studentId) {
-                ClassroomStudents::updateOrCreate(
-                    [
-                        'classroom_id' => $classroom->id,
-                        'student_id' => $studentId,
-                    ],
-                    [
-                        'status' => StudentStatusEnum::ACTIVE->value
-                    ]
-                );
-            }
-
-            return $this->show($classroomId);
-        });
-    }
-
     public function getActiveStudents(string $classroomId): Collection
     {
         $classroom = $this->model->findOrFail($classroomId);
@@ -235,22 +210,44 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
             ->get();
     }
 
-    public function getAvailableStudents(string $classroomId, string $search = null, int $limit = 10): Collection
+    public function getAvailableStudents(Classroom $classroom, string $search = null, int $limit = 10): Collection
     {
-        $classroom = $this->model->findOrFail($classroomId);
+        $currentLevel = $classroom->levelClass;
+        $currentMajor = $classroom->major;
 
-        $activeStudentIds = ClassroomStudents::where('classroom_id', $classroomId)
-            ->where('status', StudentStatusEnum::ACTIVE->value)
-            ->pluck('student_id')
-            ->toArray();
+        $query = Student::where('status', StudentStatusEnum::ACTIVE->value);
 
-        $query = Student::with(['user', 'religion'])
-            ->whereNotIn('id', $activeStudentIds);
+        $query->whereDoesntHave('classroomStudents', function($q) use ($classroom) {
+            $q->where('classroom_id', $classroom->id)
+              ->where('status', StudentStatusEnum::ACTIVE->value);
+        });
+
+        $query->where(function($q) use ($currentMajor, $currentLevel) {
+            $q->whereDoesntHave('classroomStudents', function($q1) {
+                $q1->where('status', StudentStatusEnum::ACTIVE->value);
+            });
+
+            if ($currentLevel && $currentMajor) {
+                $q->orWhereHas('classroomStudents', function($q1) use ($currentMajor, $currentLevel) {
+                    $q1->where('status', StudentStatusEnum::ACTIVE->value)
+                       ->whereHas('classroom', function($q2) use ($currentMajor, $currentLevel) {
+                           $q2->where('major_id', $currentMajor->id);
+                           
+                           if ($currentLevel->level) {
+                               $q2->whereHas('levelClass', function($q3) use ($currentLevel) {
+                                   $q3->where('level', '<', $currentLevel->level);
+                               });
+                           }
+                       });
+                });
+            }
+        });
 
         if ($search) {
-            $query->whereHas('user', function ($q) use ($search) {
-                $q->where('name', 'LIKE', '%' . $search . '%')
-                  ->orWhere('email', 'LIKE', '%' . $search . '%');
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('nis', 'like', "%{$search}%")
+                  ->orWhere('nisn', 'like', "%{$search}%");
             });
         }
 

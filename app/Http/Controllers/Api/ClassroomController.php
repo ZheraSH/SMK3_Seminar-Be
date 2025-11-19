@@ -112,21 +112,6 @@ class ClassroomController extends Controller
         }
     }
 
-    public function syncStudents(SyncClassroomStudentsRequest $request, string $id)
-    {
-        try {
-            $classroom = $this->classroomService->show($id);
-            $data = $this->classroomService->syncStudents($classroom, $request->student_ids);
-
-            return ResponseHelper::success(
-                ClassroomStudentsResource::collection($data->classroomStudents),
-                'Data siswa kelas berhasil disinkronisasi'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage() ?: 'Bad Request',$th->getCode() >= 400 ? $th->getCode() : 400);
-        }
-    }
-
     public function getStudents(string $id)
     {
         try {

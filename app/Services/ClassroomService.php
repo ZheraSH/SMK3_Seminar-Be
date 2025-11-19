@@ -75,11 +75,6 @@ class ClassroomService
         return $this->classroomInterface->removeStudentFromClassroom($classroom->id, $studentId);
     }
 
-    public function syncStudents(Classroom $classroom, array $studentIds): Classroom
-    {
-        return $this->classroomInterface->syncClassroomStudents($classroom->id, $studentIds);
-    }
-
     public function getActiveStudents(Classroom $classroom): Collection
     {
         return $this->classroomInterface->getActiveStudents($classroom->id);
@@ -92,7 +87,7 @@ class ClassroomService
 
     public function getAvailableStudents(Classroom $classroom, string $search = null, int $limit = 10): Collection
     {
-        return $this->classroomInterface->getAvailableStudents($classroom->id, $search, $limit);
+        return $this->classroomInterface->getAvailableStudents($classroom, $search, $limit);
     }
 
     public function graduateClass(string $classroomId): void
