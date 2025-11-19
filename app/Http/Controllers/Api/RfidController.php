@@ -9,6 +9,7 @@ use App\Http\Resources\RfidResource;
 use App\Models\Rfid;
 use App\Services\RfidService;
 use App\Helpers\ResponseHelper;
+use App\Http\Resources\AvailableStudentResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -95,8 +96,8 @@ class RfidController extends Controller
             $students = $this->rfidService->getAvailableStudents($request);
 
             return ResponseHelper::success(
-                $students,
-                'Data siswa yang tersedia untuk RFID berhasil diambil'
+                AvailableStudentResource::collection($students),
+                'Data siswa yang tersedia berhasil diambil'
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 500);
