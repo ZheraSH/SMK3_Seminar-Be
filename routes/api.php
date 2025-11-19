@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\StudentLessonScheduleController;
 use App\Http\Controllers\Api\AttendanceController;
+use App\Http\Controllers\Api\AttendancePermissionController;
 use App\Http\Controllers\Api\AttendanceRuleController;
 use App\Http\Controllers\Api\LessonHourController;
 use App\Http\Controllers\Api\SubjectController;
@@ -15,10 +16,12 @@ use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\LevelClassController;
 use App\Http\Controllers\Api\ClassroomStudentsController;
+use App\Http\Controllers\Api\Counselor\CounselorAttendancePermissionController;
 use App\Http\Controllers\Api\LessonSchedulesController;
 use App\Http\Controllers\Api\RfidController;
 use App\Http\Controllers\Api\RfidTapController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\Student\StudentAttendancePermissionController;
 use Illuminate\Support\Facades\Route;
 
 // Authentication Routes
@@ -46,16 +49,16 @@ Route::controller(LoginController::class)->group(function () {
     Route::prefix('classrooms')->controller(ClassroomController::class)->group(function () {
         Route::get('{classroom}/available-students', 'getAvailableStudents'); // siswa yg bisa ditambahkan
         Route::post('{classroom}/add-students', 'addStudents'); // tambah siswa ke kelas
-        Route::post('{classroom}/sync-students', 'syncStudents'); // sinkronisasi siswa
         Route::delete('{classroom}/remove-student/{studentId}', 'removeStudent'); // hapus siswa dari kelas
     });
     // Classroom Students
     Route::apiResource('classroomStudents', ClassroomStudentsController::class)->only('index');
     // School Years
     Route::apiResource('schoolYears', SchoolYearsController::class)->except(['update']);
-    Route::patch('school-years/{id}/activate', [SchoolYearsController::class, 'activate']);
-    Route::get('school-years/active', [SchoolYearsController::class, 'active'
-    ]);
+    Route::prefix('school-years')->controller(SchoolYearsController::class)->group(function () {
+        Route::patch('{id}/activate', 'activate');
+        Route::get('active', 'active');
+    });
     // Semesters
     Route::prefix('semesters')->controller(SemesterController::class)->group(function () {
         Route::get('active', 'active'); // semester aktif
@@ -82,6 +85,9 @@ Route::controller(LoginController::class)->group(function () {
     });
     // RFID Management
     Route::apiResource('rfids', RfidController::class);
+    Route::prefix('rfid')->controller(RfidController::class)->group(function () {
+    Route::get('available-students', 'availableStudents');
+    });
     // RFID Tap Routes
     Route::post('rfidTap', [RfidTapController::class, 'tap']); // absensi tap siswa
 
@@ -91,7 +97,11 @@ Route::controller(LoginController::class)->group(function () {
     
     // Student Lesson Schedule
     Route::apiResource('students.lesson-schedules', StudentLessonScheduleController::class)->only(['index']);
-
+    //Student attendancePermission
+    // Route::apiResource('attendance-permissions', StudentAttendancePermissionController::class);
+    // Route::prefix('attendance-permissions')->controller(StudentAttendancePermissionController::class)->group(function () {
+    //     Route::get('/history', 'history'); // Riwayat izin
+    // });
 // });
 
 // Route::middleware(['auth:sanctum', 'role:teacher'])->group(function () {
@@ -104,15 +114,21 @@ Route::controller(LoginController::class)->group(function () {
         Route::get('student/{studentId}/today', 'getTodayByStudent');
         Route::get('by-date', 'getByDate');
     });
-
 // });
 
 // Route::middleware(['auth:sanctum', 'role:homeroom_teacher'])->group(function () {
     // Tambahkan routes untuk homeroom teacher di sini
 // });
 
-// Route::middleware(['auth:sanctum', 'role:counselor'])->group(function () {
-    // Tambahkan routes untuk counselor di sini
+// Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->group(function () {
+    // Route::apiResource('attendance-permissions', CounselorAttendancePermissionController::class);
+    // Route::prefix('attendance-permissions')->controller(CounselorAttendancePermissionController::class)->group(function () {
+    //     Route::get('/pending', 'pending'); // List izin pending
+    //     Route::post('/{attendancePermission}/approve', 'approve'); // Approve izin
+    //     Route::post('/{attendancePermission}/reject', 'reject'); // Reject izin
+    //     Route::get('/by-date-range', 'getByDateRange'); // By date range
+    //     Route::get('/statistics', 'statistics'); // Statistik izin
+    // });
 // });
 
 // Route::middleware(['auth:sanctum', 'role:curriculum_coordinator'])->group(function () {
