@@ -4,7 +4,9 @@ namespace App\Contracts\Repositories;
 
 use App\Contracts\Interfaces\RfidInterface;
 use App\Enums\RfidStatusEnum;
+use App\Enums\StudentStatusEnum;
 use App\Models\Rfid;
+use App\Models\Student;
 use Illuminate\Http\Request;
 
 class RfidRepository extends BaseRepository implements RfidInterface
@@ -65,6 +67,31 @@ class RfidRepository extends BaseRepository implements RfidInterface
             ->paginate($pagination);
     }
 
+    public function getAvailableStudents(Request $request): mixed
+    {
+        $search = $request->query('search');
+        $limit = $request->query('limit', 10);
+
+        $query = Student::where('status', StudentStatusEnum::ACTIVE->value)
+            ->whereDoesntHave('rfid', function($q) {
+                $q->where('status', RfidStatusEnum::ACTIVE->value);
+            })
+            ->with(['user', 'classroomStudents.classroom.major', 'classroomStudents.classroom.levelClass']);
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('nis', 'like', "%{$search}%")
+                  ->orWhere('nisn', 'like', "%{$search}%")
+                  ->orWhereHas('user', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        return $query->limit($limit)->get();
+    }
+    
     public function getByStudentId(string $studentId): mixed
     {
         return $this->model->query()

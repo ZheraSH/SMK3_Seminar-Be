@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 
 interface RfidInterface extends GetInterface, StoreInterface, UpdateInterface, ShowInterface, DeleteInterface, SearchInterface, PaginateInterface
 {
+    public function getAvailableStudents(Request $request): mixed;
     public function getByStudentId(string $studentId): mixed;
     public function getByRfidNumber(string $rfid): mixed;
     public function used(Request $request): mixed;

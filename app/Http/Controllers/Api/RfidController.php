@@ -88,4 +88,18 @@ class RfidController extends Controller
             return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 400);
         }
     }
+
+    public function availableStudents(Request $request): JsonResponse
+    {
+        try {
+            $students = $this->rfidService->getAvailableStudents($request);
+
+            return ResponseHelper::success(
+                $students,
+                'Data siswa yang tersedia untuk RFID berhasil diambil'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 500);
+        }
+    }
 }

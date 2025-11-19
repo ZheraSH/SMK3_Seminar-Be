@@ -59,6 +59,11 @@ class RfidService
         return $this->rfid->show($rfid->id);
     }
 
+    public function show(string $id): mixed
+    {
+        return $this->rfid->show($id);
+    }
+
     public function delete(Rfid $rfid): bool
     {
         return $this->rfid->delete($rfid->id);
@@ -69,8 +74,8 @@ class RfidService
         return $this->rfid->search($request);
     }
 
-    public function show(string $id): mixed
+    public function getAvailableStudents(Request $request): mixed
     {
-        return $this->rfid->show($id);
+        return $this->rfid->getAvailableStudents($request);
     }
 }
