@@ -56,18 +56,9 @@ class LessonScheduleService
         });
     }
 
-    public function getByClassroom(string $classroomId): array
+    public function getByClassroom(string $classroomId)
     {
-        $classroom = $this->classroom->getWithSchedulesById($classroomId);
-        
-        $schedules = $classroom->lessonSchedules
-            ->sortBy('lesson_hour_id')
-            ->groupBy('day');
-
-        return [
-            'classroom' => $classroom,
-            'schedules' => $schedules,
-        ];
+        return $this->classroom->getWithSchedulesById($classroomId);
     }
 
     public function getByClassroomAndDay(string $classroomId, string $day): array

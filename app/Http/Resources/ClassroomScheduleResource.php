@@ -6,6 +6,7 @@ use App\Enums\DayEnum;
 use App\Traits\FormatsTimeTrait;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Collection;
 
 class ClassroomScheduleResource extends JsonResource
 {
@@ -14,7 +15,13 @@ class ClassroomScheduleResource extends JsonResource
     public function toArray(Request $request): array
     {
         $classroom = $this->resource;
-        $schedules = $classroom->lessonSchedules
+        
+        $lessonSchedules = $classroom->lessonSchedules;
+        if (is_array($lessonSchedules)) {
+            $lessonSchedules = collect($lessonSchedules);
+        }
+        
+        $schedules = $lessonSchedules
             ->sortBy('lesson_hour_id')
             ->groupBy('day');
 
@@ -22,21 +29,13 @@ class ClassroomScheduleResource extends JsonResource
             'classroom' => [
                 'id' => $classroom->id,
                 'name' => $classroom->name,
-                'homeroom_teacher' => $classroom->employee?->user?->name ?? 'Belum ada wali kelas',
-                'total_students' => $classroom->classroomStudents 
-                    ->where('status', \App\Enums\StudentStatusEnum::ACTIVE->value)
-                    ->count(),
-                'school_year' => $classroom->schoolYear?->name ?? 'Belum ada tahun ajaran',
-                'major' => $classroom->major?->name ?? 'Belum ada jurusan',
+                'major' => $classroom->major?->code ?? 'Belum ada jurusan',
                 'level_class' => $classroom->levelClass?->name ?? 'Belum ada tingkat',
+                'school_year' => $classroom->schoolYear?->name ?? 'Belum ada tahun ajaran',
+                'homeroom_teacher' => $classroom->employee?->user?->name ?? 'Belum ada wali kelas',
+                'total_students' => $classroom->classroomStudents->where('status', \App\Enums\StudentStatusEnum::ACTIVE->value)->count(),
             ],
             'schedules' => $this->getStructuredSchedules($schedules),
-            'summary' => [
-                'total_days_with_schedule' => $schedules->count(),
-                'total_weekly_lessons' => $classroom->lessonSchedules?->count() ?? 0,
-                'total_subjects' => $classroom->lessonSchedules?->unique('subject_id')->count() ?? 0,
-                'total_teachers' => $classroom->lessonSchedules?->unique('employee_id')->count() ?? 0,
-            ],
         ];
     }
 

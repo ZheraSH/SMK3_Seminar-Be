@@ -29,11 +29,6 @@ class ClassroomDayScheduleResource extends JsonResource
                 'label' => DayEnum::tryFrom($day)?->label(),
             ],
             'schedules' => $this->getDaySchedules($schedules),
-            'summary' => [
-                'total_lessons' => $schedules->count(),
-                'total_subjects' => $schedules->unique('subject_id')->count(),
-                'total_teachers' => $schedules->unique('employee_id')->count(),
-            ],
         ];
     }
 
