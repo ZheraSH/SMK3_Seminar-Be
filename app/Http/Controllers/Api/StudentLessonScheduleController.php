@@ -11,19 +11,16 @@ class StudentLessonScheduleController extends Controller
 {
     public function index(Student $student)
     {
-        // Cari classroom_id dari pivot classroom_students
         $classroom = DB::table('classroom_students')
             ->where('student_id', $student->id)
             ->first();
 
-        // Jika belum punya kelas
         if (!$classroom) {
             return response()->json([
                 'message' => 'Student does not belong to any classroom'
             ], 404);
         }
 
-        // Ambil jadwal via classroom_id
         $schedules = DB::table('lesson_schedules')
             ->where('classroom_id', $classroom->classroom_id)
             ->get();
