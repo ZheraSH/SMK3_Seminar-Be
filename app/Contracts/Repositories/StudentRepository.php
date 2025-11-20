@@ -62,64 +62,64 @@ class StudentRepository extends BaseRepository implements StudentInterface
     }
 
     public function paginate(): mixed
-{
-    return $this->model->query()
-        ->with([
-            'user', 
-            'religion', 
-            'rfid',
-            'classroomStudents.classroom.major',
-            'classroomStudents.classroom.levelClass',
-            'classroomStudents.classroom.schoolYear'
-        ])
-        ->latest()
-        ->paginate(8);
-}
+    {
+        return $this->model->query()
+            ->with([
+                'user', 
+                'religion', 
+                'rfid',
+                'classroomStudents.classroom.major',
+                'classroomStudents.classroom.levelClass',
+                'classroomStudents.classroom.schoolYear'
+            ])
+            ->latest()
+            ->paginate(8);
+    }
 
-public function search(Request $request, int $pagination = 8): mixed
-{
-    return $this->model->query()
-        ->with([
-            'user', 
-            'religion', 
-            'rfid',
-            'classroomStudents.classroom.major',
-            'classroomStudents.classroom.levelClass',
-            'classroomStudents.classroom.schoolYear'
-        ])
-        ->when($request->search, function ($query) use ($request) {
-            $query->where(function ($q) use ($request) {
-                $q->whereHas('user', function ($sub) use ($request) {
-                    $sub->where('name', 'LIKE', '%' . $request->search . '%');
-                })
-                ->orWhere('nisn', 'LIKE', '%' . $request->search . '%')
-                ->orWhereHas('classroomStudents.classroom', function ($sub) use ($request) {
-                    $sub->where('name', 'LIKE', '%' . $request->search . '%');
+    public function search(Request $request, int $pagination = 8): mixed
+    {
+        return $this->model->query()
+            ->with([
+                'user', 
+                'religion', 
+                'rfid',
+                'classroomStudents.classroom.major',
+                'classroomStudents.classroom.levelClass',
+                'classroomStudents.classroom.schoolYear'
+            ])
+            ->when($request->search, function ($query) use ($request) {
+                $query->where(function ($q) use ($request) {
+                    $q->whereHas('user', function ($sub) use ($request) {
+                        $sub->where('name', 'LIKE', '%' . $request->search . '%');
+                    })
+                    ->orWhere('nisn', 'LIKE', '%' . $request->search . '%')
+                    ->orWhereHas('classroomStudents.classroom', function ($sub) use ($request) {
+                        $sub->where('name', 'LIKE', '%' . $request->search . '%');
+                    });
                 });
-            });
-        })
-        ->when($request->gender, function ($query) use ($request) {
-            $genders = explode(',', $request->gender);
-            $query->whereIn('gender', $genders);
-        })
-        ->when($request->major, function ($query) use ($request) {
-            $majorNames = explode(',', $request->major);
-            $query->whereHas('classroomStudents.classroom.major', function ($q) use ($majorNames) {
-                $q->whereIn('name', $majorNames); // ✅ Konsisten dengan Employee
-            });
-        })
-        ->when($request->level_class, function ($query) use ($request) {
-            $levelClassNames = explode(',', $request->level_class);
-            $query->whereHas('classroomStudents.classroom.levelClass', function ($q) use ($levelClassNames) {
-                $q->whereIn('name', $levelClassNames);
-            });
-        })
-        ->when($request->status, function ($query) use ($request) {
-            $query->where('status', $request->status);
-        })
-        ->latest()
-        ->paginate($pagination);
-}
+            })
+            ->when($request->gender, function ($query) use ($request) {
+                $genders = explode(',', $request->gender);
+                $query->whereIn('gender', $genders);
+            })
+            ->when($request->major, function ($query) use ($request) {
+                $majorNames = explode(',', $request->major);
+                $query->whereHas('classroomStudents.classroom.major', function ($q) use ($majorNames) {
+                    $q->whereIn('name', $majorNames); // ✅ Konsisten dengan Employee
+                });
+            })
+            ->when($request->level_class, function ($query) use ($request) {
+                $levelClassNames = explode(',', $request->level_class);
+                $query->whereHas('classroomStudents.classroom.levelClass', function ($q) use ($levelClassNames) {
+                    $q->whereIn('name', $levelClassNames);
+                });
+            })
+            ->when($request->status, function ($query) use ($request) {
+                $query->where('status', $request->status);
+            })
+            ->latest()
+            ->paginate($pagination);
+    }
     
     public function count(): mixed
     {
