@@ -12,19 +12,19 @@ class RfidSeeder extends Seeder
 {
     public function run(): void
     {
-        $students = Student::with('user')->get();
+        $students = Student::all();
 
         if ($students->isEmpty()) {
             return;
         }
 
-        $totalStudents = $students->count();
-        $assignedCount = (int) ceil($totalStudents * 0.6);
-        $availableRfidCount = 10;
+        // Jumlah RFID yang ingin dibuat = setengah dari total student
+        $targetCount = (int) floor($students->count() / 2);
 
-        // 1. Assign RFID ke sebagian siswa (ACTIVE)
-        $assigned = 0;
-        foreach ($students->take($assignedCount) as $student) {
+        // Ambil student secara acak sebanyak targetCount
+        $selectedStudents = $students->random($targetCount);
+
+        foreach ($selectedStudents as $student) {
             Rfid::create([
                 'id' => (string) Str::uuid(),
                 'rfid' => $this->generateUniqueRfid(),
@@ -33,21 +33,6 @@ class RfidSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-            $assigned++;
-        }
-
-        // 2. Buat RFID available tanpa student (INACTIVE)
-        $available = 0;
-        for ($i = 0; $i < $availableRfidCount; $i++) {
-            Rfid::create([
-                'id' => (string) Str::uuid(),
-                'rfid' => $this->generateUniqueRfid(),
-                'student_id' => null,
-                'status' => RfidStatusEnum::INACTIVE->value,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-            $available++;
         }
     }
 
