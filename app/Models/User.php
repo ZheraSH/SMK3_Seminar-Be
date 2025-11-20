@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Traits\Models\HasOneEmployee;
+use App\Traits\Models\HasOneStudent;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -12,12 +14,13 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, HasApiTokens, HasRoles, Notifiable, SoftDeletes;
+    use HasFactory, HasApiTokens, HasRoles, HasOneStudent, HasOneEmployee, Notifiable, SoftDeletes;
 
     public $incrementing = false;
     protected $keyType = 'string';
 
     protected $fillable = [
+        'id',
         'name',
         'slug',
         'email',
@@ -34,11 +37,4 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
-
-    public function getCachedRoles()
-    {
-        return Cache::remember("user_{$this->id}_roles", 3600, function () {
-            return $this->roles()->get();
-        });
-    }
 }

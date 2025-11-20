@@ -27,20 +27,17 @@ class LoginService
 
             return ResponseHelper::success([
                 'user'  => $this->mapUser($user),
-                'role'  => $user->roles->first()->name,
+                'role'  => optional($user->roles->first())->name,
                 'token' => $token,
             ], 'Login berhasil');
 
         } catch (\Throwable $e) {
             Log::error('Login failed', [
-                'email' => $credentials['email'],
+                'email' => $credentials['email'] ?? null,
                 'error' => $e->getMessage(),
             ]);
 
-            return ResponseHelper::error(
-                'Terjadi kesalahan saat login',
-                500
-            );
+            return ResponseHelper::error('Terjadi kesalahan saat login', 500);
         }
     }
 
@@ -77,7 +74,7 @@ class LoginService
         }
 
         $user = Auth::user();
-        $user->load('roles');
+        $user->load(['roles', 'student', 'employee']);
 
         if ($user->roles->isEmpty()) {
             return null;
@@ -97,6 +94,8 @@ class LoginService
             'id'    => $user->id,
             'name'  => $user->name,
             'email' => $user->email,
+            'is_student' => (bool) $user->student,
+            'is_employee' => (bool) $user->employee,
         ];
     }
 }
