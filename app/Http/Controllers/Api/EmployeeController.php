@@ -25,12 +25,9 @@ class EmployeeController extends Controller
         try {
             $data = $this->employeeService->getWithFilter($request);
 
-            if ($request->has('page')) {
-                return ResponseHelper::pagination($data, EmployeeResource::class, 'Daftar karyawan berhasil diambil');
-            }
-
-            return ResponseHelper::success(
-                EmployeeResource::collection($data),
+            return ResponseHelper::pagination(
+                $data, 
+                EmployeeResource::class, 
                 'Daftar karyawan berhasil diambil'
             );
         } catch (\Throwable $th) {
@@ -42,7 +39,6 @@ class EmployeeController extends Controller
     {
         try {
             $data = $this->employeeService->store($request);
-            $data->load(['user.roles', 'religion', 'subjects']);
 
             return ResponseHelper::success(
                 new EmployeeResource($data),
@@ -58,6 +54,7 @@ class EmployeeController extends Controller
     {
         try {
             $data = $this->employeeService->show($id);
+
             return ResponseHelper::success(
                 new EmployeeResource($data),
                 'Detail data karyawan berhasil diambil'
@@ -70,7 +67,7 @@ class EmployeeController extends Controller
     public function update(UpdateEmployeeRequest $request, Employee $employee)
     {
         try {
-            $data = $this->employeeService->update($employee, $request);
+            $data = $this->employeeService->update($employee->id, $request);
 
             return ResponseHelper::success(
                 new EmployeeResource($data),
@@ -84,7 +81,7 @@ class EmployeeController extends Controller
     public function destroy(Employee $employee)
     {
         try {
-            $this->employeeService->delete($employee);
+            $this->employeeService->delete($employee->id);
 
             return ResponseHelper::success(
                 null,

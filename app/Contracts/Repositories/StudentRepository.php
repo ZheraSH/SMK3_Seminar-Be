@@ -18,7 +18,7 @@ class StudentRepository extends BaseRepository implements StudentInterface
         $this->model = $student;
     }
 
-    public function get(): mixed
+    public function get(): Collection
     {
         return $this->model->query()
             ->with([
@@ -32,12 +32,12 @@ class StudentRepository extends BaseRepository implements StudentInterface
             ->get();
     }
 
-    public function store(array $data): mixed
+    public function store(array $data): Student
     {
         return $this->model->query()->create($data);
     }
 
-    public function show(mixed $id): mixed
+    public function show(mixed $id): Student
     {
         return $this->model->query()
             ->with([
@@ -51,12 +51,12 @@ class StudentRepository extends BaseRepository implements StudentInterface
             ->findOrFail($id);
     }
 
-    public function update(mixed $id, array $data): mixed
+    public function update(mixed $id, array $data): bool
     {
         return $this->show($id)->update($data);
     }
 
-    public function delete(mixed $id): mixed
+    public function delete(mixed $id): bool
     {
         return $this->show($id)->delete();
     }
@@ -105,7 +105,7 @@ class StudentRepository extends BaseRepository implements StudentInterface
             ->when($request->major, function ($query) use ($request) {
                 $majorNames = explode(',', $request->major);
                 $query->whereHas('classroomStudents.classroom.major', function ($q) use ($majorNames) {
-                    $q->whereIn('name', $majorNames); // ✅ Konsisten dengan Employee
+                    $q->whereIn('name', $majorNames);
                 });
             })
             ->when($request->level_class, function ($query) use ($request) {
@@ -121,19 +121,19 @@ class StudentRepository extends BaseRepository implements StudentInterface
             ->paginate($pagination);
     }
     
-    public function count(): mixed
+    public function count(): int
     {
         return $this->model->query()->count();
     }
 
-    public function countActiveStudents(): mixed
+    public function countActiveStudents(): int
     {
         return $this->model->query()
             ->where('status', StudentStatusEnum::ACTIVE->value)
             ->count();
     }
 
-    public function showWithActiveClassroom(mixed $id): mixed
+    public function showWithActiveClassroom(mixed $id): Student
     {
         return $this->model->query()
             ->with([
@@ -162,7 +162,7 @@ class StudentRepository extends BaseRepository implements StudentInterface
             ->get();
     }
 
-    public function getActiveStudents(): mixed
+    public function getActiveStudents(): Collection
     {
         return $this->model->query()
             ->with(['user', 'religion', 'rfid'])

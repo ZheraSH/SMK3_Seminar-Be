@@ -25,16 +25,13 @@ class StudentController extends Controller
         try {
             $data = $this->studentService->getWithFilter($request);
 
-            if ($request->has('page')) {
-                return ResponseHelper::pagination($data, StudentResource::class, 'List data siswa berhasil diambil');
-            }
-            
-            return ResponseHelper::success(
-                StudentResource::collection($data),
+            return ResponseHelper::pagination(
+                $data, 
+                StudentResource::class, 
                 'List data siswa berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 500);
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
         }
     }
 
@@ -49,7 +46,7 @@ class StudentController extends Controller
                 201
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 400);
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 
@@ -63,7 +60,7 @@ class StudentController extends Controller
                 'Detail data siswa berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error('Data siswa tidak ditemukan',404);
+            return ResponseHelper::error('Data siswa tidak ditemukan', 404);
         }
     }
 
@@ -77,7 +74,7 @@ class StudentController extends Controller
                 'Data siswa berhasil diperbarui'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 400);
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 
@@ -91,7 +88,7 @@ class StudentController extends Controller
                 'Data siswa berhasil dihapus'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 400);
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 }

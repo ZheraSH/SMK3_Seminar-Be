@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Log;
 
 class StudentService
 {
@@ -105,9 +104,9 @@ class StudentService
         return $this->student->show($id);
     }
 
-    public function getWithFilter(Request $request, int $pagination = 8): LengthAwarePaginator
+    public function getWithFilter(Request $request): LengthAwarePaginator
     {
-        return $this->student->search($request, $pagination);
+        return $this->student->search($request);
     }
 
     public function getActiveClassroom(string $studentId)
