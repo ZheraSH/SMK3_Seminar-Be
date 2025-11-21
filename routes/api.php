@@ -19,7 +19,7 @@ use App\Http\Controllers\Api\SchoolYearsController;
 use App\Http\Controllers\Api\SemesterController;
 use App\Http\Controllers\Api\Student\StudentAttendancePermissionController;
 use App\Http\Controllers\Api\StudentController;
-use App\Http\Controllers\Api\StudentLessonScheduleController;
+use App\Http\Controllers\Api\Student\StudentLessonScheduleController;
 use App\Http\Controllers\Api\SubjectController;
 use Illuminate\Support\Facades\Route;
 
@@ -100,6 +100,7 @@ Route::controller(LoginController::class)->group(function () {
     });
     Route::apiResource('rfids', RfidController::class);
     // RFID Tap (perlu Master card)
+
     Route::post('rfid-tap', [RfidTapController::class, 'tap']); 
 // });
 
@@ -112,10 +113,7 @@ Route::controller(LoginController::class)->group(function () {
 Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(function () {
 
     // jadwal pelajaran siswa
-    Route::prefix('lesson-schedules')->controller(StudentLessonScheduleController::class)->group(function () {
-          Route::get('{day}', 'getByDay'); // Filter berdasarkan hari (senin, selasa, rabu, kamis, jumat)
-    });
-    Route::apiResource('lesson-schedules', StudentLessonScheduleController::class)->only(['index']);
+    Route::get('/lesson-schedule', [StudentLessonScheduleController::class, 'getSchedule']);
     // izin tidak masuk siswa
     Route::apiResource('attendance-permissions', StudentAttendancePermissionController::class)->except(['update']);
 });
