@@ -37,4 +37,5 @@ class StoreSchoolYearRequest extends ApiRequest
         'active.boolean' => 'Status aktif harus berupa true atau false',
         ];
     }
+
 }

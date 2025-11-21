@@ -58,5 +58,20 @@ class SchoolYearRepository extends BaseRepository implements SchoolYearInterface
         ->latest()
         ->paginate($pagination);
     }
+ public function active(): mixed
+    {
+        return $this->model->query()->where('active', true)->first();
+    }
 
+    public function setActive($id): mixed
+    {
+        $this->model->query()->update(['active' => false]);
+        
+        return $this->show($id)->update(['active' => true]);
+    }
+
+    public function setNonactive(): mixed
+    {
+        return $this->model->query()->update(['active' => false]);
+    }
 }

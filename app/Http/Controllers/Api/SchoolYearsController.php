@@ -7,8 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\SchoolYear;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseHelper;
-use App\Http\Requests\StoreSchoolYearRequest; // Tambahkan ini
-use App\Http\Requests\UpdateSchoolYearRequest; // Tambahkan ini
+use App\Http\Requests\StoreSchoolYearRequest;
 use Throwable;
 
 class SchoolYearsController extends Controller
@@ -24,14 +23,14 @@ class SchoolYearsController extends Controller
             );
 
         } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), 500);
         }
     }
 
-    public function store(StoreSchoolYearRequest $request) 
+    public function store(StoreSchoolYearRequest $request)
     {
         try {
-            
+
             SchoolYear::where('active', true)->update(['active' => false]);
 
             $data = SchoolYear::create([
@@ -46,7 +45,7 @@ class SchoolYearsController extends Controller
             );
 
         } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), 500);
         }   
     }
 
@@ -54,40 +53,55 @@ class SchoolYearsController extends Controller
     {
         try {
             $year = SchoolYear::findOrFail($id);
+            
+            if ($year->active === true) {
+                return ResponseHelper::error('Tidak dapat menghapus tahun ajaran aktif', 422);
+            }
+            
             $year->delete();
 
             return ResponseHelper::success(null, 'Tahun ajaran berhasil dihapus');
 
         } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), 500);
         }
     }
 
     public function activate($id)
     {
         try {
+    
             SchoolYear::where('active', true)->update(['active' => false]);
 
             $year = SchoolYear::findOrFail($id);
             $year->update(['active' => true]);
 
             return ResponseHelper::success(
-                $year,
+                new SchoolYearResource($year),
                 'Tahun ajaran berhasil diaktifkan'
             );
 
         } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), 500);
         }
     }
 
     public function active()
     {
-        $active = SchoolYear::where('active', true)->first();
+        try {
+            $active = SchoolYear::where('active', true)->first();
 
-        return ResponseHelper::success(
-            $active,
-            'Tahun ajaran aktif berhasil diambil'
-        );
+            if (!$active) {
+                return ResponseHelper::error('Tidak ada tahun ajaran aktif', 404);
+            }
+
+            return ResponseHelper::success(
+                new SchoolYearResource($active),
+                'Tahun ajaran aktif berhasil diambil'
+            );
+
+        } catch (Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), 500);
+        }
     }
 }

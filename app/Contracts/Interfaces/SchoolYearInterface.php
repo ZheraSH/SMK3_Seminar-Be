@@ -12,5 +12,7 @@ use App\Contracts\Interfaces\Eloquent\UpdateInterface;
         
 interface SchoolYearInterface extends GetInterface, StoreInterface, UpdateInterface, ShowInterface, DeleteInterface, PaginateInterface, SearchInterface
 {
-    // Define your methods here
+    public function active(): mixed;
+    public function setActive($id): mixed;
+    public function setNonactive(): mixed;
 }

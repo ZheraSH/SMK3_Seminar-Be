@@ -65,10 +65,10 @@ Route::controller(LoginController::class)->group(function () {
     Route::apiResource('classroom-students', ClassroomStudentsController::class)->only('index');
     // School Years
     Route::prefix('school-years')->controller(SchoolYearsController::class)->group(function () {
-        Route::patch('{id}/activate', 'activate'); // aktifkan tahun ajaran
+        Route::post('{id}/activate', 'activate'); // aktifkan tahun ajaran
         Route::get('active', 'active'); // tahun ajaran aktif
     });
-    Route::apiResource('school-years', SchoolYearsController::class)->except(['update']);
+    Route::apiResource('school-years', SchoolYearsController::class)->except(['show','update']);
     // Semesters
     Route::prefix('semesters')->controller(SemesterController::class)->group(function () {
         Route::get('active', 'active'); // semester aktif
