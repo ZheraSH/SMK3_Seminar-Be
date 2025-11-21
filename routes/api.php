@@ -1,63 +1,73 @@
 <?php
 
-use App\Http\Controllers\Api\StudentLessonScheduleController;
 use App\Http\Controllers\Api\AttendanceController;
-use App\Http\Controllers\Api\AttendancePermissionController;
 use App\Http\Controllers\Api\AttendanceRuleController;
-use App\Http\Controllers\Api\LessonHourController;
-use App\Http\Controllers\Api\SubjectController;
-use App\Http\Controllers\Api\SemesterController;
-use App\Http\Controllers\Api\SchoolYearsController;
 use App\Http\Controllers\Api\ClassroomController;
-use App\Http\Controllers\Api\EmployeeController;
-use App\Http\Controllers\Api\MajorController;
-use App\Http\Controllers\Api\ReligionController;
-use App\Http\Controllers\Api\StudentController;
-use App\Http\Controllers\Api\LoginController;
-use App\Http\Controllers\Api\LevelClassController;
 use App\Http\Controllers\Api\ClassroomStudentsController;
 use App\Http\Controllers\Api\Counselor\CounselorAttendancePermissionController;
+use App\Http\Controllers\Api\EmployeeController;
+use App\Http\Controllers\Api\LessonHourController;
 use App\Http\Controllers\Api\LessonSchedulesController;
+use App\Http\Controllers\Api\LevelClassController;
+use App\Http\Controllers\Api\LoginController;
+use App\Http\Controllers\Api\MajorController;
+use App\Http\Controllers\Api\ReligionController;
 use App\Http\Controllers\Api\RfidController;
 use App\Http\Controllers\Api\RfidTapController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\SchoolYearsController;
+use App\Http\Controllers\Api\SemesterController;
 use App\Http\Controllers\Api\Student\StudentAttendancePermissionController;
+use App\Http\Controllers\Api\StudentController;
+use App\Http\Controllers\Api\StudentLessonScheduleController;
+use App\Http\Controllers\Api\SubjectController;
 use Illuminate\Support\Facades\Route;
 
-// Authentication Routes
+/*
+|--------------------------------------------------------------------------
+| Authentication
+|--------------------------------------------------------------------------
+| Login & Logout endpoints
+*/
 Route::controller(LoginController::class)->group(function () {
     Route::post('login', 'login');
     Route::post('logout', 'logout')->middleware('auth:sanctum');
 });
 
+/*
+|--------------------------------------------------------------------------
+| School Operator (Admin)
+|--------------------------------------------------------------------------
+| Semua endpoint yang hanya boleh diakses operator sekolah
+*/
 // Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
-    
+
     // Roles
     Route::apiResource('roles', RoleController::class)->only('index');
     // Students
     Route::apiResource('students', StudentController::class);
     // Employees
     Route::apiResource('employees', EmployeeController::class);
-    // Religions        
+    // Religions
     Route::apiResource('religions', ReligionController::class)->only(['index', 'show']);
     // Majors
     Route::apiResource('majors', MajorController::class)->only(['index', 'show']);
     // Level Classes
-    Route::apiResource('levelClass', LevelClassController::class)->only(['index', 'show']);
+    Route::apiResource('level-classes', LevelClassController::class)->only(['index', 'show']);
     // Classrooms
     Route::apiResource('classrooms', ClassroomController::class);
     Route::prefix('classrooms')->controller(ClassroomController::class)->group(function () {
-        Route::get('{classroom}/available-students', 'getAvailableStudents'); // siswa yg bisa ditambahkan
+        Route::get('{classroom}/available-students', 'getAvailableStudents'); // daftar siswa yg bisa dimasukkan ke kelas
         Route::post('{classroom}/add-students', 'addStudents'); // tambah siswa ke kelas
         Route::delete('{classroom}/remove-student/{studentId}', 'removeStudent'); // hapus siswa dari kelas
     });
     // Classroom Students
-    Route::apiResource('classroomStudents', ClassroomStudentsController::class)->only('index');
+    Route::apiResource('classroom-students', ClassroomStudentsController::class)->only('index');
     // School Years
-    Route::apiResource('schoolYears', SchoolYearsController::class)->except(['update']);
+    Route::apiResource('school-years', SchoolYearsController::class)->except(['update']);
     Route::prefix('school-years')->controller(SchoolYearsController::class)->group(function () {
-        Route::patch('{id}/activate', 'activate');
-        Route::get('active', 'active');
+        Route::patch('{id}/activate', 'activate'); // aktifkan tahun ajaran
+        Route::get('active', 'active'); // tahun ajaran aktif
     });
     // Semesters
     Route::prefix('semesters')->controller(SemesterController::class)->group(function () {
@@ -66,69 +76,84 @@ Route::controller(LoginController::class)->group(function () {
     // Subjects
     Route::apiResource('subjects', SubjectController::class);
     // Lesson Hours
-    Route::apiResource('lessonHours', LessonHourController::class)->except(['update']);
-    Route::prefix('lessonHours')->controller(LessonHourController::class)->group(function () {
-        Route::get('day/{day}', 'getByDay'); // jam pelajaran berdasarkan hari
-        Route::get('grouped/days', 'getAllGroupedByDay'); // semua jam dikelompokkan per hari
+    Route::apiResource('lesson-hours', LessonHourController::class)->except(['update']);
+    Route::prefix('lesson-hours')->controller(LessonHourController::class)->group(function () {
+        Route::get('grouped/days', 'getAllGroupedByDay'); // jam pelajaran dikelompokkan berdasarkan hari
+        Route::get('day/{day}', 'getByDay'); // jam pelajaran khusus hari tertentu
     });
+
     // Lesson Schedules
-    Route::apiResource('lessonSchedules', LessonSchedulesController::class);
-    Route::prefix('lessonSchedules')->controller(LessonSchedulesController::class)->group(function () {
-        Route::get('{classroomId}/schedules', 'getByClassroom'); // jadwal per kelas 
-        Route::get('{classroomId}/schedules/{day}', 'getByClassroomAndDay'); // jadwal per kelas dan hari
+    Route::apiResource('lesson-schedules', LessonSchedulesController::class);
+    Route::prefix('lesson-schedules')->controller(LessonSchedulesController::class)->group(function () {
+        Route::get('{classroomId}/schedules/{day}', 'getByClassroomAndDay'); // jadwal kelas per hari
+        Route::get('{classroomId}/schedules', 'getByClassroom'); // jadwal lengkap per kelas
     });
     // Attendance Rules
-    Route::apiResource('attendanceRules', AttendanceRuleController::class)->only(['index','store']);
-    Route::prefix('attendanceRules')->controller(AttendanceRuleController::class)->group(function () {
+    Route::apiResource('attendance-rules', AttendanceRuleController::class)->only(['index','store']);
+    Route::prefix('attendance-rules')->controller(AttendanceRuleController::class)->group(function () {
         Route::post('day/{day}', 'updateByDay'); // update aturan absensi per hari
-        Route::get('day/{day}', 'getByDay'); // aturan absensi per hari
+        Route::get('day/{day}', 'getByDay'); // aturan absensi hari tertentu
     });
     // RFID Management
     Route::apiResource('rfids', RfidController::class);
     Route::prefix('rfid')->controller(RfidController::class)->group(function () {
-    Route::get('available-students', 'availableStudents');
+        Route::get('available-students', 'availableStudents');  // list siswa yg belum punya kartu RFID
     });
-    // RFID Tap Routes
-    Route::post('rfidTap', [RfidTapController::class, 'tap']); // absensi tap siswa
-
+    // RFID Tap (perlu Master card)
+    Route::post('rfid-tap', [RfidTapController::class, 'tap']); 
 // });
 
-// Route::middleware(['auth:sanctum', 'role:student'])->group(function () {
-    
-    // Student Lesson Schedule
-    Route::apiResource('students.lesson-schedules', StudentLessonScheduleController::class)->only(['index']);
-    //Student attendancePermission
-    // Route::apiResource('attendance-permissions', StudentAttendancePermissionController::class);
-    // Route::prefix('attendance-permissions')->controller(StudentAttendancePermissionController::class)->group(function () {
-    //     Route::get('/history', 'history'); // Riwayat izin
-    // });
+/*
+|--------------------------------------------------------------------------
+| Student Routes
+|--------------------------------------------------------------------------
+| Akses hanya untuk siswa
+*/
+Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(function () {
+
+    // jadwal pelajaran siswa
+    Route::apiResource('lesson-schedules', StudentLessonScheduleController::class)->only(['index']);
+    // izin tidak masuk siswa
+    Route::apiResource('attendance-permissions', StudentAttendancePermissionController::class)->except(['update']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Teacher Routes
+|--------------------------------------------------------------------------
+| Akses hanya untuk guru
+*/
+// Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->group(function () {
+
+//     // absensi croscheck
+//     Route::apiResource('attendances', AttendanceController::class);
+//     Route::prefix('attendances')->controller(AttendanceController::class)->group(function () {
+//         Route::get('classroom/{classroomId}', 'getByClassroom'); // absensi seluruh kelas
+//         Route::get('student/{studentId}/monthly', 'getStudentMonthly'); // rekap absensi bulanan per siswa
+//         Route::get('student/{studentId}/today', 'getTodayByStudent'); // absensi siswa hari ini
+//         Route::get('by-date', 'getByDate'); // absensi berdasarkan tanggal
+//     });
 // });
 
-// Route::middleware(['auth:sanctum', 'role:teacher'])->group(function () {
-    
-    // Attendance Routes
-    Route::apiResource('attendances', AttendanceController::class);
-    Route::prefix('attendances')->controller(AttendanceController::class)->group(function () {
-        Route::get('classroom/{classroomId}', 'getByClassroom');
-        Route::get('student/{studentId}/monthly', 'getStudentMonthly');
-        Route::get('student/{studentId}/today', 'getTodayByStudent');
-        Route::get('by-date', 'getByDate');
-    });
+/*
+|--------------------------------------------------------------------------
+| Counselor Routes
+|--------------------------------------------------------------------------
+| Akses hanya untuk guru BK
+*/
+// Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->group(function () {
+
+//     // BK validasi izin
+//     Route::apiResource('attendance-permissions', CounselorAttendancePermissionController::class)->except(['store', 'destroy']);
+//     Route::prefix('attendance-permissions')->controller(CounselorAttendancePermissionController::class)->group(function () {
+//         Route::get('pending', 'pending');   // list izin yg belum divalidasi
+//         Route::post('{id}/approve', 'approve'); // setujui izin
+//         Route::post('{id}/reject', 'reject');   // tolak izin
+//     });
 // });
 
 // Route::middleware(['auth:sanctum', 'role:homeroom_teacher'])->group(function () {
     // Tambahkan routes untuk homeroom teacher di sini
-// });
-
-// Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->group(function () {
-    // Route::apiResource('attendance-permissions', CounselorAttendancePermissionController::class);
-    // Route::prefix('attendance-permissions')->controller(CounselorAttendancePermissionController::class)->group(function () {
-    //     Route::get('/pending', 'pending'); // List izin pending
-    //     Route::post('/{attendancePermission}/approve', 'approve'); // Approve izin
-    //     Route::post('/{attendancePermission}/reject', 'reject'); // Reject izin
-    //     Route::get('/by-date-range', 'getByDateRange'); // By date range
-    //     Route::get('/statistics', 'statistics'); // Statistik izin
-    // });
 // });
 
 // Route::middleware(['auth:sanctum', 'role:curriculum_coordinator'])->group(function () {
