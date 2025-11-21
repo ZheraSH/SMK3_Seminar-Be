@@ -18,12 +18,8 @@ class LessonScheduleSeeder extends Seeder
         $classrooms = Classroom::all();
         $subjects = Subject::all();
         $employees = Employee::all();
-        $lessonHours = LessonHour::all();
 
-        if ($classrooms->isEmpty() || $subjects->isEmpty() || $employees->isEmpty() || $lessonHours->isEmpty()) {
-            $this->command->warn('LessonScheduleSeeder: Data dependencies missing (classrooms, subjects, employees, or lesson_hours).');
-            return;
-        }
+        $lessonHours = LessonHour::orderBy('start')->get();
 
         $days = [
             DayEnum::MONDAY->value,
@@ -35,9 +31,13 @@ class LessonScheduleSeeder extends Seeder
 
         foreach ($classrooms as $classroom) {
             foreach ($days as $day) {
-                $usedHours = $lessonHours->shuffle()->take(rand(4, 6));
+                
+                foreach ($lessonHours as $hour) {
 
-                foreach ($usedHours as $hour) {
+                    if (fake()->boolean(25)) {
+                        continue;
+                    }
+
                     LessonSchedule::updateOrCreate(
                         [
                             'classroom_id' => $classroom->id,
