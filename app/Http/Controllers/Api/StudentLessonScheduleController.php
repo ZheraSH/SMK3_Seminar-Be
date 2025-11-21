@@ -3,60 +3,72 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\StudentLessonScheduleResource;
-use App\Models\LessonSchedule;
-use Illuminate\Support\Facades\DB;
+use App\Services\StudentScheduleService;
 
 class StudentLessonScheduleController extends Controller
 {
+    private StudentScheduleService $service;
+
+    public function __construct(StudentScheduleService $service)
+    {
+        $this->service = $service;
+    }
+
     public function index()
     {
-        $student = auth()->user()->student ?? null;
-
-        if (!$student) {
+        $student = $this->service->getStudentWithActiveClassroom();
+        if (!$student['success']) {
             return response()->json([
                 'status' => false,
-                'message' => 'Data siswa tidak ditemukan',
+                'message' => $student['error'],
                 'data' => null,
                 'errors' => null
-            ], 404);
+            ], $student['code']);
         }
 
-        $classroom = DB::table('classroom_students')
-            ->where('student_id', $student->id)
-            ->where('status', 'active')
-            ->first();
+        $all = $this->service->getAllSchedules($student['data']['classroom']->classroom_id);
 
-        if (!$classroom) {
+        return response()->json(
+            $this->service->formatAllSchedulesResponse(
+                $student['data']['student'],
+                $student['data']['classroom'],
+                $all['data']
+            ), 200
+        );
+    }
+
+    public function getByDay($day)
+    {
+        $student = $this->service->getStudentWithActiveClassroom();
+        if (!$student['success']) {
             return response()->json([
                 'status' => false,
-                'message' => 'Siswa tidak tergabung di kelas aktif',
+                'message' => $student['error'],
                 'data' => null,
                 'errors' => null
-            ], 404);
+            ], $student['code']);
         }
 
-        $schedules = LessonSchedule::where('classroom_id', $classroom->classroom_id)
-            ->with(['subject', 'classroom', 'employee.user', 'lessonHour'])
-            ->orderBy('lesson_hour_id')
-            ->get()
-            ->map(function ($item, $index) {
-                $item->number = $index + 1; 
-                return $item;
-            });
+        $res = $this->service->getSchedulesByDay(
+            $student['data']['classroom']->classroom_id,
+            $day
+        );
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Berhasil mengambil jadwal',
-            'data' => [
-                'student' => [
-                    'id' => $student->id,
-                    'name' => $student->user?->name,
-                    'classroom_id' => $classroom->classroom_id
-                ],
-                'schedules' => StudentLessonScheduleResource::collection($schedules)
-            ],
-            'errors' => null
-        ]);
+        if (!$res['success']) {
+            return response()->json([
+                'status' => false,
+                'message' => $res['error'],
+                'data' => null,
+                'errors' => null
+            ], 400);
+        }
+
+        return response()->json(
+            $this->service->formatDailyScheduleResponse(
+                $student['data']['student'],
+                $student['data']['classroom'],
+                $res['data']
+            ), 200
+        );
     }
 }

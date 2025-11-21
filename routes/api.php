@@ -112,6 +112,9 @@ Route::controller(LoginController::class)->group(function () {
 Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(function () {
 
     // jadwal pelajaran siswa
+    Route::prefix('lesson-schedules')->controller(StudentLessonScheduleController::class)->group(function () {
+          Route::get('{day}', 'getByDay'); // Filter berdasarkan hari (senin, selasa, rabu, kamis, jumat)
+    });
     Route::apiResource('lesson-schedules', StudentLessonScheduleController::class)->only(['index']);
     // izin tidak masuk siswa
     Route::apiResource('attendance-permissions', StudentAttendancePermissionController::class)->except(['update']);
