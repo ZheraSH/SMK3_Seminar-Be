@@ -42,28 +42,31 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
         return $this->show($id)->delete();
     }
 
-    public function paginate(): mixed
+    public function paginate(Request $request = null): mixed
     {
-        return $this->model->query()
-        ->with([
-            'student.user',
-            'student.classroomStudents.classroom.major',
-            'student.classroomStudents.classroom.levelClass',
-            'student.classroomStudents.classroom.schoolYear',
-            'student.rfid',
-            'classroom.major',
-            'classroom.levelClass',
-            'classroom.schoolYear',
-            'classroom.teacher.user'
-        ])
-        ->latest()
-        ->paginate(8);
-    
+        $query = $this->model->query()
+            ->with([
+                'student.user',
+                'student.classroomStudents.classroom.major',
+                'student.classroomStudents.classroom.levelClass',
+                'student.classroomStudents.classroom.schoolYear',
+                'student.rfid',
+                'classroom.major',
+                'classroom.levelClass',
+                'classroom.schoolYear',
+                'classroom.teacher.user'
+            ]);
+
+        if ($request && $request->has('classroom_id') && !empty($request->classroom_id)) {
+            $query->where('classroom_id', $request->classroom_id);
+        }
+
+        return $query->latest()->paginate(8);
     }
 
     public function search(Request $request, int $pagination = 8): mixed
     {
-        return $this->model->query()
+        $query = $this->model->query()
             ->with([
                 'student.user',
                 'student.classroomStudents.classroom.major',
@@ -71,19 +74,24 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
                 'student.classroomStudents.classroom.schoolYear',
                 'student.rfid',
                 'classroom'
-                ])        
-            ->when($request->search, function ($query) use ($request) {
-                $query->where(function ($q) use ($request) {
-                    $q->whereHas('student.user', function ($sub) use ($request) {
-                        $sub->where('name', 'LIKE', '%' . $request->search . '%');
-                    })
-                    ->orWhereHas('student', function ($sub) use ($request) {
-                        $sub->where('nisn', 'LIKE', '%' . $request->search . '%');
-                    });
+            ]);
+
+        if ($request->has('classroom_id') && !empty($request->classroom_id)) {
+            $query->where('classroom_id', $request->classroom_id);
+        }
+
+        $query->when($request->search, function ($query) use ($request) {
+            $query->where(function ($q) use ($request) {
+                $q->whereHas('student.user', function ($sub) use ($request) {
+                    $sub->where('name', 'LIKE', '%' . $request->search . '%');
+                })
+                ->orWhereHas('student', function ($sub) use ($request) {
+                    $sub->where('nisn', 'LIKE', '%' . $request->search . '%');
                 });
-            })
-            ->latest()
-            ->paginate($pagination);
+            });
+        });
+
+        return $query->latest()->paginate($pagination);
     }
     
     public function count(): mixed
@@ -105,5 +113,36 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             ->where('student_id', $studentId)
             ->where('status', StudentStatusEnum::ACTIVE->value)
             ->first();
+    }
+
+    public function getByClassroom(string $classroomId, Request $request = null): mixed
+    {
+        $query = $this->model->query()
+            ->with([
+                'student.user',
+                'student.classroomStudents.classroom.major',
+                'student.classroomStudents.classroom.levelClass',
+                'student.classroomStudents.classroom.schoolYear',
+                'student.rfid',
+                'classroom.major',
+                'classroom.levelClass',
+                'classroom.schoolYear',
+                'classroom.teacher.user'
+            ])
+            ->where('classroom_id', $classroomId)
+            ->where('status', StudentStatusEnum::ACTIVE->value);
+
+        if ($request && $request->has('search') && !empty($request->search)) {
+            $query->where(function ($q) use ($request) {
+                $q->whereHas('student.user', function ($sub) use ($request) {
+                    $sub->where('name', 'LIKE', '%' . $request->search . '%');
+                })
+                ->orWhereHas('student', function ($sub) use ($request) {
+                    $sub->where('nisn', 'LIKE', '%' . $request->search . '%');
+                });
+            });
+        }
+
+        return $query->latest()->paginate(8);
     }
 }
