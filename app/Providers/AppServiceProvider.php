@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Contracts\Interfaces\AttendanceInterface;
+use App\Contracts\Interfaces\AttendancePermissionInterface;
 use App\Contracts\Interfaces\LessonHourInterface;
 use App\Contracts\Interfaces\AttendanceRuleInterface;
 use App\Contracts\Interfaces\SubjectInterface;
@@ -18,6 +19,7 @@ use App\Contracts\Interfaces\RfidInterface;
 use App\Contracts\Interfaces\RoleInterface;
 use App\Contracts\Interfaces\StudentInterface;
 use App\Contracts\Interfaces\UserInterface;
+use App\Contracts\Repositories\AttendancePermissionRepository;
 use App\Contracts\Repositories\AttendanceRepository;
 use App\Contracts\Repositories\AttendanceRuleRepository;
 use App\Contracts\Repositories\ClassroomRepository;
@@ -39,6 +41,7 @@ use App\Models\Employee;
 use App\Models\Religion;
 use App\Models\User;
 use App\Models\Attendance;
+use App\Models\AttendancePermission;
 use App\Models\AttendanceRule;
 use App\Models\Classroom;
 use App\Models\ClassroomStudents;
@@ -54,6 +57,7 @@ use App\Observers\EmployeeObserver;
 use App\Observers\ReligionObserver;
 use App\Observers\UserObserver;
 use App\Observers\AttendanceObserver;
+use App\Observers\AttendancePermissionObserver;
 use App\Observers\AttendanceRuleObserver;
 use App\Observers\ClassroomObserver;
 use App\Observers\ClassroomStudentsObserver;
@@ -85,6 +89,7 @@ class AppServiceProvider extends ServiceProvider
         AttendanceRuleInterface::class => AttendanceRuleRepository::class,
         RfidInterface::class => RfidRepository::class,
         AttendanceInterface::class => AttendanceRepository::class,
+        AttendancePermissionInterface::class => AttendancePermissionRepository::class,
     ];
 
     public function register(): void
@@ -113,5 +118,6 @@ class AppServiceProvider extends ServiceProvider
         AttendanceRule::observe(AttendanceRuleObserver::class);
         Rfid::observe(RfidObserver::class);
         Attendance::observe(AttendanceObserver::class);
+        AttendancePermission::observe(AttendancePermissionObserver::class);
     }
 }

@@ -15,6 +15,13 @@ trait ResolvesImageUrlTrait
             return asset($defaultImage);
         }
 
+        if (str_ends_with($photo, '.pdf')) {
+            if (Storage::disk('public')->exists($photo)) {
+                return url('storage/' . $photo);
+            }
+            return asset($defaultImage);
+        }
+
         if (Storage::disk('public')->exists($photo)) {
             return url('storage/' . $photo);
         }
@@ -26,4 +33,3 @@ trait ResolvesImageUrlTrait
         return asset($defaultImage);
     }
 }
-

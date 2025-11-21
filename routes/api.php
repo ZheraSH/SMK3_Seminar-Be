@@ -55,20 +55,20 @@ Route::controller(LoginController::class)->group(function () {
     // Level Classes
     Route::apiResource('level-classes', LevelClassController::class)->only(['index', 'show']);
     // Classrooms
-    Route::apiResource('classrooms', ClassroomController::class);
     Route::prefix('classrooms')->controller(ClassroomController::class)->group(function () {
         Route::get('{classroom}/available-students', 'getAvailableStudents'); // daftar siswa yg bisa dimasukkan ke kelas
         Route::post('{classroom}/add-students', 'addStudents'); // tambah siswa ke kelas
         Route::delete('{classroom}/remove-student/{studentId}', 'removeStudent'); // hapus siswa dari kelas
     });
+    Route::apiResource('classrooms', ClassroomController::class);
     // Classroom Students
     Route::apiResource('classroom-students', ClassroomStudentsController::class)->only('index');
     // School Years
-    Route::apiResource('school-years', SchoolYearsController::class)->except(['update']);
     Route::prefix('school-years')->controller(SchoolYearsController::class)->group(function () {
         Route::patch('{id}/activate', 'activate'); // aktifkan tahun ajaran
         Route::get('active', 'active'); // tahun ajaran aktif
     });
+    Route::apiResource('school-years', SchoolYearsController::class)->except(['update']);
     // Semesters
     Route::prefix('semesters')->controller(SemesterController::class)->group(function () {
         Route::get('active', 'active'); // semester aktif
@@ -76,29 +76,29 @@ Route::controller(LoginController::class)->group(function () {
     // Subjects
     Route::apiResource('subjects', SubjectController::class);
     // Lesson Hours
-    Route::apiResource('lesson-hours', LessonHourController::class)->except(['update']);
     Route::prefix('lesson-hours')->controller(LessonHourController::class)->group(function () {
         Route::get('grouped/days', 'getAllGroupedByDay'); // jam pelajaran dikelompokkan berdasarkan hari
         Route::get('day/{day}', 'getByDay'); // jam pelajaran khusus hari tertentu
     });
+    Route::apiResource('lesson-hours', LessonHourController::class)->except(['update']);
 
     // Lesson Schedules
-    Route::apiResource('lesson-schedules', LessonSchedulesController::class);
     Route::prefix('lesson-schedules')->controller(LessonSchedulesController::class)->group(function () {
         Route::get('{classroomId}/schedules/{day}', 'getByClassroomAndDay'); // jadwal kelas per hari
         Route::get('{classroomId}/schedules', 'getByClassroom'); // jadwal lengkap per kelas
     });
+    Route::apiResource('lesson-schedules', LessonSchedulesController::class);
     // Attendance Rules
-    Route::apiResource('attendance-rules', AttendanceRuleController::class)->only(['index','store']);
     Route::prefix('attendance-rules')->controller(AttendanceRuleController::class)->group(function () {
         Route::post('day/{day}', 'updateByDay'); // update aturan absensi per hari
         Route::get('day/{day}', 'getByDay'); // aturan absensi hari tertentu
     });
+    Route::apiResource('attendance-rules', AttendanceRuleController::class)->only(['index','store']);
     // RFID Management
-    Route::apiResource('rfids', RfidController::class);
-    Route::prefix('rfid')->controller(RfidController::class)->group(function () {
+    Route::prefix('rfids')->controller(RfidController::class)->group(function () {
         Route::get('available-students', 'availableStudents');  // list siswa yg belum punya kartu RFID
     });
+    Route::apiResource('rfids', RfidController::class);
     // RFID Tap (perlu Master card)
     Route::post('rfid-tap', [RfidTapController::class, 'tap']); 
 // });
@@ -126,13 +126,13 @@ Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(fu
 // Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->group(function () {
 
 //     // absensi croscheck
-//     Route::apiResource('attendances', AttendanceController::class);
 //     Route::prefix('attendances')->controller(AttendanceController::class)->group(function () {
 //         Route::get('classroom/{classroomId}', 'getByClassroom'); // absensi seluruh kelas
 //         Route::get('student/{studentId}/monthly', 'getStudentMonthly'); // rekap absensi bulanan per siswa
 //         Route::get('student/{studentId}/today', 'getTodayByStudent'); // absensi siswa hari ini
 //         Route::get('by-date', 'getByDate'); // absensi berdasarkan tanggal
 //     });
+//     Route::apiResource('attendances', AttendanceController::class);
 // });
 
 /*
@@ -141,16 +141,16 @@ Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(fu
 |--------------------------------------------------------------------------
 | Akses hanya untuk guru BK
 */
-// Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->group(function () {
+Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->group(function () {
 
-//     // BK validasi izin
-//     Route::apiResource('attendance-permissions', CounselorAttendancePermissionController::class)->except(['store', 'destroy']);
-//     Route::prefix('attendance-permissions')->controller(CounselorAttendancePermissionController::class)->group(function () {
-//         Route::get('pending', 'pending');   // list izin yg belum divalidasi
-//         Route::post('{id}/approve', 'approve'); // setujui izin
-//         Route::post('{id}/reject', 'reject');   // tolak izin
-//     });
-// });
+    // BK validasi izin
+    Route::prefix('attendance-permissions')->controller(CounselorAttendancePermissionController::class)->group(function () {
+        Route::get('pending', 'pending');   // list izin yg belum divalidasi
+        Route::post('{id}/approve', 'approve'); // setujui izin
+        Route::post('{id}/reject', 'reject');   // tolak izin
+    });
+    Route::apiResource('attendance-permissions', CounselorAttendancePermissionController::class)->except(['store', 'destroy']);
+});
 
 // Route::middleware(['auth:sanctum', 'role:homeroom_teacher'])->group(function () {
     // Tambahkan routes untuk homeroom teacher di sini
