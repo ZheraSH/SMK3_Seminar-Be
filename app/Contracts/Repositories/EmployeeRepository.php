@@ -5,58 +5,59 @@ namespace App\Contracts\Repositories;
 use App\Contracts\Interfaces\EmployeeInterface;
 use App\Models\Employee;
 use App\Traits\PaginationTrait;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 
 class EmployeeRepository extends BaseRepository implements EmployeeInterface
 {
     use PaginationTrait;
+    
     public function __construct(Employee $employee)
     {
         $this->model = $employee;
     }
 
-    public function get(): mixed
+    public function get(): Collection
     {
         return $this->model->query()
-            ->with(['user', 'religion', 'subjects'])
+            ->with(['user.roles', 'religion', 'subjects'])
             ->get();
     }
 
-    public function store(array $data): mixed
+    public function store(array $data): Employee
     {
         return $this->model->query()->create($data);
     }
 
-    public function show(mixed $id): mixed
+    public function show(mixed $id): Employee
     {
         return $this->model->query()
-            ->with(['user', 'religion', 'subjects'])
+            ->with(['user.roles', 'religion', 'subjects'])
             ->findOrFail($id);
     }
 
-    public function update(mixed $id, array $data): mixed
+    public function update(mixed $id, array $data): bool
     {
         return $this->show($id)->update($data);
     }
 
-    public function delete(mixed $id): mixed
+    public function delete(mixed $id): bool
     {
         return $this->show($id)->delete();
     }
 
     public function paginate(): mixed
     {
-        return $this->model->query()->latest()->paginate(8);
+        return $this->model->query()
+            ->with(['user.roles', 'religion', 'subjects'])
+            ->latest()
+            ->paginate(8);
     }
 
     public function search(Request $request, int $pagination = 8): mixed
     {
         return $this->model->query()
-            ->with([
-                'user.roles',
-                'religion',
-                'subjects'
-                ])
+            ->with(['user.roles', 'religion', 'subjects'])
             ->when($request->search, function ($query) use ($request) {
                 $query->where(function ($q) use ($request) {
                     $q->whereHas('user', function ($sub) use ($request) {
@@ -85,7 +86,7 @@ class EmployeeRepository extends BaseRepository implements EmployeeInterface
             ->paginate($pagination);
     }
 
-    public function count(): mixed
+    public function count(): int
     {
         return $this->model->query()->count();
     }

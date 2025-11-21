@@ -20,6 +20,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
     {
         $this->model = $classroom;
     }
+
     private array $defaultRelations = [
         'major',
         'levelClass',
@@ -32,7 +33,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
         return $model->load($this->defaultRelations);
     }
     
-    public function get(): mixed
+    public function get(): Collection
     {
         return $this->model->query()
             ->with([
@@ -48,13 +49,13 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
             ->get();
     }
 
-    public function store(array $data): mixed
+    public function store(array $data): Classroom
     {
         $model = $this->model->create($data);
         return $this->loadRelations($model);
     }    
 
-    public function show(mixed $id): mixed
+    public function show(mixed $id): Classroom
     {
         return $this->model->query()
             ->with([
@@ -62,7 +63,6 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
                 'levelClass',
                 'schoolYear',
                 'teacher.user',
-    
                 'classroomStudents' => function ($q) {
                     $q->with([
                         'student' => function ($s) {
@@ -81,15 +81,13 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
             ->findOrFail($id);
     }
 
-    public function update(mixed $id, array $data): mixed
+    public function update(mixed $id, array $data): bool
     {
         $model = $this->model->findOrFail($id);
-        $model->update($data);
-    
-        return $this->loadRelations($model);
+        return $model->update($data);
     }    
 
-    public function delete(mixed $id): mixed
+    public function delete(mixed $id): bool
     {
         return $this->show($id)->delete();
     }
@@ -157,7 +155,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
             ->paginate($pagination);
     }
 
-    public function count(): mixed
+    public function count(): int
     {
         return $this->model->query()->count();
     }
@@ -264,7 +262,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
         }
     }
 
-    public function getWithSchedules(): mixed
+    public function getWithSchedules(): Collection
     {
         return $this->model->query()
             ->with([
@@ -283,7 +281,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
             ->get();
     }
 
-    public function getWithSchedulesById(string $id): mixed
+    public function getWithSchedulesById(string $id): Classroom
     {
         return $this->model->query()
             ->with([

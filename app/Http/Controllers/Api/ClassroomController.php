@@ -5,14 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreClassroomRequest;
 use App\Http\Requests\UpdateClassroomRequest;
-use App\Http\Requests\AddStudentToClassroomRequest;
-use App\Http\Requests\SyncClassroomStudentsRequest;
 use App\Http\Resources\ClassroomResource;
 use App\Http\Resources\ClassroomDetailResource;
 use App\Services\ClassroomService;
 use App\Helpers\ResponseHelper;
-use App\Http\Resources\AvailableStudentResource;
-use App\Http\Resources\ClassroomStudentsResource;
 use Illuminate\Http\Request;
 
 class ClassroomController extends Controller
@@ -27,18 +23,15 @@ class ClassroomController extends Controller
     public function index(Request $request)
     {
         try {
-            $data = $this->classroomService->search($request);
-
-            if ($request->has('page')) {
-                return ResponseHelper::pagination($data, ClassroomResource::class, 'List data kelas berhasil diambil');
-            }
-
-            return ResponseHelper::success(
-                ClassroomResource::collection($data),
+            $data = $this->classroomService->getWithFilter($request);
+            
+            return ResponseHelper::pagination(
+                $data, 
+                ClassroomResource::class, 
                 'List data kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage() ?: 'Internal Server Error',$th->getCode() >= 400 ? $th->getCode() : 500);
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
         }
     }
 
@@ -48,9 +41,12 @@ class ClassroomController extends Controller
             $data = $this->classroomService->store($request->validated());
 
             return ResponseHelper::success(
-                new ClassroomResource($data),'Data kelas berhasil dibuat',201);
+                new ClassroomResource($data),
+                'Data kelas berhasil dibuat',
+                201
+            );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() >= 400 ? $th->getCode() : 400);
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 
@@ -59,14 +55,12 @@ class ClassroomController extends Controller
         try {
             $data = $this->classroomService->show($id);
 
-            if (!$data) return ResponseHelper::notFound('Data kelas tidak ditemukan');
-
             return ResponseHelper::success(
                 new ClassroomDetailResource($data),
                 'Detail data kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage() ?: 'Internal Server Error',$th->getCode() >= 400 ? $th->getCode() : 500);
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 404);
         }
     }
 
@@ -76,72 +70,25 @@ class ClassroomController extends Controller
             $data = $this->classroomService->update($id, $request->validated());
 
             return ResponseHelper::success(
-                new ClassroomResource($data),'Data kelas berhasil diperbarui');
+                new ClassroomResource($data),
+                'Data kelas berhasil diperbarui'
+            );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() >= 400 ? $th->getCode() : 400);
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 
-    public function addStudents(AddStudentToClassroomRequest $request, string $id)
+    public function destroy(string $id)
     {
         try {
-            $classroom = $this->classroomService->show($id);
-            $data = $this->classroomService->addStudents($classroom, $request->student_ids);
+            $this->classroomService->delete($id);
 
             return ResponseHelper::success(
-                ClassroomStudentsResource::collection($data->classroomStudents),
-                'Siswa berhasil ditambahkan ke kelas'
+                null,
+                'Data kelas berhasil dihapus'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage() ?: 'Bad Request',$th->getCode() >= 400 ? $th->getCode() : 400);
-        }
-    }
-
-    public function removeStudent(string $id, string $studentId)
-    {
-        try {
-            $classroom = $this->classroomService->show($id);
-            $data = $this->classroomService->removeStudent($classroom, $studentId);
-
-            return ResponseHelper::success(
-                ClassroomStudentsResource::collection($data->classroomStudents),
-                'Siswa berhasil dihapus dari kelas'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage() ?: 'Bad Request',$th->getCode() >= 400 ? $th->getCode() : 400);
-        }
-    }
-
-    public function getStudents(string $id)
-    {
-        try {
-            $classroom = $this->classroomService->show($id);
-            $data = $this->classroomService->getActiveStudents($classroom);
-
-            return ResponseHelper::success(
-                $data,
-                'Data siswa aktif berhasil diambil'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage() ?: 'Internal Server Error',$th->getCode() >= 400 ? $th->getCode() : 500);
-        }
-    }
-
-    public function getAvailableStudents(Request $request, string $id)
-    {
-        try {
-            $classroom = $this->classroomService->show($id);
-            $search = $request->query('search');
-            $limit = $request->query('limit', 10);
-
-            $data = $this->classroomService->getAvailableStudents($classroom, $search, $limit);
-
-            return ResponseHelper::success(
-                AvailableStudentResource::collection($data),
-                'Data siswa yang tersedia berhasil diambil'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage() ?: 'Internal Server Error',$th->getCode() >= 400 ? $th->getCode() : 500);
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 }

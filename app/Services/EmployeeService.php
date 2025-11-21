@@ -46,20 +46,19 @@ class EmployeeService
         ];
 
         $user = $this->user->store($userData);
-        
         $user->syncRoles($roles);
 
-        $employeeData = collect($data)->except(['name','email','roles'])->toArray();
+        $employeeData = collect($data)->except(['name', 'email', 'roles'])->toArray();
         $employeeData['id'] = (string) Str::uuid();
         $employeeData['user_id'] = $user->id;
 
-        return $this->employee->store($employeeData);
+        $employee = $this->employee->store($employeeData);
+        return $this->employee->show($employee->id);
     }
 
-    public function update(Employee $employee, UpdateEmployeeRequest $request): ?Employee
+    public function update(string $id, UpdateEmployeeRequest $request): Employee
     {
-        if (!$employee) return null;
-
+        $employee = $this->employee->show($id);
         $data = $request->validated();
         $roles = $data['roles'] ?? [RoleEnum::TEACHER->value];
 
@@ -69,31 +68,33 @@ class EmployeeService
             'email' => $data['email'],
         ];
 
-        if ($employee->NIP !== $data['NIP']) {
+        if (isset($data['NIP']) && $data['NIP'] !== $employee->NIP) {
             $userData['password'] = Hash::make($data['NIP']);
         }
 
-        $employeeData = collect($data)->except(['name','email','roles'])->toArray();
-
-        if ($request->hasFile('image') && $request->file('image')->isValid()) {
-            $employeeData['image'] = $this->handleUpload($employee->image, $request->file('image'));
-        }
-        
         $this->user->update($employee->user_id, $userData);
         
         $user = $this->user->show($employee->user_id);
         $user->syncRoles($roles);
 
+        $employeeData = collect($data)->except(['name', 'email', 'roles'])->toArray();
+
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            $employeeData['image'] = $this->handleUpload($employee->image, $request->file('image'));
+        }
+
         $this->employee->update($employee->id, $employeeData);
 
-        return $employee->fresh(['user.roles', 'religion', 'subjects']);
+        return $this->employee->show($id);
     }
 
-    public function delete(Employee $employee): bool
+    public function delete(string $id): bool
     {
-        if (!$employee) return false;
+        $employee = $this->employee->show($id);
 
-        if ($employee->image) $this->remove($employee->image);
+        if ($employee->image) {
+            $this->remove($employee->image);
+        }
 
         $this->employee->delete($employee->id);
         $this->user->delete($employee->user_id);
@@ -101,19 +102,21 @@ class EmployeeService
         return true;
     }
 
-    private function handleUpload(?string $oldFile, object $file): string
-    {
-        if ($oldFile) $this->remove($oldFile);
-        return $this->upload(UploadDiskEnum::TEACHER->value, $file);
-    }
-
     public function show(string $id): Employee
     {
         return $this->employee->show($id);
     }
 
-    public function getWithFilter(Request $request, int $pagination = 8): LengthAwarePaginator
+    public function getWithFilter(Request $request): LengthAwarePaginator
     {
-        return $this->employee->search($request, $pagination);
+        return $this->employee->search($request);
+    }
+
+    private function handleUpload(?string $oldFile, object $file): string
+    {
+        if ($oldFile) {
+            $this->remove($oldFile);
+        }
+        return $this->upload(UploadDiskEnum::TEACHER->value, $file);
     }
 }
