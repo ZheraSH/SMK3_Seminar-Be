@@ -1,0 +1,129 @@
+<?php
+
+namespace App\Services;
+
+use App\Contracts\Interfaces\StudentLessonScheduleInterface;
+use Illuminate\Database\Eloquent\Collection;
+
+class StudentLessonScheduleService
+{
+    public function __construct(
+        private StudentLessonScheduleInterface $studentLessonScheduleRepository
+    ) {}
+
+    public function getSchedule(string $studentId, ?string $day = null): array
+    {
+        $schedules = $this->studentLessonScheduleRepository->getSchedule($studentId, $day);
+        return $this->formatSchedule($schedules);
+    }
+
+    private function formatSchedule(Collection $schedules): array
+    {
+        // Urutkan berdasarkan start time lesson hour
+        $schedules = $schedules->sortBy(function($schedule) {
+            return $schedule->lessonHour->start;
+        });
+
+        $formatted = [];
+        $order = 1;
+
+        // Data istirahat sesuai gambar
+        $breakTimes = [
+            [
+                'start' => '09:15',
+                'end' => '10:00', 
+                'name' => 'Istirahat'
+            ],
+            [
+                'start' => '12:10',
+                'end' => '13:00',
+                'name' => 'Istirahat ke dua'
+            ]
+        ];
+
+        // Group schedules by time slot
+        $timeSlots = [];
+        foreach ($schedules as $schedule) {
+            $startTime = $this->formatTimeWithoutSeconds($schedule->lessonHour->start);
+            $endTime = $this->formatTimeWithoutSeconds($schedule->lessonHour->end);
+            $timeKey = $startTime . '-' . $endTime;
+            
+            if (!isset($timeSlots[$timeKey])) {
+                $timeSlots[$timeKey] = [
+                    'time_range' => "({$startTime} - {$endTime})",
+                    'nama_jam' => $schedule->lessonHour->name,
+                    'schedules' => []
+                ];
+            }
+            
+            $timeSlots[$timeKey]['schedules'][] = $schedule;
+        }
+
+        // Sort time slots by start time
+        ksort($timeSlots);
+
+        // Build final formatted array
+        foreach ($timeSlots as $timeSlot) {
+            $timeRange = $timeSlot['time_range'];
+            $namaJam = $timeSlot['nama_jam'];
+            
+            // Check if this time slot should be a break
+            $isBreak = $this->isBreakTime($breakTimes, $timeRange);
+            
+            if ($isBreak) {
+                $formatted[] = [
+                    'no' => $order,
+                    'jam' => $timeRange,
+                    'nama_jam' => $isBreak['name'],
+                    'mata_pelajaran' => '',
+                    'guru' => ''
+                ];
+                $order++;
+            } else {
+                // Take only the first schedule for each time slot (avoid duplicates)
+                $schedule = $timeSlot['schedules'][0];
+                
+                $formatted[] = [
+                    'no' => $order,
+                    'jam' => $timeRange,
+                    'nama_jam' => $namaJam,
+                    'mata_pelajaran' => $schedule->subject->name,
+                    'guru' => $schedule->employee->user->name
+                ];
+                $order++;
+            }
+        }
+
+        return $formatted;
+    }
+
+    private function formatTimeWithoutSeconds(string $time): string
+    {
+        return \Carbon\Carbon::parse($time)->format('H:i');
+    }
+
+    private function isBreakTime(array $breakTimes, string $timeRange): ?array
+    {
+        foreach ($breakTimes as $break) {
+            $breakRange = "({$break['start']} - {$break['end']})";
+            if ($timeRange === $breakRange) {
+                return $break;
+            }
+        }
+        
+        return null;
+    }
+
+    public function getDayName(?string $day): string
+    {
+        $days = [
+            'monday' => 'Senin',
+            'tuesday' => 'Selasa', 
+            'wednesday' => 'Rabu',
+            'thursday' => 'Kamis',
+            'friday' => 'Jumat'
+        ];
+
+        return $days[strtolower($day)] ?? 'Semua Hari';
+    }
+}

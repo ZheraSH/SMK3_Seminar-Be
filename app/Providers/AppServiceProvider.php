@@ -18,6 +18,7 @@ use App\Contracts\Interfaces\ReligionInterface;
 use App\Contracts\Interfaces\RfidInterface;
 use App\Contracts\Interfaces\RoleInterface;
 use App\Contracts\Interfaces\StudentInterface;
+use App\Contracts\Interfaces\StudentLessonScheduleInterface;
 use App\Contracts\Interfaces\UserInterface;
 use App\Contracts\Repositories\AttendancePermissionRepository;
 use App\Contracts\Repositories\AttendanceRepository;
@@ -36,6 +37,7 @@ use App\Contracts\Repositories\UserRepository;
 use App\Contracts\Repositories\SchoolYearRepository;
 use App\Contracts\Repositories\SubjectRepository;
 use App\Contracts\Repositories\LessonHourRepository;
+use App\Contracts\Repositories\StudentLessonScheduleRepository;
 use App\Models\Student;
 use App\Models\Employee;
 use App\Models\Religion;
@@ -90,6 +92,7 @@ class AppServiceProvider extends ServiceProvider
         RfidInterface::class => RfidRepository::class,
         AttendanceInterface::class => AttendanceRepository::class,
         AttendancePermissionInterface::class => AttendancePermissionRepository::class,
+        StudentLessonScheduleInterface::class => StudentLessonScheduleRepository::class,
     ];
 
     public function register(): void
