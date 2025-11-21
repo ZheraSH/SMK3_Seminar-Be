@@ -13,37 +13,22 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        foreach (RoleEnum::cases() as $enumRole) {
+        $role = Role::firstOrCreate(
+            ['name' => RoleEnum::SCHOOL->value],
+            ['guard_name' => 'web']
+        );
 
-            $role = Role::firstOrCreate(
-                ['name' => $enumRole->value],
-                ['guard_name' => 'web']
-            );
+        $user = User::updateOrCreate(
+            ['email' => 'operatorsekolah@skaniga.com'],
+            [
+                'id' => Str::uuid(),
+                'name' => RoleEnum::SCHOOL->label(),
+                'slug' => Str::slug(RoleEnum::SCHOOL->value),
+                'email_verified_at' => now(),
+                'password' => Hash::make('developer'),
+            ]
+        );
 
-            $baseEmail = match ($enumRole) {
-                RoleEnum::SCHOOL => 'operatorsekolah',
-                RoleEnum::STUDENT => 'siswa',
-                RoleEnum::TEACHER => 'guru',
-                RoleEnum::HOMEROOM_TEACHER => 'walikelas',
-                RoleEnum::COUNSELOR => 'bk',
-                RoleEnum::STAFF => 'stafftu',
-                RoleEnum::CURRICULUM_COORDINATOR => 'wakakurikulum',
-            };
-
-            $email = "{$baseEmail}@skaniga.com";
-
-            $user = User::updateOrCreate(
-                ['email' => $email],
-                [
-                    'id' => Str::uuid(),
-                    'name' => $enumRole->label(),
-                    'slug' => Str::slug($enumRole->value),
-                    'email_verified_at' => now(),
-                    'password' => Hash::make('developer'),
-                ]
-            );
-
-            $user->syncRoles([$role->name]);
-        }
+        $user->syncRoles([$role->name]);
     }
 }
