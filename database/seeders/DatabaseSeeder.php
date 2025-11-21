@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Rfid;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -29,6 +28,7 @@ class DatabaseSeeder extends Seeder
             LessonScheduleSeeder::class, //Data dummy
             AttendanceRuleSeeder::class, //Data dummy
             RfidSeeder::class, //Data Dummy
+            AttendancePermissionSeeder::class, //Data dummy
         ]);
     }
 }

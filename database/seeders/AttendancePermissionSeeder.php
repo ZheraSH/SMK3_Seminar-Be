@@ -13,52 +13,39 @@ class AttendancePermissionSeeder extends Seeder
     public function run(): void
     {
         $students = Student::limit(5)->get();
-        $bk = Employee::whereHas('user', function($q) {
-            $q->where('role', 'counselor');
-        })->first();
+
+        $counselors = Employee::whereHas('user.roles', function ($q) {
+            $q->where('name', 'counselor');
+        })->get();
+
+        if ($counselors->isEmpty()) {
+            $this->command->warn('No counselors found. Seeder skipped.');
+            return;
+        }
 
         foreach ($students as $student) {
-            // Pending Permission
-            AttendancePermission::create([
-                'type' => 'sick',
-                'start_date' => Carbon::now()->addDays(1),
-                'end_date' => Carbon::now()->addDays(2),
-                'reason' => 'Sakit demam tinggi, perlu istirahat di rumah',
-                'proof' => null,
-                'status' => 'pending',
-                'student_id' => $student->id,
-                'bk_id' => $bk?->id,
-            ]);
 
-            // Approved Permission
-            AttendancePermission::create([
-                'type' => 'permission',
-                'start_date' => Carbon::now()->subDays(2),
-                'end_date' => Carbon::now()->subDays(2),
-                'reason' => 'Acara keluarga yang tidak bisa ditinggalkan',
-                'proof' => null,
-                'status' => 'approved',
-                'student_id' => $student->id,
-                'bk_id' => $bk?->id,
-                'verified_by' => $bk?->id,
-                'verification_notes' => 'Disetujui sesuai surat keterangan',
-                'verified_at' => Carbon::now()->subDay(),
-            ]);
+            $count = rand(1, 3);
 
-            // Rejected Permission
-            AttendancePermission::create([
-                'type' => 'dispensation',
-                'start_date' => Carbon::now()->subDays(5),
-                'end_date' => Carbon::now()->subDays(3),
-                'reason' => 'Ingin liburan ke luar kota',
-                'proof' => null,
-                'status' => 'rejected',
-                'student_id' => $student->id,
-                'bk_id' => $bk?->id,
-                'verified_by' => $bk?->id,
-                'verification_notes' => 'Alasan tidak memenuhi syarat dispensasi',
-                'verified_at' => Carbon::now()->subDays(6),
-            ]);
+            for ($i = 0; $i < $count; $i++) {
+
+                $status = fake()->randomElement(['pending', 'approved', 'rejected']);
+                $counselor = $counselors->random();
+
+                $data = [
+                    'type' => fake()->randomElement(['sick', 'permission', 'dispensation']),
+                    'start_date' => Carbon::now()->subDays(rand(1, 10)),
+                    'end_date' => Carbon::now()->subDays(rand(0, 9)),
+                    'reason' => fake()->sentence(8),
+                    'proof' => null,
+                    'status' => $status,
+                    'student_id' => $student->id,
+                    'counselor_id' => $status !== 'pending' ? $counselor->id : null,
+                    'verified_at' => $status !== 'pending' ? Carbon::now()->subDay() : null,
+                ];
+
+                AttendancePermission::create($data);
+            }
         }
     }
 }
