@@ -7,8 +7,8 @@ use App\Contracts\Interfaces\MajorInterface;
 use App\Models\Classroom;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ClassroomService
 {
@@ -16,11 +16,8 @@ class ClassroomService
     private MajorInterface $majorInterface;
     private LevelClassInterface $levelClassInterface;
 
-    public function __construct(
-        ClassroomInterface $classroomInterface,
-        MajorInterface $majorInterface,
-        LevelClassInterface $levelClassInterface
-    ) {
+    public function __construct(ClassroomInterface $classroomInterface, MajorInterface $majorInterface, LevelClassInterface $levelClassInterface)
+    {
         $this->classroomInterface = $classroomInterface;
         $this->majorInterface = $majorInterface;
         $this->levelClassInterface = $levelClassInterface;
@@ -55,39 +52,14 @@ class ClassroomService
         return $this->classroomInterface->show($id);
     }
 
-    public function paginate(): mixed
+    public function getWithFilter(Request $request): LengthAwarePaginator
     {
-        return $this->classroomInterface->paginate();
+        return $this->classroomInterface->search($request);
     }
 
     public function delete(string $id): bool
     {
         return $this->classroomInterface->delete($id);
-    }
-
-    public function addStudents(Classroom $classroom, array $studentIds): Classroom
-    {
-        return $this->classroomInterface->addStudentsToClassroom($classroom->id, $studentIds);
-    }
-
-    public function removeStudent(Classroom $classroom, string $studentId): Classroom
-    {
-        return $this->classroomInterface->removeStudentFromClassroom($classroom->id, $studentId);
-    }
-
-    public function getActiveStudents(Classroom $classroom): Collection
-    {
-        return $this->classroomInterface->getActiveStudents($classroom->id);
-    }
-
-    public function search(Request $request)
-    {
-        return $this->classroomInterface->search($request);
-    }
-
-    public function getAvailableStudents(Classroom $classroom, string $search = null, int $limit = 10): Collection
-    {
-        return $this->classroomInterface->getAvailableStudents($classroom, $search, $limit);
     }
 
     public function graduateClass(string $classroomId): void
