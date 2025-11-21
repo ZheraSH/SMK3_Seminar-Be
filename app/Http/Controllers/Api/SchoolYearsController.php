@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Models\SchoolYear;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseHelper;
+use App\Http\Requests\StoreSchoolYearRequest; // Tambahkan ini
+use App\Http\Requests\UpdateSchoolYearRequest; // Tambahkan ini
 use Throwable;
 
 class SchoolYearsController extends Controller
@@ -26,12 +28,10 @@ class SchoolYearsController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(StoreSchoolYearRequest $request) 
     {
         try {
-            $request->validate([
-                'name' => 'required|unique:school_years,name'
-            ]);
+            
             SchoolYear::where('active', true)->update(['active' => false]);
 
             $data = SchoolYear::create([
@@ -40,10 +40,10 @@ class SchoolYearsController extends Controller
             ]);
 
             return ResponseHelper::success(
-            new SchoolYearResource($data),
-            'Tahun ajaran berhasil ditambahkan dan diaktifkan',
-            201
-        );
+                new SchoolYearResource($data),
+                'Tahun ajaran berhasil ditambahkan dan diaktifkan',
+                201
+            );
 
         } catch (Throwable $th) {
             return ResponseHelper::error(500, $th->getMessage());
