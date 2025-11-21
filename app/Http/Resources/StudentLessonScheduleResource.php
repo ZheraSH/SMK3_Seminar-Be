@@ -8,7 +8,6 @@ class StudentLessonScheduleResource extends JsonResource
 {
     public function toArray($request)
     {
-        // tentukan penempatan
         if ($this->is_break) {
             $penempatan = $this->break_type ?? 'Istirahat';
         } else {

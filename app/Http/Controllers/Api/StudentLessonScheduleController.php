@@ -41,7 +41,7 @@ class StudentLessonScheduleController extends Controller
             ->orderBy('lesson_hour_id')
             ->get()
             ->map(function ($item, $index) {
-                $item->number = $index + 1; // Nomor urut
+                $item->number = $index + 1; 
                 return $item;
             });
 
