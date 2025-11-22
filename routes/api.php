@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\AttendanceController;
+use App\Http\Controllers\Api\Teacher\AttendanceController;
 use App\Http\Controllers\Api\AttendanceRuleController;
 use App\Http\Controllers\Api\ClassroomController;
 use App\Http\Controllers\Api\ClassroomStudentsController;
@@ -55,14 +55,15 @@ Route::controller(LoginController::class)->group(function () {
     // Level Classes
     Route::apiResource('level-classes', LevelClassController::class)->only(['index', 'show']);
     // Classrooms
-    Route::prefix('classrooms')->controller(ClassroomController::class)->group(function () {
-        Route::get('{classroom}/available-students', 'getAvailableStudents'); // daftar siswa yg bisa dimasukkan ke kelas
-        Route::post('{classroom}/add-students', 'addStudents'); // tambah siswa ke kelas
-        Route::delete('{classroom}/remove-student/{studentId}', 'removeStudent'); // hapus siswa dari kelas
-    });
     Route::apiResource('classrooms', ClassroomController::class);
     // Classroom Students
-    Route::apiResource('classroom-students', ClassroomStudentsController::class)->only('index');
+    Route::prefix('classroom-students')->controller(ClassroomStudentsController::class)->group(function () {
+        Route::get('{classroomId}/available-students', 'getAvailableStudents');
+        Route::post('{classroomId}/add-students', 'addStudents');
+        Route::delete('{classroomId}/remove-student/{studentId}', 'removeStudent');
+        Route::get('{classroomId}/active-students', 'getActiveStudents');
+    });
+    Route::apiResource('classroom-students', ClassroomStudentsController::class);
     // School Years
     Route::prefix('school-years')->controller(SchoolYearsController::class)->group(function () {
         Route::post('{id}/activate', 'activate'); // aktifkan tahun ajaran
@@ -127,13 +128,13 @@ Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(fu
 // Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->group(function () {
 
 //     // absensi croscheck
-//     Route::prefix('attendances')->controller(AttendanceController::class)->group(function () {
-//         Route::get('classroom/{classroomId}', 'getByClassroom'); // absensi seluruh kelas
-//         Route::get('student/{studentId}/monthly', 'getStudentMonthly'); // rekap absensi bulanan per siswa
-//         Route::get('student/{studentId}/today', 'getTodayByStudent'); // absensi siswa hari ini
-//         Route::get('by-date', 'getByDate'); // absensi berdasarkan tanggal
+//     Route::prefix('attendance')->controller(TeacherAttendanceController::class)->group(function () {
+//         Route::get('/cross-check-data', 'getCrossCheckData');
+//         Route::post('/cross-check', 'submitCrossCheck');
+//         Route::get('/schedule', 'getTeacherSchedule');
+//         Route::get('/classroom-summary', 'getClassroomSummary');
 //     });
-//     Route::apiResource('attendances', AttendanceController::class);
+//     // CRUD attendance
 // });
 
 /*
