@@ -24,18 +24,19 @@ enum StudentStatusEnum: string
 
     public static function toArray(): array
     {
-        return [
-            self::ACTIVE->value => 'Aktif',
-            self::INACTIVE->value => 'Tidak Aktif',
-            self::GRADUATED->value => 'Lulus',
-        ];
+        $array = [];
+        foreach (self::cases() as $case) {
+            $array[$case->value] = $case->label();
+        }
+        return $array;
     }
 
-    public function canAttend(): bool
+    public static function isActive($status): bool
     {
-        return match($this) {
-            self::ACTIVE => true,
-            self::INACTIVE, self::GRADUATED => false,
-        };
+        if ($status instanceof self) {
+            return $status === self::ACTIVE;
+        }
+        
+        return strtolower((string)$status) === strtolower(self::ACTIVE->value);
     }
 }
