@@ -6,25 +6,25 @@ use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AttendancePermissionResource;
 use App\Services\AttendancePermissionService;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CounselorAttendancePermissionController extends Controller
 {
-    private AttendancePermissionService $service;
+    private AttendancePermissionService $attendancePermissionService;
 
-    public function __construct(AttendancePermissionService $service)
+    public function __construct(AttendancePermissionService $attendancePermissionService)
     {
-        $this->service = $service;
+        $this->attendancePermissionService = $attendancePermissionService;
     }
 
-    public function index(Request $request): JsonResponse
+    public function index(Request $request)
     {
         try {
-            $permissions = $this->service->getCounselorPermissions($request);
-
-            return ResponseHelper::success(
-                AttendancePermissionResource::collection($permissions),
+            $data = $this->attendancePermissionService->getCounselorPermissions($request);
+            
+            return ResponseHelper::pagination(
+                $data, 
+                AttendancePermissionResource::class, 
                 'Data izin berhasil diambil'
             );
         } catch (\Throwable $th) {
@@ -32,13 +32,13 @@ class CounselorAttendancePermissionController extends Controller
         }
     }
 
-    public function pending(): JsonResponse
+    public function pending()
     {
         try {
-            $permissions = $this->service->getPendingPermissions();
+            $data = $this->attendancePermissionService->getPendingPermissions();
 
             return ResponseHelper::success(
-                AttendancePermissionResource::collection($permissions),
+                AttendancePermissionResource::collection($data),
                 'Data izin pending berhasil diambil'
             );
         } catch (\Throwable $th) {
@@ -46,13 +46,13 @@ class CounselorAttendancePermissionController extends Controller
         }
     }
 
-    public function show(string $id): JsonResponse
+    public function show(string $id)
     {
         try {
-            $permission = $this->service->getPermissionDetail($id);
+            $data = $this->attendancePermissionService->getPermissionDetail($id);
 
             return ResponseHelper::success(
-                new AttendancePermissionResource($permission),
+                new AttendancePermissionResource($data),
                 'Detail izin berhasil diambil'
             );
         } catch (\Throwable $th) {
@@ -60,25 +60,31 @@ class CounselorAttendancePermissionController extends Controller
         }
     }
 
-    public function approve(string $id): JsonResponse
+    public function approve(string $id)
     {
         try {
             $counselorId = auth()->user()->employee->id;
-            $this->service->approvePermission($id, $counselorId);
+            $data = $this->attendancePermissionService->approvePermission($id, $counselorId);
 
-            return ResponseHelper::success(null, 'Izin berhasil disetujui');
+            return ResponseHelper::success(
+                new AttendancePermissionResource($data),
+                'Izin berhasil disetujui'
+            );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 
-    public function reject(string $id): JsonResponse
+    public function reject(string $id)
     {
         try {
             $counselorId = auth()->user()->employee->id;
-            $this->service->rejectPermission($id, $counselorId);
+            $data = $this->attendancePermissionService->rejectPermission($id, $counselorId);
 
-            return ResponseHelper::success(null, 'Izin berhasil ditolak');
+            return ResponseHelper::success(
+                new AttendancePermissionResource($data),
+                'Izin berhasil ditolak'
+            );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }

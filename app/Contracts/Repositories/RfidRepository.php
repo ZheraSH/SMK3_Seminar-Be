@@ -8,6 +8,8 @@ use App\Enums\StudentStatusEnum;
 use App\Models\Rfid;
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 class RfidRepository extends BaseRepository implements RfidInterface
 {
@@ -16,36 +18,36 @@ class RfidRepository extends BaseRepository implements RfidInterface
         $this->model = $rfid;
     }
 
-    public function get(): mixed
+    public function get(): Collection
     {
         return $this->model->query()
             ->with(['student.user'])
             ->get();
     }
 
-    public function store(array $data): mixed
+    public function store(array $data): Rfid
     {
         return $this->model->query()->create($data);
     }
 
-    public function show(mixed $id): mixed
+    public function show(mixed $id): Rfid
     {
         return $this->model->query()
             ->with(['student.user'])
             ->findOrFail($id);
     }
 
-    public function update(mixed $id, array $data): mixed
+    public function update(mixed $id, array $data): bool
     {
         return $this->show($id)->update($data);
     }
 
-    public function delete(mixed $id): mixed
+    public function delete(mixed $id): bool
     {
         return $this->show($id)->delete();
     }
 
-    public function paginate(): mixed
+    public function paginate(): LengthAwarePaginator
     {
         return $this->model->query()
             ->with(['student.user'])
@@ -53,7 +55,7 @@ class RfidRepository extends BaseRepository implements RfidInterface
             ->paginate(10);
     }
 
-    public function search(Request $request, int $pagination = 10): mixed
+    public function search(Request $request, int $pagination = 10): LengthAwarePaginator
     {
         return $this->model->query()
             ->with(['student.user'])
@@ -67,7 +69,7 @@ class RfidRepository extends BaseRepository implements RfidInterface
             ->paginate($pagination);
     }
 
-    public function getAvailableStudents(Request $request): mixed
+    public function getAvailableStudents(Request $request): Collection
     {
         $search = $request->query('search');
         $limit = $request->query('limit', 10);
@@ -92,14 +94,14 @@ class RfidRepository extends BaseRepository implements RfidInterface
         return $query->limit($limit)->get();
     }
     
-    public function getByStudentId(string $studentId): mixed
+    public function getByStudentId(string $studentId): ?Rfid
     {
         return $this->model->query()
             ->where('student_id', $studentId)
             ->first();
     }
 
-    public function getByRfidNumber(string $rfid): mixed
+    public function getByRfidNumber(string $rfid): ?Rfid
     {
         return $this->model->query()
             ->with(['student.user'])
@@ -107,7 +109,7 @@ class RfidRepository extends BaseRepository implements RfidInterface
             ->first();
     }
 
-    public function used(Request $request): mixed
+    public function used(): Collection
     {
         return $this->model->query()
             ->with(['student.user'])
@@ -116,7 +118,7 @@ class RfidRepository extends BaseRepository implements RfidInterface
             ->get();
     }
 
-    public function notUsed(Request $request): mixed
+    public function notUsed(): Collection
     {
         return $this->model->query()
             ->with(['student.user'])
@@ -125,5 +127,10 @@ class RfidRepository extends BaseRepository implements RfidInterface
                       ->orWhereNull('student_id');
             })
             ->get();
+    }
+
+    public function count(): int
+    {
+        return $this->model->query()->count();
     }
 }

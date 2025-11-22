@@ -8,75 +8,73 @@ use App\Http\Requests\StoreAttendancePermissionRequest;
 use App\Http\Resources\AttendancePermissionDetailResource;
 use App\Http\Resources\AttendancePermissionResource;
 use App\Services\AttendancePermissionService;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Throwable;
 
 class StudentAttendancePermissionController extends Controller
 {
-    private AttendancePermissionService $AttendancePermissionService;
+    private AttendancePermissionService $attendancePermissionService;
 
-    public function __construct(AttendancePermissionService $AttendancePermissionService)
+    public function __construct(AttendancePermissionService $attendancePermissionService)
     {
-        $this->AttendancePermissionService = $AttendancePermissionService;
+        $this->attendancePermissionService = $attendancePermissionService;
     }
     
-    public function index(Request $request): JsonResponse
+    public function index(Request $request)
     {
         try {
             $studentId = auth()->user()->student->id;
-            $permissions = $this->AttendancePermissionService->getStudentPermissions($studentId, $request);
+            $data = $this->attendancePermissionService->getStudentPermissions($studentId, $request);
             
-            if ($request->has('page')) {
-                return ResponseHelper::pagination($permissions, AttendancePermissionResource::class, 'Data izin berhasil diambil');
-            }
-            
-            return ResponseHelper::success(
-                AttendancePermissionResource::collection($permissions),
+            return ResponseHelper::pagination(
+                $data, 
+                AttendancePermissionResource::class, 
                 'Data izin berhasil diambil'
             );
-        } catch (Throwable $th) {
+        } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
         }
     }
 
-    public function store(StoreAttendancePermissionRequest $request): JsonResponse
+    public function store(StoreAttendancePermissionRequest $request)
     {
         try {
-            $permission = $this->AttendancePermissionService->store($request);
+            $data = $this->attendancePermissionService->store($request);
 
             return ResponseHelper::success(
-                new AttendancePermissionResource($permission),
+                new AttendancePermissionResource($data),
                 'Izin berhasil diajukan',
                 201
             );
-        } catch (Throwable $th) {
+        } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 
-    public function show(string $id): JsonResponse
+    public function show(string $id)
     {
         try {
-            $permission = $this->AttendancePermissionService->getPermissionDetail($id);
+            $data = $this->attendancePermissionService->getPermissionDetail($id);
 
             return ResponseHelper::success(
-                new AttendancePermissionDetailResource($permission),
+                new AttendancePermissionDetailResource($data),
                 'Detail izin berhasil diambil'
             );
-        } catch (Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 404);
         }
     }
 
-    public function destroy(string $id): JsonResponse
+    public function destroy(string $id)
     {
         try {
             $studentId = auth()->user()->student->id;
-            $this->AttendancePermissionService->deleteStudentPermission($id, $studentId);
+            $this->attendancePermissionService->deleteStudentPermission($id, $studentId);
 
-            return ResponseHelper::success(null, 'Izin berhasil dihapus');
-        } catch (Throwable $th) {
+            return ResponseHelper::success(
+                null,
+                'Izin berhasil dihapus'
+            );
+        } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }

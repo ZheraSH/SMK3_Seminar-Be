@@ -7,6 +7,8 @@ use App\Enums\PermissionStatusEnum;
 use App\Models\AttendancePermission;
 use App\Traits\PaginationTrait;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 class AttendancePermissionRepository extends BaseRepository implements AttendancePermissionInterface
 {
@@ -17,7 +19,7 @@ class AttendancePermissionRepository extends BaseRepository implements Attendanc
         $this->model = $attendancePermission;
     }
 
-    public function get(): mixed
+    public function get(): Collection
     {
         return $this->model
             ->with(['student.user', 'counselor.user'])
@@ -25,57 +27,48 @@ class AttendancePermissionRepository extends BaseRepository implements Attendanc
             ->get();
     }
 
-    public function store(array $data): mixed
+    public function store(array $data): AttendancePermission
     {
         return $this->model->create($data);
     }
 
-    public function show(mixed $id): mixed
+    public function show(mixed $id): AttendancePermission
     {
         return $this->model
             ->with(['student.user', 'counselor.user'])
             ->findOrFail($id);
     }
 
-    public function update(mixed $id, array $data): mixed
+    public function update(mixed $id, array $data): bool
     {
         $model = $this->show($id);
-        $model->update($data);
-        return $model;
+        return $model->update($data);
     }
 
-    public function delete(mixed $id): mixed
+    public function delete(mixed $id): bool
     {
-        $model = $this->show($id);
-        return $model->delete();
+        return $this->show($id)->delete();
     }
 
-    public function paginate(): mixed
+    public function paginate(): LengthAwarePaginator
     {
-        $data = $this->model
+        return $this->model
             ->with(['student.user', 'counselor.user'])
             ->latest()
-            ->get();
-
-        return $this->paginateCollection($data, 8);
+            ->paginate(8);
     }
 
-    public function findByStudent(string $studentId, Request $request = null)
+    public function findByStudent(string $studentId, Request $request = null): LengthAwarePaginator
     {
-        $data = $this->model
+        $query = $this->model
             ->with(['student.user', 'counselor.user'])
             ->where('student_id', $studentId)
-            ->latest()
-            ->get();
+            ->latest();
 
-        if ($request?->page) {
-            return $this->paginateCollection($data, 8);
-        }
-
-        return $data;
+        return $query->paginate(8);
     }
 
-    public function deleteIfPending(string $id, string $studentId)
+    public function deleteIfPending(string $id, string $studentId): bool
     {
         $permission = $this->model
             ->where('id', $id)
@@ -86,7 +79,7 @@ class AttendancePermissionRepository extends BaseRepository implements Attendanc
         return $permission->delete();
     }
 
-    public function getPendingPermissions()
+    public function getPendingPermissions(): Collection
     {
         return $this->model
             ->with(['student.user', 'counselor.user'])
@@ -105,7 +98,7 @@ class AttendancePermissionRepository extends BaseRepository implements Attendanc
             'verified_at' => now(),
         ]);
 
-        return $permission->load(['student.user', 'counselor.user']);
+        return $this->show($id);
     }
 
     public function rejectPermission(string $id, string $counselorId): AttendancePermission
@@ -118,10 +111,10 @@ class AttendancePermissionRepository extends BaseRepository implements Attendanc
             'verified_at' => now(),
         ]);
 
-        return $permission->load(['student.user', 'counselor.user']);
+        return $this->show($id);
     }
 
-    public function searchByCounselor(Request $request)
+    public function searchByCounselor(Request $request): LengthAwarePaginator
     {
         $query = $this->model
             ->with(['student.user', 'counselor.user'])
@@ -131,9 +124,13 @@ class AttendancePermissionRepository extends BaseRepository implements Attendanc
                 $request->start_date && $request->end_date,
                 fn($q) => $q->whereBetween('start_date', [$request->start_date, $request->end_date])
             )
-            ->latest()
-            ->get();
+            ->latest();
 
-        return $this->paginateCollection($query, 8);
+        return $query->paginate(8);
+    }
+
+    public function count(): int
+    {
+        return $this->model->query()->count();
     }
 }
