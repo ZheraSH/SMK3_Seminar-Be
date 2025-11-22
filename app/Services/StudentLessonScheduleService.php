@@ -68,7 +68,7 @@ class StudentLessonScheduleService
                 $formatted[] = [
                     'no' => $order,
                     'jam' => $timeRange, 
-                    'nama_jam' => $isBreak['name'],
+                    'penempatan' => $isBreak['name'],
                     'mata_pelajaran' => '',
                     'guru' => ''
                 ];
@@ -79,7 +79,7 @@ class StudentLessonScheduleService
                 $formatted[] = [
                     'no' => $order,
                     'jam' => $timeRange, 
-                    'nama_jam' => $namaJam,
+                    'penempatan' => $namaJam,
                     'mata_pelajaran' => $schedule->subject->name,
                     'guru' => $schedule->employee->user->name
                 ];
