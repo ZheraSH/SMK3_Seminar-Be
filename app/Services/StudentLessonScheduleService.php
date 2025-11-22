@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Contracts\Interfaces\StudentLessonScheduleInterface;
+use App\Helpers\SemesterHelper;
 use Illuminate\Database\Eloquent\Collection;
 
 class StudentLessonScheduleService
@@ -12,83 +13,98 @@ class StudentLessonScheduleService
     ) {}
 
     public function getSchedule(string $studentId, ?string $day = null): array
-    {
-        $schedules = $this->studentLessonScheduleRepository->getSchedule($studentId, $day);
-        return $this->formatSchedule($schedules);
-    }
+{
+    $schedules = $this->studentLessonScheduleRepository->getSchedule($studentId, $day);
 
-    private function formatSchedule(Collection $schedules): array
-    {
-        $schedules = $schedules->sortBy(function($schedule) {
-            return $schedule->lessonHour->start;
-        });
-
-        $formatted = [];
-        $order = 1;
-
-        $breakTimes = [
-            [
-                'start' => '09:15',
-                'end' => '10:00', 
-                'name' => 'Istirahat'
-            ],
-            [
-                'start' => '12:10',
-                'end' => '13:00',
-                'name' => 'Istirahat ke dua'
-            ]
+    if ($schedules->isEmpty()) {
+        return [
+            'classroom' => null,
+            'schedules' => []
         ];
-
-        $timeSlots = [];
-        foreach ($schedules as $schedule) {
-            $startTime = $this->formatTimeWithoutSeconds($schedule->lessonHour->start);
-            $endTime = $this->formatTimeWithoutSeconds($schedule->lessonHour->end);
-            $timeKey = $startTime . '-' . $endTime;
-            
-            if (!isset($timeSlots[$timeKey])) {
-                $timeSlots[$timeKey] = [
-                    'time_range' => "{$startTime} - {$endTime}", 
-                    'nama_jam' => $schedule->lessonHour->name,
-                    'schedules' => []
-                ];
-            }
-            
-            $timeSlots[$timeKey]['schedules'][] = $schedule;
-        }
-
-        ksort($timeSlots);
-
-        foreach ($timeSlots as $timeSlot) {
-            $timeRange = $timeSlot['time_range'];
-            $namaJam = $timeSlot['nama_jam'];
-            
-            $isBreak = $this->isBreakTime($breakTimes, $timeRange);
-            
-            if ($isBreak) {
-                $formatted[] = [
-                    'no' => $order,
-                    'jam' => $timeRange, 
-                    'penempatan' => $isBreak['name'],
-                    'mata_pelajaran' => '',
-                    'guru' => ''
-                ];
-                $order++;
-            } else {
-                $schedule = $timeSlot['schedules'][0];
-                
-                $formatted[] = [
-                    'no' => $order,
-                    'jam' => $timeRange, 
-                    'penempatan' => $namaJam,
-                    'mata_pelajaran' => $schedule->subject->name,
-                    'guru' => $schedule->employee->user->name
-                ];
-                $order++;
-            }
-        }
-
-        return $formatted;
     }
+
+    
+    $classroom = optional($schedules->first()->classroom);
+
+    return [
+        'classroom' => [
+            'classroom' => $classroom->name,
+            'semester' => SemesterHelper::getSemester()['semester'],
+            'school_year' => optional($classroom->schoolYear)->name,
+        ],
+    ];
+}
+    private function formatSchedule($schedules): array
+{
+    $schedules = collect($schedules)->sortBy(function($schedule) {
+        return $schedule->lessonHour->start;
+    });
+
+    $formatted = [];
+    $order = 1;
+
+    $breakTimes = [
+        [
+            'start' => '09:15',
+            'end' => '10:00',
+            'name' => 'Istirahat'
+        ],
+        [
+            'start' => '12:10',
+            'end' => '13:00',
+            'name' => 'Istirahat Ke Dua'
+        ]
+    ];
+
+    $timeSlots = [];
+    foreach ($schedules as $schedule) {
+        $startTime = $this->formatTimeWithoutSeconds($schedule->lessonHour->start);
+        $endTime = $this->formatTimeWithoutSeconds($schedule->lessonHour->end);
+        $timeKey = $startTime . '-' . $endTime;
+
+        if (!isset($timeSlots[$timeKey])) {
+            $timeSlots[$timeKey] = [
+                'time_range' => "{$startTime} - {$endTime}",
+                'nama_jam' => $schedule->lessonHour->name,
+                'schedules' => []
+            ];
+        }
+
+        $timeSlots[$timeKey]['schedules'][] = $schedule;
+    }
+
+    ksort($timeSlots);
+
+    foreach ($timeSlots as $timeSlot) {
+        $timeRange = $timeSlot['time_range'];
+        $namaJam = $timeSlot['nama_jam'];
+
+        $isBreak = $this->isBreakTime($breakTimes, $timeRange);
+
+        if ($isBreak) {
+            $formatted[] = [
+                'no' => $order,
+                'jam' => $timeRange,
+                'penempatan' => $isBreak['name'],
+                'mata_pelajaran' => '-',
+                'guru' => '-'
+            ];
+        } else {
+            $schedule = $timeSlot['schedules'][0];
+
+            $formatted[] = [
+                'no' => $order,
+                'jam' => $timeRange,
+                'penempatan' => $namaJam,
+                'mata_pelajaran' => $schedule->subject->name,
+                'guru' => $schedule->employee->user->name
+            ];
+        }
+        $order++;
+    }
+
+    return $formatted;
+}
 
     private function formatTimeWithoutSeconds(string $time): string
     {
