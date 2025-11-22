@@ -19,7 +19,6 @@ class StudentLessonScheduleService
 
     private function formatSchedule(Collection $schedules): array
     {
-        // Urutkan berdasarkan start time lesson hour
         $schedules = $schedules->sortBy(function($schedule) {
             return $schedule->lessonHour->start;
         });
@@ -27,7 +26,6 @@ class StudentLessonScheduleService
         $formatted = [];
         $order = 1;
 
-        // Data istirahat sesuai gambar
         $breakTimes = [
             [
                 'start' => '09:15',
@@ -41,7 +39,6 @@ class StudentLessonScheduleService
             ]
         ];
 
-        // Group schedules by time slot
         $timeSlots = [];
         foreach ($schedules as $schedule) {
             $startTime = $this->formatTimeWithoutSeconds($schedule->lessonHour->start);
@@ -50,7 +47,7 @@ class StudentLessonScheduleService
             
             if (!isset($timeSlots[$timeKey])) {
                 $timeSlots[$timeKey] = [
-                    'time_range' => "({$startTime} - {$endTime})",
+                    'time_range' => "{$startTime} - {$endTime}", 
                     'nama_jam' => $schedule->lessonHour->name,
                     'schedules' => []
                 ];
@@ -59,33 +56,29 @@ class StudentLessonScheduleService
             $timeSlots[$timeKey]['schedules'][] = $schedule;
         }
 
-        // Sort time slots by start time
         ksort($timeSlots);
 
-        // Build final formatted array
         foreach ($timeSlots as $timeSlot) {
             $timeRange = $timeSlot['time_range'];
             $namaJam = $timeSlot['nama_jam'];
             
-            // Check if this time slot should be a break
             $isBreak = $this->isBreakTime($breakTimes, $timeRange);
             
             if ($isBreak) {
                 $formatted[] = [
                     'no' => $order,
-                    'jam' => $timeRange,
+                    'jam' => $timeRange, 
                     'nama_jam' => $isBreak['name'],
                     'mata_pelajaran' => '',
                     'guru' => ''
                 ];
                 $order++;
             } else {
-                // Take only the first schedule for each time slot (avoid duplicates)
                 $schedule = $timeSlot['schedules'][0];
                 
                 $formatted[] = [
                     'no' => $order,
-                    'jam' => $timeRange,
+                    'jam' => $timeRange, 
                     'nama_jam' => $namaJam,
                     'mata_pelajaran' => $schedule->subject->name,
                     'guru' => $schedule->employee->user->name
@@ -105,7 +98,7 @@ class StudentLessonScheduleService
     private function isBreakTime(array $breakTimes, string $timeRange): ?array
     {
         foreach ($breakTimes as $break) {
-            $breakRange = "({$break['start']} - {$break['end']})";
+            $breakRange = "{$break['start']} - {$break['end']}"; 
             if ($timeRange === $breakRange) {
                 return $break;
             }
