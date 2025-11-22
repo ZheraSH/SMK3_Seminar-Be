@@ -17,4 +17,8 @@ interface AttendanceInterface extends GetInterface, StoreInterface, UpdateInterf
     public function getByClassroomAndDate(string $classroomId, string $date): mixed;
     public function getStudentMonthlyAttendance(string $studentId, string $month, string $year): mixed;
     public function getByDate(string $date): mixed;
+    public function getByStudentLesson(string $studentId, string $date, int $lessonOrder): mixed;
+    public function getByScheduleAndDate(string $lessonScheduleId, string $date): mixed;
+    public function getByClassroom(string $classroomId): mixed;
+    public function getStudentMonthly(string $studentId, string $month): mixed;
 }

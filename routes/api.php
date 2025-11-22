@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Api\Teacher\AttendanceController;
 use App\Http\Controllers\Api\AttendanceRuleController;
 use App\Http\Controllers\Api\ClassroomController;
 use App\Http\Controllers\Api\ClassroomStudentsController;
@@ -21,6 +20,8 @@ use App\Http\Controllers\Api\Student\StudentAttendancePermissionController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\Student\StudentLessonScheduleController;
 use App\Http\Controllers\Api\SubjectController;
+use App\Http\Controllers\Api\Teacher\TeacherAttendanceController;
+use App\Http\Controllers\Api\Teacher\TeacherScheduleController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -125,17 +126,21 @@ Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(fu
 |--------------------------------------------------------------------------
 | Akses hanya untuk guru
 */
-// Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->group(function () {
-
-//     // absensi croscheck
-//     Route::prefix('attendance')->controller(TeacherAttendanceController::class)->group(function () {
-//         Route::get('/cross-check-data', 'getCrossCheckData');
-//         Route::post('/cross-check', 'submitCrossCheck');
-//         Route::get('/schedule', 'getTeacherSchedule');
-//         Route::get('/classroom-summary', 'getClassroomSummary');
-//     });
-//     // CRUD attendance
-// });
+Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->group(function () {
+    // Teacher schedule
+    Route::prefix('schedule')->controller(TeacherScheduleController ::class)->group(function () {
+        Route::get('daily', 'getDailySchedule');
+        Route::get('classroom', 'getClassroomSchedule');
+    });
+    
+    // Teacher attendance cross-check
+    Route::prefix('attendance')->controller(TeacherAttendanceController::class)->group(function () {
+        Route::get('cross-check-data', 'getCrossCheckData');
+        Route::post('cross-check', 'submitCrossCheck');
+        Route::get('schedule', 'getTeacherSchedule');
+        Route::get('classroom-summary', 'getClassroomSummary');
+    });
+});
 
 /*
 |--------------------------------------------------------------------------

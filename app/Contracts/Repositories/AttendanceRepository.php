@@ -4,72 +4,54 @@ namespace App\Contracts\Repositories;
 
 use App\Contracts\Interfaces\AttendanceInterface;
 use App\Models\Attendance;
-use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class AttendanceRepository extends BaseRepository implements AttendanceInterface
 {
-    public function __construct(Attendance $attendance)
+    public function __construct(Attendance $model)
     {
-        $this->model = $attendance;
+        $this->model = $model;
     }
 
-    public function get(): mixed
+    public function get(): Collection
     {
-        return $this->model->query()
-            ->with(['student', 'classroomStudent.classroom', 'rfid'])
-            ->latest()
-            ->get();
+        return $this->model->get();
     }
 
-    public function store(array $data): mixed
+    public function paginate($perPage = 15): LengthAwarePaginator
     {
-        return $this->model->query()->create($data);
+        return $this->model->paginate($perPage);
     }
 
-    public function show(mixed $id): mixed
+    public function search($request): Collection
     {
-        return $this->model->query()
-            ->with(['student', 'classroomStudent.classroom', 'rfid'])
-            ->findOrFail($id);
+        return $this->model->where('name', 'LIKE', '%' . $request->search . '%')->get();
     }
 
-    public function update(mixed $id, array $data): mixed
+    public function store(array $data): Attendance
     {
-        return $this->show($id)->update($data);
+        return $this->model->create($data);
     }
 
-    public function delete(mixed $id): mixed
+    public function update($id, array $data): bool
     {
-        return $this->show($id)->delete();
+        return $this->model->findOrFail($id)->update($data);
     }
 
-    public function paginate(): mixed
+    public function show($id): Attendance
     {
-        return $this->model->query()
-            ->with(['student', 'classroomStudent.classroom', 'rfid'])
-            ->latest()
-            ->paginate(10);
+        return $this->model->findOrFail($id);
     }
 
-    public function search(Request $request, int $pagination = 7): mixed
+    public function delete($id): bool
     {
-        return $this->model->query()
-            ->with(['student', 'classroomStudent.classroom', 'rfid'])
-            ->when($request->search, function ($query) use ($request) {
-                $query->whereHas('student', function ($q) use ($request) {
-                    $q->where('name', 'LIKE', '%' . $request->search . '%');
-                });
-            })
-            ->when($request->date, function ($query) use ($request) {
-                $query->whereDate('date', $request->date);
-            })
-            ->latest()
-            ->paginate($pagination);
+        return $this->model->findOrFail($id)->delete();
     }
 
     public function getByStudentAndDate(string $studentId, string $date): mixed
     {
-        return $this->model->query()
+        return $this->model
             ->where('student_id', $studentId)
             ->whereDate('date', $date)
             ->first();
@@ -77,45 +59,70 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
 
     public function getTodayByStudent(string $studentId): mixed
     {
-        return $this->model->query()
+        return $this->model
             ->where('student_id', $studentId)
-            ->whereDate('date', now()->toDateString())
+            ->whereDate('date', today())
             ->first();
     }
 
-    public function getByClassroomAndDate(string $classroomId, string $date): mixed
+    public function getByClassroomAndDate(string $classroomId, string $date): Collection
     {
-        return $this->model->query()
-            ->whereHas('classroomStudent', function ($query) use ($classroomId) {
-                $query->where('classroom_id', $classroomId);
-            })
+        return $this->model
+            ->where('classroom_id', $classroomId)
             ->whereDate('date', $date)
-            ->with(['student'])
             ->get();
     }
 
-    public function getStudentMonthlyAttendance(string $studentId, string $month, string $year): mixed
+    public function getStudentMonthlyAttendance(string $studentId, string $month, string $year): Collection
     {
-        return $this->model->query()
+        return $this->model
             ->where('student_id', $studentId)
-            ->whereYear('date', $year)
             ->whereMonth('date', $month)
+            ->whereYear('date', $year)
+            ->orderBy('date')
             ->get();
     }
 
-    public function recordTap(array $data): mixed
+    public function getByDate(string $date): Collection
     {
-        return $this->model->query()->create($data);
+        return $this->model
+            ->whereDate('date', $date)
+            ->orderBy('period')
+            ->get();
     }
 
-    /**
-     * Get attendance by specific date
-     */
-    public function getByDate(string $date): mixed
+    public function getByStudentLesson(string $studentId, string $date, int $lessonOrder): mixed
     {
-        return $this->model->query()
-            ->with(['student', 'classroomStudent.classroom', 'rfid'])
+        return $this->model
+            ->where('student_id', $studentId)
             ->whereDate('date', $date)
+            ->where('lesson_order', $lessonOrder)
+            ->first();
+    }
+
+    public function getByScheduleAndDate(string $lessonScheduleId, string $date): Collection
+    {
+        return $this->model
+            ->where('lesson_schedule_id', $lessonScheduleId)
+            ->whereDate('date', $date)
+            ->get();
+    }
+
+    public function getByClassroom(string $classroomId): Collection
+    {
+        return $this->model
+            ->where('classroom_id', $classroomId)
+            ->orderBy('period')
+            ->get();
+    }
+
+    public function getStudentMonthly(string $studentId, string $month): Collection
+    {
+        return $this->model
+            ->where('student_id', $studentId)
+            ->whereMonth('date', $month)
+            ->orderBy('date')
+            ->orderBy('period')
             ->get();
     }
 }
