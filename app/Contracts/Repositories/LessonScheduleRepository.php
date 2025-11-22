@@ -1,8 +1,10 @@
 <?php
+
 namespace App\Contracts\Repositories;
 
 use App\Contracts\Interfaces\LessonScheduleInterface;
 use App\Models\LessonSchedule;
+use Illuminate\Database\Eloquent\Collection;
 
 class LessonScheduleRepository extends BaseRepository implements LessonScheduleInterface
 {
@@ -11,7 +13,7 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
         $this->model = $lessonSchedule;
     }
 
-    public function get(): mixed
+    public function get(): Collection
     {
         return $this->model->query()
             ->with(['classroom.schoolYear', 'classroom.major', 'classroom.levelClass', 'employee.user', 'lessonHour', 'subject'])
@@ -19,29 +21,30 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
             ->get();
     }
 
-    public function store(array $data): mixed
+    public function store(array $data): LessonSchedule
     {
         return $this->model->query()->create($data);
     }
 
-    public function show(mixed $id): mixed
+    public function show(mixed $id): LessonSchedule
     {
         return $this->model->query()
             ->with(['classroom.schoolYear', 'classroom.major', 'classroom.levelClass', 'employee.user', 'lessonHour', 'subject'])
             ->findOrFail($id);
     }
 
-    public function update(mixed $id, array $data): mixed
+    public function update(mixed $id, array $data): bool
     {
-        return $this->show($id)->update($data);
+        $record = $this->show($id);
+        return $record->update($data);
     }
 
-    public function delete(mixed $id): mixed
+    public function delete(mixed $id): bool
     {
         return $this->show($id)->delete();
     }
-    
-    public function getByDay(string $day): mixed
+
+    public function getByDay(string $day): Collection
     {
         return $this->model->query()
             ->with(['classroom.schoolYear', 'classroom.major', 'classroom.levelClass', 'employee.user', 'lessonHour', 'subject'])
@@ -50,13 +53,48 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
             ->get();
     }
 
+    public function getByTeacherAndDay(string $teacherId, string $day): Collection
+    {
+        return $this->model->query()
+            ->with(['subject', 'classroom', 'lessonHour', 'teacher.user'])
+            ->where('teacher_id', $teacherId)
+            ->where('day', $day)
+            ->orderBy('lesson_order')
+            ->get();
+    }
+
+    public function getByClassroomAndDay(string $classroomId, string $day): Collection
+    {
+        return $this->model->query()
+            ->with(['subject', 'classroom', 'lessonHour', 'teacher.user'])
+            ->where('classroom_id', $classroomId)
+            ->where('day', $day)
+            ->orderBy('lesson_order')
+            ->get();
+    }
+
     public function getFirstLessonByClassroomAndDay(string $classroomId, string $day): mixed
     {
         return $this->model->query()
-            ->with(['lessonHour'])
+            ->with(['subject', 'classroom', 'lessonHour', 'teacher.user'])
             ->where('classroom_id', $classroomId)
             ->where('day', $day)
-            ->orderBy('lesson_hour_id')
+            ->where('lesson_order', 1)
+            ->first();
+    }
+
+    public function getByTeacherClassroomAndLessonOrder(
+        string $teacherId,
+        string $classroomId,
+        string $day,
+        int $lessonOrder
+    ): mixed {
+        return $this->model->query()
+            ->with(['subject', 'classroom', 'lessonHour', 'teacher.user'])
+            ->where('teacher_id', $teacherId)
+            ->where('classroom_id', $classroomId)
+            ->where('day', $day)
+            ->where('lesson_order', $lessonOrder)
             ->first();
     }
 
@@ -86,15 +124,5 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
         }
 
         return $query->exists();
-    }
-
-    public function getByClassroomAndDay(string $classroomId, string $day): mixed
-    {
-        return $this->model->query()
-            ->with(['lessonHour', 'subject', 'employee.user'])
-            ->where('classroom_id', $classroomId)
-            ->where('day', $day)
-            ->orderBy('lesson_hour_id')
-            ->get();
     }
 }
