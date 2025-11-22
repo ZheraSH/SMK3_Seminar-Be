@@ -9,6 +9,8 @@ use App\Http\Requests\UpdateRfidRequest;
 use App\Models\Rfid;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 class RfidService
 {
@@ -34,11 +36,13 @@ class RfidService
         $data['status'] = RfidStatusEnum::ACTIVE->value;
         $data['id'] = (string) Str::uuid();
 
-        return $this->rfid->store($data);
+        $rfid = $this->rfid->store($data);
+        return $this->rfid->show($rfid->id);
     }
 
-    public function update(UpdateRfidRequest $request, Rfid $rfid): Rfid
+    public function update(string $id, UpdateRfidRequest $request): Rfid
     {
+        $rfid = $this->rfid->show($id);
         $data = $request->validated();
 
         if (isset($data['rfid'])) {
@@ -59,23 +63,33 @@ class RfidService
         return $this->rfid->show($rfid->id);
     }
 
-    public function show(string $id): mixed
+    public function show(string $id): Rfid
     {
         return $this->rfid->show($id);
     }
 
-    public function delete(Rfid $rfid): bool
+    public function delete(string $id): bool
     {
-        return $this->rfid->delete($rfid->id);
+        return $this->rfid->delete($id);
     }
 
-    public function getWithFilter(Request $request): mixed
+    public function getWithFilter(Request $request): LengthAwarePaginator
     {
         return $this->rfid->search($request);
     }
 
-    public function getAvailableStudents(Request $request): mixed
+    public function getAvailableStudents(Request $request): Collection
     {
         return $this->rfid->getAvailableStudents($request);
+    }
+
+    public function getUsedRfids(): Collection
+    {
+        return $this->rfid->used();
+    }
+
+    public function getNotUsedRfids(): Collection
+    {
+        return $this->rfid->notUsed();
     }
 }
