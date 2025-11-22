@@ -34,8 +34,7 @@ class StudentLessonScheduleRepository implements StudentLessonScheduleInterface
                 ]);
             })
             ->get();
-
-        // Urutkan secara manual setelah get
+            
         return $schedules->sortBy(function($schedule) {
             return $schedule->lessonHour->start;
         })->values();

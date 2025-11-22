@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/Api/Student/StudentLessonScheduleController.php
 
 namespace App\Http\Controllers\Api\Student;
 
