@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Student;
 
+use Illuminate\Support\Facades\DB;
 use App\Models\ClassroomStudents;
 use App\Helpers\SemesterHelper;
 use App\Helpers\ResponseHelper;
@@ -41,11 +42,8 @@ class StudentLessonScheduleController extends Controller
             }
 
             $schoolYearActive = $activeClassroom->school_year_name;
-
             $semester = SemesterHelper::getSemester()['semester'];
-
-          $displayYear = $schoolYearActive;
-
+            $displayYear = $schoolYearActive;
 
             $day = $request->query('day');
             $scheduleData = $this->scheduleService->getSchedule($student->id, $day);
