@@ -22,15 +22,10 @@ class RfidTapController extends Controller
         try {
             $result = $this->rfidTapService->processTap($request);
 
-            $statusCode = $result['status'] === 'valid' ? 200 : 400;
-
             return ResponseHelper::success(
-                new TapResultResource($result),
-                $result['message'],
-                $statusCode
-            );
+                new TapResultResource($result), $result['message'],200);
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(),500);
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
         }
     }
 }
