@@ -25,30 +25,35 @@ class SchoolYearsController extends Controller
         );
     }
 
-    public function store()
-    {
-        DB::beginTransaction();
-        try {
-            
-            $this->repo->storeAuto();
+  public function store()
+{
+    DB::beginTransaction();
+    try {
+        
+        $this->repo->storeAuto();
 
-            DB::commit();
-            return ResponseHelper::success(null, 'Tahun ajaran berhasil ditambahkan');
+        DB::commit();
+        return ResponseHelper::success(null, 'Tahun ajaran berhasil ditambahkan');
 
-        } catch (Throwable $th) {
-            DB::rollBack();
-            return ResponseHelper::error(null, 'Gagal menambah tahun ajaran: ' . $th->getMessage());
-        }
+    } catch (Throwable $th) {
+        DB::rollBack();
+        return ResponseHelper::error(
+            'Gagal menambah tahun ajaran: ' . $th->getMessage(),
+            400,
+            null
+        );
     }
+}
 
     public function destroy($id)
-    {
-        try {
-            $year = $this->repo->show($id);
-
-            if ($year->active) {
-                return ResponseHelper::error('Tidak dapat menghapus tahun ajaran aktif', 422);
-            }
+{
+      try {
+        $year = $this->repo->show($id);
+        
+        if ($year->active) {
+        return ResponseHelper::error('Tidak dapat menghapus tahun ajaran aktif', 422);
+            
+        }
 
             $this->repo->delete($id);
 
