@@ -3,6 +3,7 @@
 namespace App\Helpers;
 
 use App\Enums\AttendanceStatusEnum;
+use App\Enums\TapTypeEnum;
 use Carbon\Carbon;
 
 class TapHelper
@@ -16,13 +17,15 @@ class TapHelper
             return false;
         }
 
-        if ($type === 'checkin' && $existingAttendance->checkin_time) {
-            $timeDifference = $tapTime->diffInMinutes($existingAttendance->checkin_time);
+        if ($type === TapTypeEnum::CHECKIN->value && $existingAttendance->checkin_time) {
+            $existingTime = Carbon::parse($existingAttendance->checkin_time);
+            $timeDifference = $tapTime->diffInMinutes($existingTime);
             return $timeDifference < 5;
         }
 
-        if ($type === 'checkout' && $existingAttendance->checkout_time) {
-            $timeDifference = $tapTime->diffInMinutes($existingAttendance->checkout_time);
+        if ($type === TapTypeEnum::CHECKOUT->value && $existingAttendance->checkout_time) {
+            $existingTime = Carbon::parse($existingAttendance->checkout_time);
+            $timeDifference = $tapTime->diffInMinutes($existingTime);
             return $timeDifference < 5;
         }
 
@@ -30,7 +33,7 @@ class TapHelper
     }
 
     /**
-     * Calculate attendance status (on-time or late)
+     * Calculate attendance status (present or late)
      */
     public static function calculateAttendanceStatus(Carbon $tapTime, Carbon $expectedTime): string
     {
@@ -38,7 +41,7 @@ class TapHelper
         $gracePeriod = $expectedTime->copy()->addMinutes(5);
         
         if ($tapTime->lte($gracePeriod)) {
-            return AttendanceStatusEnum::ON_TIME->value;
+            return AttendanceStatusEnum::PRESENT->value;
         }
 
         return AttendanceStatusEnum::LATE->value;
@@ -79,5 +82,24 @@ class TapHelper
         }
 
         return $tapTime->diffInMinutes($expectedTime);
+    }
+
+    /**
+     * Get current day in Indonesian format
+     */
+    public static function getIndonesianDay(): string
+    {
+        $days = [
+            'sunday' => 'Minggu',
+            'monday' => 'Senin',
+            'tuesday' => 'Selasa',
+            'wednesday' => 'Rabu',
+            'thursday' => 'Kamis',
+            'friday' => 'Jumat',
+            'saturday' => 'Sabtu',
+        ];
+
+        $englishDay = strtolower(now()->englishDayOfWeek);
+        return $days[$englishDay] ?? $englishDay;
     }
 }

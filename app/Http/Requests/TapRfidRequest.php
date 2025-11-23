@@ -12,7 +12,7 @@ class TapRfidRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'rfid' => 'required|string|max:255',
+            'rfid' => 'required|string|max:50',
         ];
     }
 
@@ -20,6 +20,7 @@ class TapRfidRequest extends ApiRequest
     {
         return [
             'rfid.required' => 'Nomor RFID wajib diisi',
+            'rfid.string' => 'Format RFID tidak valid',
         ];
     }
 }

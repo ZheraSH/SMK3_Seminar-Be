@@ -22,9 +22,15 @@ enum RfidStatusEnum: string
 
     public static function toArray(): array
     {
-        return [
-            self::ACTIVE->value => 'Aktif',
-            self::INACTIVE->value => 'Tidak Aktif',
-        ];
+        $array = [];
+        foreach (self::cases() as $case) {
+            $array[$case->value] = $case->label();
+        }
+        return $array;
+    }
+
+    public static function isActive(string $status): bool
+    {
+        return strtolower($status) === strtolower(self::ACTIVE->value);
     }
 }

@@ -4,6 +4,12 @@ namespace App\Helpers;
 
 class ResponseHelper
 {
+    private static function normalizeCode($code, $default = 400)
+    {
+        $code = intval($code);
+        return $code > 0 ? $code : $default;
+    }
+
     public static function success($data = null, string $message = 'Success', int $code = 200)
     {
         return response()->json([
@@ -14,8 +20,10 @@ class ResponseHelper
         ], $code);
     }
 
-    public static function error(string $message = 'Error', int $code = 400, $errors = null)
+    public static function error(string $message = 'Error', $code = 400, $errors = null)
     {
+        $code = self::normalizeCode($code, 400);
+
         return response()->json([
             'status' => false,
             'message' => $message,

@@ -6,17 +6,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Enums\AttendanceStatusEnum;
-use App\Enums\TapTypeEnum;
 use App\Enums\AttendanceProofEnum;
+use App\Enums\TapTypeEnum;
 use App\Traits\Models\BelongsToClassroom;
 use App\Traits\Models\BelongsToRfid;
 use App\Traits\Models\BelongsToStudent;
 
 class Attendance extends Model
 {
-    use HasFactory, BelongsToStudent,
-    BelongsToClassroom, BelongsToRfid,
-    SoftDeletes;
+    use HasFactory, BelongsToStudent, BelongsToClassroom, BelongsToRfid, SoftDeletes;
 
     public $incrementing = false;
     protected $keyType = 'string';
@@ -26,18 +24,18 @@ class Attendance extends Model
         'classroom_student_id',
         'rfid_id',
         'date',
+        'period',
         'checkin_time',
         'checkout_time',
         'status',
         'tap_type',
         'proof',
-        'notes',
     ];
 
     protected $casts = [
-        'date' => 'date',
-        'checkin_time' => 'datetime',
-        'checkout_time' => 'datetime',
+        'date' => 'date:Y-m-d',
+        'checkin_time' => 'string',
+        'checkout_time' => 'string',
         'status' => AttendanceStatusEnum::class,
         'tap_type' => TapTypeEnum::class,
         'proof' => AttendanceProofEnum::class,
@@ -68,47 +66,13 @@ class Attendance extends Model
     public function scopePresent($query)
     {
         return $query->whereIn('status', [
-            AttendanceStatusEnum::ON_TIME->value,
-            AttendanceStatusEnum::LATE->value
+            AttendanceStatusEnum::PRESENT,
+            AttendanceStatusEnum::LATE
         ]);
     }
 
     public function scopeAbsent($query)
     {
-        return $query->where('status', AttendanceStatusEnum::ABSENT->value);
-    }
-
-    // Helpers
-    public function isPresent(): bool
-    {
-        return in_array($this->status, [
-            AttendanceStatusEnum::ON_TIME->value,
-            AttendanceStatusEnum::LATE->value
-        ]);
-    }
-
-    public function hasCheckedIn(): bool
-    {
-        return !is_null($this->checkin_time);
-    }
-
-    public function hasCheckedOut(): bool
-    {
-        return !is_null($this->checkout_time);
-    }
-
-    public function getStatusLabel(): string
-    {
-        return $this->status->label();
-    }
-
-    public function getTapTypeLabel(): string
-    {
-        return $this->tap_type?->label() ?? '-';
-    }
-
-    public function getProofLabel(): string
-    {
-        return $this->proof->label();
+        return $query->where('status', AttendanceStatusEnum::ALPHA);
     }
 }

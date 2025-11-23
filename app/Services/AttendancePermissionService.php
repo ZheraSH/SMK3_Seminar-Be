@@ -21,6 +21,9 @@ class AttendancePermissionService
     public function store(StoreAttendancePermissionRequest $request): AttendancePermission
     {
         $data = $request->validated();
+        $data['student_id'] = auth()->user()->student->id;
+        $data['status'] = 'pending';
+        
         $permission = $this->attendancePermission->store($data);
         return $this->attendancePermission->show($permission->id);
     }
