@@ -2,63 +2,55 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Resources\SchoolYearResource;
-use App\Http\Controllers\Controller;
-use App\Models\SchoolYear;
-use Illuminate\Http\Request;
+use App\Contracts\Interfaces\SchoolYearInterface;
 use App\Helpers\ResponseHelper;
-use App\Http\Requests\StoreSchoolYearRequest;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class SchoolYearsController extends Controller
 {
-    public function index(Request $request)
+    protected $repo;
+
+    public function __construct(SchoolYearInterface $repo)
     {
-        try {
-            $data = SchoolYear::latest()->paginate(12);
-
-            return ResponseHelper::success(
-                $data,
-                'Daftar tahun ajaran berhasil diambil'
-            );
-
-        } catch (Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), 500);
-        }
+        $this->repo = $repo;
     }
 
-    public function store(StoreSchoolYearRequest $request)
+    public function index()
     {
+        return ResponseHelper::success(
+            $this->repo->paginate(),
+            'Daftar tahun ajaran berhasil diambil'
+        );
+    }
+
+    public function store()
+    {
+        DB::beginTransaction();
         try {
+            
+            $this->repo->storeAuto();
 
-            SchoolYear::where('active', true)->update(['active' => false]);
-
-            $data = SchoolYear::create([
-                'name' => $request->name,
-                'active' => true
-            ]);
-
-            return ResponseHelper::success(
-                new SchoolYearResource($data),
-                'Tahun ajaran berhasil ditambahkan dan diaktifkan',
-                201
-            );
+            DB::commit();
+            return ResponseHelper::success(null, 'Tahun ajaran berhasil ditambahkan');
 
         } catch (Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), 500);
-        }   
+            DB::rollBack();
+            return ResponseHelper::error(null, 'Gagal menambah tahun ajaran: ' . $th->getMessage());
+        }
     }
 
     public function destroy($id)
     {
         try {
-            $year = SchoolYear::findOrFail($id);
-            
-            if ($year->active === true) {
+            $year = $this->repo->show($id);
+
+            if ($year->active) {
                 return ResponseHelper::error('Tidak dapat menghapus tahun ajaran aktif', 422);
             }
-            
-            $year->delete();
+
+            $this->repo->delete($id);
 
             return ResponseHelper::success(null, 'Tahun ajaran berhasil dihapus');
 
@@ -70,18 +62,14 @@ class SchoolYearsController extends Controller
     public function activate($id)
     {
         try {
-    
-            SchoolYear::where('active', true)->update(['active' => false]);
+            $this->repo->unsetAll();
+            $this->repo->setActive($id);
 
-            $year = SchoolYear::findOrFail($id);
-            $year->update(['active' => true]);
-
-            return ResponseHelper::success(
-                new SchoolYearResource($year),
-                'Tahun ajaran berhasil diaktifkan'
-            );
+            DB::commit();
+            return ResponseHelper::success(null, 'Tahun ajaran berhasil diaktifkan');
 
         } catch (Throwable $th) {
+            DB::rollBack();
             return ResponseHelper::error($th->getMessage(), 500);
         }
     }
@@ -89,16 +77,13 @@ class SchoolYearsController extends Controller
     public function active()
     {
         try {
-            $active = SchoolYear::where('active', true)->first();
+            $active = $this->repo->active();
 
             if (!$active) {
                 return ResponseHelper::error('Tidak ada tahun ajaran aktif', 404);
             }
 
-            return ResponseHelper::success(
-                new SchoolYearResource($active),
-                'Tahun ajaran aktif berhasil diambil'
-            );
+            return ResponseHelper::success($active, 'Tahun ajaran aktif berhasil diambil');
 
         } catch (Throwable $th) {
             return ResponseHelper::error($th->getMessage(), 500);

@@ -9,10 +9,12 @@ use App\Contracts\Interfaces\Eloquent\SearchInterface;
 use App\Contracts\Interfaces\Eloquent\ShowInterface;
 use App\Contracts\Interfaces\Eloquent\StoreInterface;
 use App\Contracts\Interfaces\Eloquent\UpdateInterface;
-        
+use App\Models\SchoolYear; 
 interface SchoolYearInterface extends GetInterface, StoreInterface, UpdateInterface, ShowInterface, DeleteInterface, PaginateInterface, SearchInterface
 {
     public function active(): mixed;
-    public function setActive($id): mixed;
-    public function setNonactive(): mixed;
+    public function setActive($id): mixed;   
+    public function unsetAll(): mixed;
+    public function storeAuto(): mixed;
+
 }
