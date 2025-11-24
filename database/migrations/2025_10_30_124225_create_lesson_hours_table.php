@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('name');
             $table->time('start');
             $table->time('end');
+            $table->boolean('is_lesson')->default(true)->comment('true for lesson periods, false for breaks');
             $table->softDeletes();
             $table->timestamps();
         });

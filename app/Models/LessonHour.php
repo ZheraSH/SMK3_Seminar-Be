@@ -19,7 +19,8 @@ class LessonHour extends Model
         'day',
         'name',
         'start',
-        'end'
+        'end',
+        'is_lesson'
     ];
 
     protected $casts = [
