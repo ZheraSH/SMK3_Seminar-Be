@@ -11,13 +11,17 @@ class TeacherScheduleResource extends JsonResource
         return [
             'id' => $this->id,
             'day' => $this->day,
-            'day_label' => \App\Enums\DayEnum::from($this->day)->label(),
-            'lesson_order' => $this->lesson_order,
+            'day_label' => $this->day?->label() ?? 'Hari tidak diketahui',
+            'lesson_order' => $this->whenLoaded('lessonHour', function () {
+                return $this->calculateLessonOrder();
+            }),
             'subject' => $this->whenLoaded('subject', function () {
+                if ($this->lessonHour && !$this->lessonHour->is_lesson) {
+                    return null;
+                }
                 return [
                     'id' => $this->subject->id,
                     'name' => $this->subject->name,
-                    'code' => $this->subject->code,
                 ];
             }),
             'classroom' => $this->whenLoaded('classroom', function () {
@@ -31,8 +35,9 @@ class TeacherScheduleResource extends JsonResource
             'lesson_hour' => $this->whenLoaded('lessonHour', function () {
                 return [
                     'id' => $this->lessonHour->id,
-                    'start_time' => $this->lessonHour->start_time,
-                    'end_time' => $this->lessonHour->end_time,
+                    'name' => $this->lessonHour->name,
+                    'start_time' => $this->lessonHour->start,
+                    'end_time' => $this->lessonHour->end,
                 ];
             }),
             'teacher' => $this->whenLoaded('teacher', function () {
@@ -44,5 +49,33 @@ class TeacherScheduleResource extends JsonResource
             'can_cross_check' => $this->can_cross_check ?? false,
             'has_cross_checked' => $this->has_cross_checked ?? false,
         ];
+    }
+
+    private function calculateLessonOrder(): ?int
+    {
+        if (!$this->lessonHour) {
+            return null;
+        }
+
+        $lessonHours = \App\Models\LessonHour::where('day', $this->day->value)
+            ->orderBy('start')
+            ->get();
+
+        $position = $lessonHours->search(function ($lessonHour) {
+            return $lessonHour->id === $this->lessonHour->id;
+        });
+
+        if ($position !== false) {
+            $actualOrder = 1;
+            foreach ($lessonHours as $index => $hour) {
+                if ($index === $position) {
+                    return $actualOrder;
+                }
+                if ($hour->is_lesson) {
+                    $actualOrder++;
+                }
+            }
+        }
+        return null;
     }
 }

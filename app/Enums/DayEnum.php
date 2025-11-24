@@ -41,6 +41,14 @@ enum DayEnum: string
 
     public static function values(): array
     {
-        return array_column(self::cases(), 'value');
+        return [
+            self::MONDAY->value,
+            self::TUESDAY->value,
+            self::WEDNESDAY->value,
+            self::THURSDAY->value,
+            self::FRIDAY->value,
+            self::SATURDAY->value,
+            self::SUNDAY->value,
+        ];
     }
 }

@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\Student\StudentLessonScheduleController;
 use App\Http\Controllers\Api\SubjectController;
 use App\Http\Controllers\Api\Teacher\TeacherAttendanceController;
 use App\Http\Controllers\Api\Teacher\TeacherScheduleController;
+use App\Http\Controllers\Api\Teacher\TeacherDashboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -127,19 +128,28 @@ Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(fu
 | Akses hanya untuk guru
 */
 Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->group(function () {
+    // Teacher Dashboard
+    // Route::prefix('dashboard')->controller(TeacherDashboardController::class)->group(function () {
+    //     Route::get('overview', 'getOverview');
+    //     Route::get('today-schedule', 'getTodaySchedule');
+    //     Route::get('classroom-list', 'getClassroomList');
+    //     Route::get('attendance-summary/{classroom_id}', 'getClassroomAttendanceSummary');
+    // });
+
     // Teacher schedule
     Route::prefix('schedule')->controller(TeacherScheduleController ::class)->group(function () {
         Route::get('daily', 'getDailySchedule');
         Route::get('classroom', 'getClassroomSchedule');
+        Route::get('with-attendance', 'getScheduleWithAttendanceStatus');
     });
-    
+
     // Teacher attendance cross-check
-    Route::prefix('attendance')->controller(TeacherAttendanceController::class)->group(function () {
-        Route::get('cross-check-data', 'getCrossCheckData');
-        Route::post('cross-check', 'submitCrossCheck');
-        Route::get('schedule', 'getTeacherSchedule');
-        Route::get('classroom-summary', 'getClassroomSummary');
-    });
+    // Route::prefix('attendance')->controller(TeacherAttendanceController::class)->group(function () {
+    //     Route::get('cross-check-data', 'getCrossCheckData');
+    //     Route::post('cross-check', 'submitCrossCheck');
+    //     Route::get('schedule', 'getTeacherSchedule');
+    //     Route::get('classroom-summary', 'getClassroomSummary');
+    // });
 });
 
 /*
