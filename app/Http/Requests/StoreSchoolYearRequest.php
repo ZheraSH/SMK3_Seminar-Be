@@ -23,7 +23,7 @@ class StoreSchoolYearRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|unique:school_years,name',
+            'name' => 'nullable|string|unique:school_years,name',
             'active' => 'boolean',
         ];
     }
