@@ -4,14 +4,11 @@ namespace App\Helpers;
 
 class ResponseHelper
 {
-    private static function normalizeCode($code, $default = 400)
-    {
-        $code = intval($code);
-        return $code > 0 ? $code : $default;
-    }
-
     public static function success($data = null, string $message = 'Success', int $code = 200)
     {
+        $validCodes = [200, 201, 202];
+        $code = in_array($code, $validCodes) ? $code : 200;
+        
         return response()->json([
             'status' => true,
             'message' => $message,
@@ -22,7 +19,8 @@ class ResponseHelper
 
     public static function error(string $message = 'Error', $code = 400, $errors = null)
     {
-        $code = self::normalizeCode($code, 400);
+        $validErrorCodes = [400, 401, 403, 404, 422, 500];
+        $code = in_array($code, $validErrorCodes) ? $code : 400;
 
         return response()->json([
             'status' => false,
@@ -37,8 +35,20 @@ class ResponseHelper
         return self::error($message, 404);
     }
 
+    public static function validationError($errors, string $message = 'Validation Error')
+    {
+        return self::error($message, 422, $errors);
+    }
+
+    public static function unauthorized(string $message = 'Unauthorized')
+    {
+        return self::error($message, 401);
+    }
+
     public static function pagination($data, $resourceClass, string $message = 'Success', int $code = 200)
     {
+        $code = in_array($code, [200, 201]) ? $code : 200;
+        
         return response()->json([
             'status' => true,
             'message' => $message,
