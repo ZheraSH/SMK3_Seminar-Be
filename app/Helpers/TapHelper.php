@@ -3,170 +3,122 @@
 namespace App\Helpers;
 
 use App\Enums\AttendanceStatusEnum;
-use App\Enums\TapTypeEnum;
 use Carbon\Carbon;
 
 class TapHelper
 {
-    /**
-     * Check if tap is duplicate (within 5 minutes)
-     */
-    public static function isDuplicateTap($existingAttendance, Carbon $tapTime, string $type): bool
+    // parse rule time like "05:00" or "05:00:00" into Carbon with today's date in Asia/Jakarta
+    public static function parseRuleTimeToCarbon(?string $time): ?Carbon
     {
-        if (!$existingAttendance) {
-            return false;
+        if (!$time) return null;
+        // Normalize to H:i:s
+        $time = strlen($time) === 5 ? $time . ':00' : $time;
+        try {
+            $today = Carbon::now('Asia/Jakarta')->toDateString();
+            return Carbon::createFromFormat('Y-m-d H:i:s', $today . ' ' . $time, 'Asia/Jakarta');
+        } catch (\Throwable $e) {
+            return null;
         }
-
-        if ($type === TapTypeEnum::CHECKIN->value && $existingAttendance->checkin_time) {
-            $existingTime = Carbon::parse($existingAttendance->checkin_time);
-            $timeDifference = $tapTime->diffInMinutes($existingTime);
-            return $timeDifference < 5;
-        }
-
-        if ($type === TapTypeEnum::CHECKOUT->value && $existingAttendance->checkout_time) {
-            $existingTime = Carbon::parse($existingAttendance->checkout_time);
-            $timeDifference = $tapTime->diffInMinutes($existingTime);
-            return $timeDifference < 5;
-        }
-
-        return false;
     }
 
-    /**
-     * Calculate attendance status (present or late)
-     */
-    public static function calculateAttendanceStatus(Carbon $tapTime, Carbon $expectedTime): string
+    // parse any datetime string to Carbon Asia/Jakarta (safe)
+    public static function parseDateTimeToCarbon(?string $dateTime): ?Carbon
     {
-        // Consider 5 minutes grace period
-        $gracePeriod = $expectedTime->copy()->addMinutes(5);
-        
-        if ($tapTime->lte($gracePeriod)) {
-            return AttendanceStatusEnum::PRESENT->value;
+        if (!$dateTime) return null;
+        try {
+            return Carbon::parse($dateTime)->timezone('Asia/Jakarta');
+        } catch (\Throwable $e) {
+            return null;
         }
-
-        return AttendanceStatusEnum::LATE->value;
     }
 
-    /**
-     * Check if time is within specified range
-     */
-    public static function isWithinTimeRange(Carbon $time, ?string $startTime, ?string $endTime): bool
-    {
-        if (!$startTime || !$endTime) {
-            return false;
-        }
-
-        $start = Carbon::parse($startTime)->timezone('Asia/Jakarta');
-        $end = Carbon::parse($endTime)->timezone('Asia/Jakarta');
-
-        return $time->timezone('Asia/Jakarta')->between($start, $end);
-    }
-
-    /**
-     * Format time for display in WIB timezone
-     */
-    public static function formatTimeForDisplay(?string $time): string
-    {
-        if (!$time) return '-';
-        
-        return Carbon::parse($time)
-            ->timezone('Asia/Jakarta')
-            ->format('H:i');
-    }
-
-    /**
-     * Format datetime for display in WIB timezone
-     */
-    public static function formatDateTimeForDisplay(?string $datetime): string
-    {
-        if (!$datetime) return '-';
-        
-        return Carbon::parse($datetime)
-            ->timezone('Asia/Jakarta')
-            ->format('d/m/Y H:i');
-    }
-
-    /**
-     * Get current time in WIB timezone
-     */
-    public static function getCurrentTimeWib(): Carbon
+    public static function nowWib(): Carbon
     {
         return Carbon::now('Asia/Jakarta');
     }
 
-    /**
-     * Calculate minutes late
-     */
-    public static function calculateMinutesLate(Carbon $tapTime, Carbon $expectedTime): int
+    // Check if now within rule start/end (both are rule strings)
+    public static function isWithinTimeRange(Carbon $now, ?string $start, ?string $end): bool
     {
-        if ($tapTime->lte($expectedTime)) {
-            return 0;
+        $s = self::parseRuleTimeToCarbon($start);
+        $e = self::parseRuleTimeToCarbon($end);
+        if (!$s || !$e) return false;
+        return $now->between($s, $e);
+    }
+
+    // Duplicate tap detection (within 5 minutes)
+    public static function isDuplicateTap($attendance, Carbon $tapTime, string $type): bool
+    {
+        if (!$attendance) return false;
+
+        $existing = null;
+        if ($type === 'checkin' && !empty($attendance->checkin_time)) {
+            $existing = self::parseDateTimeToCarbon($attendance->checkin_time);
+        } elseif ($type === 'checkout' && !empty($attendance->checkout_time)) {
+            $existing = self::parseDateTimeToCarbon($attendance->checkout_time);
         }
 
-        return $tapTime->diffInMinutes($expectedTime);
+        if (!$existing) return false;
+
+        return $tapTime->diffInMinutes($existing) < 5;
     }
 
-    /**
-     * Get current day in Indonesian format
-     */
-    public static function getIndonesianDay(): string
+    public static function calculateAttendanceStatus(Carbon $tapTime, Carbon $expected): string
     {
-        $days = [
-            'sunday' => 'Minggu',
-            'monday' => 'Senin',
-            'tuesday' => 'Selasa',
-            'wednesday' => 'Rabu',
-            'thursday' => 'Kamis',
-            'friday' => 'Jumat',
-            'saturday' => 'Sabtu',
-        ];
-
-        $englishDay = strtolower(self::getCurrentTimeWib()->englishDayOfWeek);
-        return $days[$englishDay] ?? $englishDay;
+        $grace = $expected->copy()->addMinutes(5);
+        return $tapTime->lte($grace) ? AttendanceStatusEnum::PRESENT->value : AttendanceStatusEnum::LATE->value;
     }
 
-    /**
-     * Get current date in Indonesian format
-     */
-    public static function getIndonesianDate(): string
+    public static function calculateMinutesLate(Carbon $tapTime, Carbon $expected): int
     {
-        return self::getCurrentTimeWib()->isoFormat('DD MMMM YYYY');
+        if ($tapTime->lte($expected)) return 0;
+        return $tapTime->diffInMinutes($expected);
     }
 
-    /**
-     * Get current time in Indonesian format
-     */
+    // Format helpers for API output
+    public static function formatTimeForDisplay(?string $time): string
+    {
+        if (!$time) return '-';
+        try {
+            // If stored as 'H:i:s' or ISO, parse and return H:i:s
+            return self::parseDateTimeToCarbon($time)?->format('H:i:s') ?? '-';
+        } catch (\Throwable $e) {
+            return '-';
+        }
+    }
+
+    public static function formatDateTimeForDisplay(?string $datetime): string
+    {
+        if (!$datetime) return '-';
+        try {
+            return self::parseDateTimeToCarbon($datetime)?->format('d/m/Y H:i') ?? '-';
+        } catch (\Throwable $e) {
+            return '-';
+        }
+    }
+
     public static function getIndonesianTime(): string
     {
-        return self::getCurrentTimeWib()->format('H:i') . ' WIB';
+        return self::nowWib()->format('H:i') . ' WIB';
     }
 
-    /**
-     * Safe enum value getter
-     */
+    // Safe enum getters (value or label)
     public static function getSafeEnumValue($value, string $enumClass): string
     {
         if ($value instanceof $enumClass) {
             return $value->value;
         }
-    
-        return (string) $value;
+        return (string)$value;
     }
-    
 
-    /**
-     * Safe enum label getter
-     */
     public static function getSafeEnumLabel($value, string $enumClass): string
     {
-        if ($value instanceof $enumClass) {
-            return $value->label();
-        }
+        if ($value instanceof $enumClass) return $value->label();
         try {
             return $enumClass::from($value)->label();
-        } catch (\ValueError $e) {
+        } catch (\Throwable $e) {
             return 'Tidak Diketahui';
         }
     }
-    
 }
+

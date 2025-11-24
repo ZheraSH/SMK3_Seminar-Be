@@ -53,48 +53,48 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
             ->get();
     }
 
-    public function getByTeacherAndDay(string $teacherId, string $day): Collection
+    public function getByTeacherAndDay(string $employeeId, string $day): Collection
     {
         return $this->model->query()
-            ->with(['subject', 'classroom', 'lessonHour', 'teacher.user'])
-            ->where('teacher_id', $teacherId)
+            ->with(['subject', 'classroom', 'lessonHour', 'employee.user'])
+            ->where('employee_id', $employeeId)
             ->where('day', $day)
-            ->orderBy('lesson_order')
+            ->orderBy('lesson_hour_id')
             ->get();
     }
 
     public function getByClassroomAndDay(string $classroomId, string $day): Collection
     {
         return $this->model->query()
-            ->with(['subject', 'classroom', 'lessonHour', 'teacher.user'])
+            ->with(['subject', 'classroom', 'lessonHour', 'employee.user'])
             ->where('classroom_id', $classroomId)
             ->where('day', $day)
-            ->orderBy('lesson_order')
+            ->orderBy('lesson_hour_id')
             ->get();
     }
 
     public function getFirstLessonByClassroomAndDay(string $classroomId, string $day): mixed
     {
         return $this->model->query()
-            ->with(['subject', 'classroom', 'lessonHour', 'teacher.user'])
+            ->with(['subject', 'classroom', 'lessonHour', 'employee.user'])
             ->where('classroom_id', $classroomId)
             ->where('day', $day)
-            ->where('lesson_order', 1)
+            ->orderBy('lesson_hour_id')
             ->first();
     }
 
     public function getByTeacherClassroomAndLessonOrder(
-        string $teacherId,
+        string $employeeId,
         string $classroomId,
         string $day,
-        int $lessonOrder
+        int $lessonHourId
     ): mixed {
         return $this->model->query()
-            ->with(['subject', 'classroom', 'lessonHour', 'teacher.user'])
-            ->where('teacher_id', $teacherId)
+            ->with(['subject', 'classroom', 'lessonHour', 'employee.user'])
+            ->where('employee_id', $employeeId)
             ->where('classroom_id', $classroomId)
             ->where('day', $day)
-            ->where('lesson_order', $lessonOrder)
+            ->where('lesson_hour_id', $lessonHourId)
             ->first();
     }
 
