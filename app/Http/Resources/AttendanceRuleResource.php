@@ -13,7 +13,7 @@ class AttendanceRuleResource extends JsonResource
         return [
             'id' => $this->id,
             'day' => $this->day,
-            'day_label' => $this->day_label ?? $this->day,
+            'day_label' => $this->day?->label(),
             'checkin_start' => TapHelper::parseRuleTimeToCarbon($this->checkin_start)?->format('H:i:s'),
             'checkin_end' => TapHelper::parseRuleTimeToCarbon($this->checkin_end)?->format('H:i:s'),
             'checkout_start' => TapHelper::parseRuleTimeToCarbon($this->checkout_start)?->format('H:i:s'),
