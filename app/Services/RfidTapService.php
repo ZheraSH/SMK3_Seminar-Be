@@ -21,336 +21,196 @@ use Illuminate\Support\Facades\DB;
 class RfidTapService
 {
     public function __construct(
-        private LessonScheduleInterface $lessonSchedule,
-        private StudentInterface $student,
-        private AttendanceInterface $attendance,
-        private AttendanceRuleInterface $attendanceRule,
-        private RfidInterface $rfid
+        private RfidInterface $rfidRepo,
+        private StudentInterface $studentRepo,
+        private AttendanceInterface $attendanceRepo,
+        private AttendanceRuleInterface $attendanceRuleRepo,
+        private LessonScheduleInterface $lessonScheduleRepo
     ) {}
 
-    /**
-     * Process RFID tap request
-     */
     public function processTap(Request $request): array
     {
         return DB::transaction(function () use ($request) {
-            $rfid = $this->validateRfid($request->rfid);
-            $student = $this->validateStudent($rfid);
-            $timeValidation = $this->validateTapTime();
-
-            if (!$timeValidation['valid']) {
-                return $this->createErrorResponse(
-                    $timeValidation['status'],
-                    $timeValidation['message'],
-                    $student,
-                    $rfid
-                );
+            $rfidValue = $request->input('rfid');
+            if (!$rfidValue) {
+                return $this->errorResponse(TapStatusEnum::INVALID, 'RFID is required');
             }
 
-            return $this->processAttendance(
-                $student,
-                $rfid,
-                $timeValidation['rule'],
-                $timeValidation['now'],
-                $timeValidation['isCheckinTime'],
-                $timeValidation['isCheckoutTime']
-            );
+            // validate rfid
+            $rfid = $this->rfidRepo->getByRfidNumber($rfidValue);
+            if (!$rfid) return $this->errorResponse(TapStatusEnum::INVALID, 'Kartu RFID tidak valid');
+
+            if (TapHelper::getSafeEnumValue($rfid->status, RfidStatusEnum::class) !== RfidStatusEnum::ACTIVE->value) {
+                return $this->errorResponse(TapStatusEnum::INVALID, 'Kartu RFID tidak aktif', null, $rfid);
+            }
+
+            // student
+            $student = $rfid->student;
+            if (!$student) return $this->errorResponse(TapStatusEnum::INVALID, 'Kartu RFID belum terhubung ke siswa', null, $rfid);
+
+            $student->load(['user','classroomStudents.classroom.major','classroomStudents.classroom.levelClass']);
+
+            if (TapHelper::getSafeEnumValue($student->status, StudentStatusEnum::class) !== StudentStatusEnum::ACTIVE->value) {
+                return $this->errorResponse(TapStatusEnum::INVALID, 'Siswa tidak aktif', $student, $rfid);
+            }
+
+            $activeClassroom = $student->classroomStudents->where('status', StudentStatusEnum::ACTIVE->value)->first();
+            if (!$activeClassroom) {
+                return $this->errorResponse(TapStatusEnum::INVALID, 'Siswa tidak terdaftar di kelas aktif', $student, $rfid);
+            }
+
+            // time rules
+            $now = TapHelper::nowWib();
+            $day = strtolower($now->englishDayOfWeek);
+            $rule = $this->attendanceRuleRepo->getByDay($day);
+
+            if (!$rule) {
+                return $this->errorResponse(TapStatusEnum::INVALID, 'Tidak ada aturan absensi untuk hari ini', $student, $rfid);
+            }
+
+            if ($rule->is_holiday) {
+                return $this->errorResponse(TapStatusEnum::INVALID, 'Hari ini libur', $student, $rfid);
+            }
+
+            $isCheckinTime = TapHelper::isWithinTimeRange($now, $rule->checkin_start, $rule->checkin_end);
+            $isCheckoutTime = TapHelper::isWithinTimeRange($now, $rule->checkout_start, $rule->checkout_end);
+
+            if (!$isCheckinTime && !$isCheckoutTime) {
+                $startDisplay = TapHelper::parseRuleTimeToCarbon($rule->checkin_start)?->format('H:i') ?? '-';
+                $status = $now->lessThan(TapHelper::parseRuleTimeToCarbon($rule->checkin_start) ?? $now) ? TapStatusEnum::BEFORE_TIME : TapStatusEnum::AFTER_TIME;
+                $message = $status === TapStatusEnum::BEFORE_TIME ? 'Belum waktu absen. Jam absen masuk: ' . $startDisplay : 'Sudah lewat waktu absen';
+                return $this->errorResponse($status, $message, $student, $rfid);
+            }
+
+            // fetch today's attendance (repo must implement getTodayByStudent)
+            $todayAttendance = $this->attendanceRepo->getTodayByStudent($student->id);
+
+            if ($isCheckinTime) {
+                return $this->handleCheckin($student, $rfid, $rule, $now, $todayAttendance, $activeClassroom);
+            }
+
+            return $this->handleCheckout($student, $rfid, $rule, $now, $todayAttendance);
         });
     }
 
-    private function validateRfid(string $rfidNumber)
-    {
-        $rfid = $this->rfid->getByRfidNumber($rfidNumber);
-
-        if (!$rfid) {
-            throw new \Exception('Kartu RFID tidak valid', 400);
-        }
-
-        $statusValue = TapHelper::getSafeEnumValue($rfid->status, RfidStatusEnum::class);
-
-        if ($statusValue !== RfidStatusEnum::ACTIVE->value) {
-            throw new \Exception('Kartu RFID tidak aktif', 400);
-        }
-
-        return $rfid;
-    }
-
-    private function validateStudent($rfid)
-    {
-        $student = $rfid->student;
-
-        if (!$student) {
-            throw new \Exception('Kartu RFID belum terhubung ke siswa', 400);
-        }
-
-        $student->load([
-            'user',
-            'classroomStudents.classroom.major',
-            'classroomStudents.classroom.levelClass'
-        ]);
-
-        $statusValue = TapHelper::getSafeEnumValue($student->status, StudentStatusEnum::class);
-
-        if ($statusValue !== StudentStatusEnum::ACTIVE->value) {
-            throw new \Exception('Siswa tidak aktif', 400);
-        }
-
-        if (!$this->getActiveClassroom($student)) {
-            throw new \Exception('Siswa tidak terdaftar di kelas aktif', 400);
-        }
-
-        return $student;
-    }
-
-    private function validateTapTime(): array
-    {
-        $now = TapHelper::getCurrentTimeWib();
-        $day = strtolower($now->englishDayOfWeek);
-
-        $rule = $this->attendanceRule->getByDay($day);
-
-        if (!$rule) {
-            return [
-                'valid' => false,
-                'status' => TapStatusEnum::INVALID,
-                'message' => 'Tidak ada aturan absensi untuk hari ini (' . TapHelper::getIndonesianDay() . ')'
-            ];
-        }
-
-        if ($rule->is_holiday) {
-            return [
-                'valid' => false,
-                'status' => TapStatusEnum::INVALID,
-                'message' => 'Hari ini libur (' . TapHelper::getIndonesianDay() . ')'
-            ];
-        }
-
-        $isCheckinTime = TapHelper::isWithinTimeRange($now, $rule->checkin_start, $rule->checkin_end);
-        $isCheckoutTime = TapHelper::isWithinTimeRange($now, $rule->checkout_start, $rule->checkout_end);
-
-        if (!$isCheckinTime && !$isCheckoutTime) {
-            $status = $now->lessThan(Carbon::parse($rule->checkin_start)->timezone('Asia/Jakarta')) 
-                ? TapStatusEnum::BEFORE_TIME 
-                : TapStatusEnum::AFTER_TIME;
-
-            $message = $now->lessThan(Carbon::parse($rule->checkin_start)->timezone('Asia/Jakarta'))
-                ? 'Belum waktu absen. Jam absen masuk: ' . TapHelper::formatTimeForDisplay($rule->checkin_start)
-                : 'Sudah lewat waktu absen';
-
-            return [
-                'valid' => false,
-                'status' => $status,
-                'message' => $message
-            ];
-        }
-
-        return [
-            'valid' => true,
-            'rule' => $rule,
-            'now' => $now,
-            'isCheckinTime' => $isCheckinTime,
-            'isCheckoutTime' => $isCheckoutTime
-        ];
-    }
-
-    private function processAttendance($student, $rfid, $rule, Carbon $now, bool $isCheckinTime, bool $isCheckoutTime): array
-    {
-        $todayAttendance = $this->attendance->getTodayByStudent($student->id);
-
-        if ($isCheckinTime) {
-            return $this->processCheckin($student, $rfid, $rule, $now, $todayAttendance);
-        }
-
-        return $this->processCheckout($student, $rfid, $rule, $now, $todayAttendance);
-    }
-
-    private function processCheckin($student, $rfid, $rule, Carbon $now, $todayAttendance)
+    private function handleCheckin($student, $rfid, $rule, Carbon $now, $todayAttendance, $activeClassroom): array
     {
         if ($todayAttendance && TapHelper::isDuplicateTap($todayAttendance, $now, TapTypeEnum::CHECKIN->value)) {
-            return $this->createDuplicateResponse(
-                $student,
-                $todayAttendance,
-                TapTypeEnum::CHECKIN,
-                'Absen masuk sudah tercatat hari ini'
-            );
+            return $this->duplicateResponse($student, $todayAttendance, TapTypeEnum::CHECKIN, 'Absen masuk sudah tercatat sebelumnya', $rfid);
         }
 
-        $isFirstLesson = $this->isFirstLessonTime($student, $now);
+        // check first lesson window (safe)
+        $firstLesson = $this->lessonScheduleRepo->getFirstLessonByClassroomAndDay($activeClassroom->classroom_id ?? $activeClassroom->id, strtolower($now->englishDayOfWeek));
+        $isFirstLesson = false;
+        if ($firstLesson && $firstLesson->lessonHour) {
+            $start = TapHelper::parseRuleTimeToCarbon($firstLesson->lessonHour->start);
+            $end = TapHelper::parseRuleTimeToCarbon($firstLesson->lessonHour->end);
+            $isFirstLesson = $start && $end && $now->between($start, $end);
+        }
 
         if (!$isFirstLesson) {
-            return $this->createTapRecordResponse(
-                $student,
-                $rfid,
-                $now,
-                'Tap berhasil dicatat. Absensi akan dilakukan oleh guru pada jam pelajaran pertama'
-            );
+            return $this->tapRecordResponse($student, $rfid, $now, 'Tap berhasil. Absensi akan dilakukan guru pada jam pelajaran pertama');
         }
 
-        $expectedTime = Carbon::parse($rule->checkin_start)->timezone('Asia/Jakarta');
-        $attendanceStatus = TapHelper::calculateAttendanceStatus($now, $expectedTime);
-        $minutesLate = TapHelper::calculateMinutesLate($now, $expectedTime);
+        $expected = TapHelper::parseRuleTimeToCarbon($rule->checkin_start) ?? $now;
+        $status = TapHelper::calculateAttendanceStatus($now, $expected);
+        $minutesLate = TapHelper::calculateMinutesLate($now, $expected);
 
-        $classroomStudent = $student->classroomStudents
-            ->where('status', StudentStatusEnum::ACTIVE->value)
-            ->first();
-
-        $attendanceData = [
+        $data = [
             'student_id' => $student->id,
-            'classroom_student_id' => $classroomStudent?->id,
-            'classroom_id' => $classroomStudent?->classroom_id,
+            'classroom_student_id' => $activeClassroom->id,
+            'classroom_id' => $activeClassroom->classroom_id ?? ($activeClassroom->classroom->id ?? null),
             'rfid_id' => $rfid->id,
             'date' => $now->toDateString(),
             'checkin_time' => $now->toDateTimeString(),
-            'status' => $attendanceStatus,
+            'status' => $status,
             'tap_type' => TapTypeEnum::CHECKIN->value,
             'proof' => AttendanceProofEnum::RFID->value,
             'minutes_late' => $minutesLate,
         ];
 
         if ($todayAttendance) {
-            $this->attendance->update($todayAttendance->id, $attendanceData);
-            $attendance = $this->attendance->show($todayAttendance->id);
+            $attendance = $this->attendanceRepo->update($todayAttendance->id, $data);
+            $attendance = $this->attendanceRepo->show($todayAttendance->id);
         } else {
-            $newAttendance = $this->attendance->store($attendanceData);
-            $attendance = $this->attendance->show($newAttendance->id);
+            $new = $this->attendanceRepo->store($data);
+            $attendance = $this->attendanceRepo->show($new->id);
         }
 
-        $message = $attendanceStatus === AttendanceStatusEnum::PRESENT->value 
-            ? 'Hadir tepat waktu' 
-            : 'Terlambat ' . $minutesLate . ' menit';
+        $message = $status === AttendanceStatusEnum::PRESENT->value ? 'Hadir tepat waktu' : ("Terlambat {$minutesLate} menit");
 
-        return $this->createSuccessResponse(
-            TapStatusEnum::VALID,
-            $message,
-            $student,
-            $rfid,
-            $attendance,
-            TapTypeEnum::CHECKIN,
-            $attendanceStatus
-        );
+        return $this->successResponse(TapStatusEnum::VALID, $message, $student, $rfid, $attendance, TapTypeEnum::CHECKIN);
     }
 
-    private function processCheckout($student, $rfid, $rule, Carbon $now, $todayAttendance)
+    private function handleCheckout($student, $rfid, $rule, Carbon $now, $todayAttendance): array
     {
         if (!$todayAttendance) {
-            throw new \Exception('Belum melakukan absen masuk hari ini');
+            return $this->errorResponse(TapStatusEnum::INVALID, 'Belum melakukan absen masuk hari ini', $student, $rfid);
         }
 
-        if ($todayAttendance->checkout_time) {
-            return $this->createDuplicateResponse(
-                $student,
-                $todayAttendance,
-                TapTypeEnum::CHECKOUT,
-                'Absen pulang sudah tercatat hari ini'
-            );
+        if ($todayAttendance->checkout_time && TapHelper::isDuplicateTap($todayAttendance, $now, TapTypeEnum::CHECKOUT->value)) {
+            return $this->duplicateResponse($student, $todayAttendance, TapTypeEnum::CHECKOUT, 'Absen pulang sudah tercatat sebelumnya', $rfid);
         }
 
-        $this->attendance->update($todayAttendance->id, [
+        $this->attendanceRepo->update($todayAttendance->id, [
             'checkout_time' => $now->toDateTimeString(),
             'tap_type' => TapTypeEnum::CHECKOUT->value,
         ]);
 
-        $updatedAttendance = $this->attendance->show($todayAttendance->id);
-
-        return $this->createSuccessResponse(
-            TapStatusEnum::VALID,
-            'Absen pulang berhasil',
-            $student,
-            $rfid,
-            $updatedAttendance,
-            TapTypeEnum::CHECKOUT
-        );
+        $updated = $this->attendanceRepo->show($todayAttendance->id);
+        return $this->successResponse(TapStatusEnum::VALID, 'Absen pulang berhasil', $student, $rfid, $updated, TapTypeEnum::CHECKOUT);
     }
 
-    private function isFirstLessonTime($student, Carbon $now): bool
+    private function successResponse($statusEnum, string $message, $student, $rfid, $attendance, $type): array
     {
-        $classroom = $this->getActiveClassroom($student);
-
-        if (!$classroom) {
-            return false;
-        }
-
-        $day = strtolower($now->englishDayOfWeek);
-        $firstLesson = $this->lessonSchedule->getFirstLessonByClassroomAndDay($classroom->id, $day);
-
-        if (!$firstLesson || !$firstLesson->lessonHour) {
-            return false;
-        }
-
-        $startTime = Carbon::parse($firstLesson->lessonHour->start)->timezone('Asia/Jakarta');
-        $endTime = Carbon::parse($firstLesson->lessonHour->end)->timezone('Asia/Jakarta');
-
-        return $now->between($startTime, $endTime);
-    }
-
-    private function getActiveClassroom($student)
-    {
-        return $student->classroomStudents
-            ->where('status', StudentStatusEnum::ACTIVE->value)
-            ->first()
-            ?->classroom;
-    }
-
-    private function createSuccessResponse(
-        TapStatusEnum $status,
-        string $message,
-        $student,
-        $rfid,
-        $attendance,
-        TapTypeEnum $type,
-        ?string $attendanceStatus = null
-    ): array {
         return [
-            'status' => $status->value,
+            'status' => $statusEnum->value,
             'message' => $message,
             'type' => $type->value,
-            'attendance_status' => $attendanceStatus,
+            'attendance_status' => $attendance ? TapHelper::getSafeEnumValue($attendance->status, \App\Enums\AttendanceStatusEnum::class) : null,
             'requires_manual_attendance' => false,
-            'student' => $this->formatStudentData($student),
-            'rfid' => $this->formatRfidData($rfid),
-            'attendance' => $this->formatAttendanceData($attendance),
-            'timestamp' => TapHelper::getCurrentTimeWib()->toISOString(),
+            'student' => $this->formatStudent($student),
+            'rfid' => $this->formatRfid($rfid),
+            'attendance' => $this->formatAttendance($attendance),
+            'timestamp' => TapHelper::nowWib()->toISOString(),
             'indonesian_time' => TapHelper::getIndonesianTime(),
         ];
     }
 
-    private function createErrorResponse(
-        TapStatusEnum $status, 
-        string $message, 
-        $student = null, 
-        $rfid = null
-    ): array {
+    private function errorResponse($statusEnum, string $message, $student = null, $rfid = null)
+    {
+        $now = TapHelper::nowWib();
         return [
-            'status' => $status->value,
+            'status' => $statusEnum->value,
             'message' => $message,
             'type' => null,
             'attendance_status' => null,
             'requires_manual_attendance' => false,
-            'student' => $student ? $this->formatStudentData($student) : null,
-            'rfid' => $rfid ? $this->formatRfidData($rfid) : null,
+            'student' => $student ? $this->formatStudent($student) : null,
+            'rfid' => $rfid ? $this->formatRfid($rfid) : null,
             'attendance' => null,
-            'timestamp' => TapHelper::getCurrentTimeWib()->toISOString(),
+            'timestamp' => $now->toISOString(),
             'indonesian_time' => TapHelper::getIndonesianTime(),
         ];
     }
 
-    private function createDuplicateResponse($student, $attendance, TapTypeEnum $type, string $message): array
+    private function duplicateResponse($student, $attendance, $type, $message, $rfid = null)
     {
         return [
             'status' => TapStatusEnum::DUPLICATE->value,
             'message' => $message,
             'type' => $type->value,
-            'attendance_status' => TapHelper::getSafeEnumValue($attendance->status, AttendanceStatusEnum::class),
+            'attendance_status' => TapHelper::getSafeEnumValue($attendance->status, \App\Enums\AttendanceStatusEnum::class),
             'requires_manual_attendance' => false,
-            'student' => $this->formatStudentData($student),
-            'rfid' => null,
-            'attendance' => $this->formatAttendanceData($attendance),
-            'timestamp' => TapHelper::getCurrentTimeWib()->toISOString(),
+            'student' => $this->formatStudent($student),
+            'rfid' => $rfid ? $this->formatRfid($rfid) : null,
+            'attendance' => $this->formatAttendance($attendance),
+            'timestamp' => TapHelper::nowWib()->toISOString(),
             'indonesian_time' => TapHelper::getIndonesianTime(),
         ];
     }
 
-    private function createTapRecordResponse($student, $rfid, Carbon $now, string $message): array
+    private function tapRecordResponse($student, $rfid, Carbon $now, string $message)
     {
         return [
             'status' => TapStatusEnum::VALID->value,
@@ -358,34 +218,33 @@ class RfidTapService
             'type' => TapTypeEnum::CHECKIN->value,
             'attendance_status' => null,
             'requires_manual_attendance' => true,
-            'student' => $this->formatStudentData($student),
-            'rfid' => $this->formatRfidData($rfid),
+            'student' => $this->formatStudent($student),
+            'rfid' => $this->formatRfid($rfid),
             'attendance' => null,
             'timestamp' => $now->toISOString(),
             'indonesian_time' => TapHelper::getIndonesianTime(),
         ];
     }
 
-    private function formatStudentData($student): array
+    private function formatStudent($student): array
     {
-        $classroom = $this->getActiveClassroom($student);
-
+        $classroom = $student->classroomStudents->where('status', StudentStatusEnum::ACTIVE->value)->first()?->classroom ?? null;
         return [
             'id' => $student->id,
-            'name' => $student->user->name,
-            'nisn' => $student->nisn,
+            'name' => $student->user->name ?? null,
+            'nisn' => $student->nisn ?? null,
             'status' => TapHelper::getSafeEnumValue($student->status, StudentStatusEnum::class),
             'status_label' => TapHelper::getSafeEnumLabel($student->status, StudentStatusEnum::class),
             'classroom' => $classroom ? [
                 'id' => $classroom->id,
                 'name' => $classroom->name,
-                'major' => $classroom->major->code,
-                'level_class' => $classroom->levelClass->name,
+                'major' => $classroom->major->code ?? null,
+                'level_class' => $classroom->levelClass->name ?? null,
             ] : null,
         ];
     }
 
-    private function formatRfidData($rfid): array
+    private function formatRfid($rfid): array
     {
         return [
             'id' => $rfid->id,
@@ -395,12 +254,9 @@ class RfidTapService
         ];
     }
 
-    private function formatAttendanceData($attendance): ?array
+    private function formatAttendance($attendance): ?array
     {
-        if (!$attendance) {
-            return null;
-        }
-
+        if (!$attendance) return null;
         return [
             'id' => $attendance->id,
             'date' => $attendance->date,
@@ -408,10 +264,6 @@ class RfidTapService
             'checkout_time' => TapHelper::formatDateTimeForDisplay($attendance->checkout_time),
             'status' => TapHelper::getSafeEnumValue($attendance->status, AttendanceStatusEnum::class),
             'status_label' => TapHelper::getSafeEnumLabel($attendance->status, AttendanceStatusEnum::class),
-            'tap_type' => TapHelper::getSafeEnumValue($attendance->tap_type, TapTypeEnum::class),
-            'tap_type_label' => TapHelper::getSafeEnumLabel($attendance->tap_type, TapTypeEnum::class),
-            'proof' => TapHelper::getSafeEnumValue($attendance->proof, AttendanceProofEnum::class),
-            'proof_label' => TapHelper::getSafeEnumLabel($attendance->proof, AttendanceProofEnum::class),
             'minutes_late' => $attendance->minutes_late ?? 0,
         ];
     }

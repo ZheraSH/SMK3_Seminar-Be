@@ -4,20 +4,21 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Helpers\TapHelper;
 
 class AttendanceRuleResource extends JsonResource
 {
-    public function toArray(Request $request): array
+    public function toArray($request): array
     {
         return [
             'id' => $this->id,
-            'day' => $this->day?->value,
-            'day_label' => $this->day?->label(),
-            'checkin_start' => $this->checkin_start,
-            'checkin_end' => $this->checkin_end,
-            'checkout_start' => $this->checkout_start,
-            'checkout_end' => $this->checkout_end,
-            'is_holiday' => $this->is_holiday,
+            'day' => $this->day,
+            'day_label' => $this->day_label ?? $this->day,
+            'checkin_start' => TapHelper::parseRuleTimeToCarbon($this->checkin_start)?->format('H:i:s'),
+            'checkin_end' => TapHelper::parseRuleTimeToCarbon($this->checkin_end)?->format('H:i:s'),
+            'checkout_start' => TapHelper::parseRuleTimeToCarbon($this->checkout_start)?->format('H:i:s'),
+            'checkout_end' => TapHelper::parseRuleTimeToCarbon($this->checkout_end)?->format('H:i:s'),
+            'is_holiday' => (bool) $this->is_holiday,
         ];
     }
 }

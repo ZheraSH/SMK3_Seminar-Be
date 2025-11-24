@@ -16,7 +16,7 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
 
     public function get(): Collection
     {
-        return $this->model->get();
+        return $this->model->query()->get();
     }
 
     public function paginate($perPage = 15): LengthAwarePaginator
@@ -31,12 +31,7 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
 
     public function store(array $data): Attendance
     {
-        return $this->model->create($data);
-    }
-
-    public function update($id, array $data): bool
-    {
-        return $this->model->findOrFail($id)->update($data);
+        return $this->model->query()->create($data);
     }
 
     public function show($id): Attendance
@@ -44,9 +39,14 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
         return $this->model->findOrFail($id);
     }
 
+    public function update($id, array $data): bool
+    {
+        return $this->model->show($id)->update($data);
+    }
+
     public function delete($id): bool
     {
-        return $this->model->findOrFail($id)->delete();
+        return $this->model->show($id)->delete();
     }
 
     public function getByStudentAndDate(string $studentId, string $date): mixed

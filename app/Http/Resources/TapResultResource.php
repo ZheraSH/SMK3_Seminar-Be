@@ -8,17 +8,18 @@ class TapResultResource extends JsonResource
 {
     public function toArray($request)
     {
+        $data = is_array($this->resource) ? $this->resource : $this->resource->toArray();
         return [
-            'status' => $this['status'] ?? null,
-            'message' => $this['message'] ?? null,
-            'type' => $this['type'] ?? null,
-            'attendance_status' => $this['attendance_status'] ?? null,
-            'requires_manual_attendance' => $this['requires_manual_attendance'] ?? false,
-            'student' => $this['student'] ?? null,
-            'rfid' => $this['rfid'] ?? null,
-            'attendance' => $this['attendance'] ?? null,
-            'timestamp' => $this['timestamp'] ?? null,
-            'indonesian_time' => $this['indonesian_time'] ?? null,
+            'status' => $data['status'] ?? null,
+            'message' => $data['message'] ?? null,
+            'type' => $data['type'] ?? null,
+            'attendance_status' => $data['attendance_status'] ?? null,
+            'requires_manual_attendance' => $data['requires_manual_attendance'] ?? false,
+            'student' => $data['student'] ?? null,
+            'rfid' => $data['rfid'] ?? null,
+            'attendance' => $data['attendance'] ?? null,
+            'timestamp' => $data['timestamp'] ?? now()->toISOString(),
+            'indonesian_time' => $data['indonesian_time'] ?? null,
         ];
     }
 }
