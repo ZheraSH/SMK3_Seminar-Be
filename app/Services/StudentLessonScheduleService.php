@@ -4,112 +4,99 @@ namespace App\Services;
 
 use App\Contracts\Interfaces\StudentLessonScheduleInterface;
 use Illuminate\Database\Eloquent\Collection;
+use Carbon\Carbon;
 
 class StudentLessonScheduleService
 {
     public function __construct(
-        private StudentLessonScheduleInterface $studentLessonScheduleRepository
+        private StudentLessonScheduleInterface $scheduleRepo
     ) {}
 
     public function getSchedule(string $studentId, ?string $day = null): array
     {
-        $schedules = $this->studentLessonScheduleRepository->getSchedule($studentId, $day);
-        return $this->formatSchedule($schedules);
-    }
+        // Ambil student + kelas aktif
+        $student = $this->scheduleRepo->getStudentById($studentId);
+        $classroomId = $student->classroomStudents()
+            ->where('status', 'ACTIVE')
+            ->first()?->classroom_id;
 
-    private function formatSchedule(Collection $schedules): array
-    {
-        $schedules = $schedules->sortBy(fn($s) => $s->lessonHour->start);
+        $allHours = $this->scheduleRepo->getAllLessonHoursByDay($day);
+
+        $schedules = $this->scheduleRepo
+            ->getSchedule($studentId, $day)
+            ->filter(fn($s) => $s->classroom_id === $classroomId)
+            ->groupBy('lesson_hour_id');
+
 
         $formatted = [];
         $order = 1;
 
-        $breakTimes = [
-            [
-                'start' => '09:15',
-                'end'   => '10:00',
-                'name'  => 'Istirahat'
-            ],
-            [
-                'start' => '12:10',
-                'end'   => '13:00',
-                'name'  => 'Istirahat ke dua'
-            ]
-        ];
+        foreach ($allHours as $hour) {
+            $startTime = Carbon::parse($hour->start)->format('H:i');
+            $endTime   = Carbon::parse($hour->end)->format('H:i');
 
-        $timeSlots = [];
-        foreach ($schedules as $schedule) {
-            $startTime = $this->formatTimeWithoutSeconds($schedule->lessonHour->start);
-            $endTime = $this->formatTimeWithoutSeconds($schedule->lessonHour->end);
-            $timeKey = "{$startTime}-{$endTime}";
-
-            if (!isset($timeSlots[$timeKey])) {
-                $timeSlots[$timeKey] = [
-                    'time_range' => "{$startTime} - {$endTime}",
-                    'penempatan' => $schedule->lessonHour->name,
-                    'schedules' => []
-                ];
-            }
-
-            $timeSlots[$timeKey]['schedules'][] = $schedule;
-        }
-
-        ksort($timeSlots);
-
-        foreach ($timeSlots as $timeSlot) {
-            $timeRange = $timeSlot['time_range'];
-            $namaJam   = $timeSlot['penempatan'];
-            $isBreak = $this->isBreakTime($breakTimes, $timeRange);
-
-            if ($isBreak) {
+            if (!$hour->is_lesson) {
+                // Format Istirahat
                 $formatted[] = [
-                    'no'             => $order++,
-                    'jam'            => $timeRange,
-                    'penempatan'     => $isBreak['name'],
-                    'mata_pelajaran' => '',
-                    'guru'           => ''
+                    'no' => $order++,
+                    'jam' => "{$startTime} - {$endTime}",
+                    'penempatan' => $this->getBreakLabel($hour->name),
+                    'mata_pelajaran' => 'Istirahat',
+                    'guru' => null,
                 ];
             } else {
-                $schedule = $timeSlot['schedules'][0];
-                $formatted[] = [
-                    'no'             => $order++,
-                    'jam'            => $timeRange,
-                    'penempatan'     => $namaJam,
-                    'mata_pelajaran' => $schedule->subject->name,
-                    'guru'           => $schedule->employee->user->name
-                ];
+                if (isset($schedules[$hour->id])) {
+                    foreach ($schedules[$hour->id] as $schedule) {
+                        $formatted[] = [
+                            'no' => $order++,
+                            'jam' => "{$startTime} - {$endTime}",
+                            'penempatan' => $hour->name,
+                            'mata_pelajaran' => $schedule->subject->name ?? '-',
+                            'guru' => $schedule->employee->user->name ?? '-',
+                        ];
+                    }
+                } else {
+                    $formatted[] = [
+                        'no' => $order++,
+                        'jam' => "{$startTime} - {$endTime}",
+                        'penempatan' => $hour->name,
+                        'mata_pelajaran' => '-',
+                        'guru' => null,
+                    ];
+                }
             }
         }
 
         return $formatted;
     }
 
-    private function formatTimeWithoutSeconds(string $time): string
+    private function getBreakLabel(string $breakName): string
     {
-        return \Carbon\Carbon::parse($time)->format('H:i');
-    }
+        $breakMap = [
+            'Istirahat' => 'Istirahat Pertama',
+            'Istirahat 1' => 'Istirahat Pertama',
+            'Istirahat 2' => 'Istirahat Ke Dua',
+            'break_1' => 'Istirahat Pertama',
+            'break_2' => 'Istirahat Ke Dua'
+        ];
 
-    private function isBreakTime(array $breakTimes, string $timeRange): ?array
-    {
-        foreach ($breakTimes as $break) {
-            $breakRange = "{$break['start']} - {$break['end']}"; 
-            if ($timeRange === $breakRange) {
-                return $break;
-            }
-        }
-        return null;
+        return $breakMap[$breakName] ?? $breakName;
     }
 
     public function getDayName(?string $day): string
     {
-        $days = [
-            'monday'    => 'Senin',
-            'tuesday'   => 'Selasa',
+        $map = [
+            'monday' => 'Senin',
+            'tuesday' => 'Selasa',
             'wednesday' => 'Rabu',
-            'thursday'  => 'Kamis',
-            'friday'    => 'Jumat'
+            'thursday' => 'Kamis',
+            'friday' => 'Jumat',
+            'saturday' => 'Sabtu',
+            'sunday' => 'Minggu'
         ];
 
-        return $days[strtolower($day)] ?? 'Semua Hari';
+        return isset($map[strtolower((string)$day)])
+            ? $map[strtolower($day)]
+            : 'Semua Hari';
     }
 }

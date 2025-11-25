@@ -26,6 +26,27 @@ class SemesterHelper
         return $data;
     }
 
+        public static function getSemesterLabel(?string $semester = null): string
+    {
+        if (!$semester) {
+            $currentSemester = self::getSemester();
+            $semester = $currentSemester['semester'];
+        }
+
+        $currentYear = now()->year;
+        $nextYear = $currentYear + 1;
+        
+        return "Semester {$semester} {$currentYear}/{$nextYear}";
+    }
+
+    public static function getSchoolYear(): string
+    {
+        $currentYear = now()->year;
+        $nextYear = $currentYear + 1;
+        return "{$currentYear}/{$nextYear}";
+    }
+
+
     public static function commitSemester(): void
     {
         $semester = self::getSemester();
