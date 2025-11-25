@@ -112,19 +112,25 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             ->first();
     }
 
-    public function getByClassroom(string $classroomId, Request $request = null): \Illuminate\Database\Eloquent\Collection
+    public function getByClassroom(string $classroomId, Request $request = null): LengthAwarePaginator
     {
         $query = $this->model->query()
             ->with([
                 'student.user',
+                'student.classroomStudents.classroom.major',
+                'student.classroomStudents.classroom.levelClass',
+                'student.classroomStudents.classroom.schoolYear',
+                'student.classroomStudents.classroom.teacher.user',
+                'student.rfid',
                 'classroom.major',
                 'classroom.levelClass',
                 'classroom.schoolYear',
+                'classroom.teacher.user',
             ])
             ->where('classroom_id', $classroomId)
             ->where('status', StudentStatusEnum::ACTIVE->value);
 
-        return $query->get();
+        return $query->latest()->paginate($request->limit ?? 8);
     }
 
     public function getByClassroomPaginated(string $classroomId, Request $request = null): LengthAwarePaginator
