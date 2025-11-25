@@ -31,7 +31,6 @@ class LessonScheduleService
     {
         $data = $request->validated();
         $this->validateScheduleConflict($data, $id);
-
         $this->lessonSchedule->update($id, $data);
 
         return $this->lessonSchedule->show($id);
@@ -58,18 +57,57 @@ class LessonScheduleService
 
     public function getByClassroom(string $classroomId)
     {
-        return $this->classroom->getWithSchedulesById($classroomId);
-    }
+        $classroom = $this->classroom->getWithSchedulesById($classroomId);
+        $schedules = $this->lessonSchedule->getByClassroom($classroomId);
+    
+        $lessonHours = \App\Models\LessonHour::orderBy('day')
+            ->orderBy('start')
+            ->get();
+    
+        $merged = $lessonHours->map(function($hour) use ($schedules) {
+            $schedule = $schedules->firstWhere('lesson_hour_id', $hour->id);
+    
+            return $schedule ?? (object)[
+                'id' => null,
+                'day' => $hour->day,
+                'lesson_hour_id' => $hour->id,
+                'lessonHour' => $hour,
+                'subject' => null,
+                'employee' => null
+            ];
+        });
+    
+        return [
+            'classroom' => $classroom,
+            'schedules' => $merged
+        ];
+    }    
 
     public function getByClassroomAndDay(string $classroomId, string $day): array
     {
         $classroom = $this->classroom->getWithSchedulesById($classroomId);
         $schedules = $this->lessonSchedule->getByClassroomAndDay($classroomId, $day);
 
+        $lessonHours = \App\Models\LessonHour::where('day', $day)
+            ->orderBy('start')
+            ->get();
+
+        $merged = $lessonHours->map(function($hour) use ($schedules) {
+            $schedule = $schedules->firstWhere('lesson_hour_id', $hour->id);
+    
+            return $schedule ?? (object)[
+                'id' => null,
+                'lesson_hour_id' => $hour->id,
+                'lessonHour' => $hour,
+                'subject' => null,
+                'employee' => null
+            ];
+        });
+
         return [
             'classroom' => $classroom,
             'day' => $day,
-            'schedules' => $schedules,
+            'schedules' => $merged
         ];
     }
 

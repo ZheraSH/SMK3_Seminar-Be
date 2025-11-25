@@ -20,20 +20,6 @@ class LessonSchedulesController extends Controller
         $this->lessonScheduleService = $lessonScheduleService;
     }
 
-    public function index()
-    {
-        try {
-            $data = $this->lessonScheduleService->getAllClassroomsWithSchedules();
-
-            return ResponseHelper::success(
-                ClassroomScheduleResource::collection($data),
-                'Data jadwal pelajaran semua kelas berhasil diambil'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
-        }
-    }
-
     public function store(StoreLessonSchedulesRequest $request)
     {
         try {
@@ -46,20 +32,6 @@ class LessonSchedulesController extends Controller
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
-        }
-    }
-
-    public function show(string $id)
-    {
-        try {
-            $data = $this->lessonScheduleService->show($id);
-
-            return ResponseHelper::success(
-                new LessonScheduleResource($data),
-                'Detail jadwal pelajaran berhasil diambil'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::notFound('Jadwal pelajaran tidak ditemukan');
         }
     }
 
