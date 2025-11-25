@@ -91,11 +91,15 @@ class LoginService
     private function mapUser(User $user): array
     {
         return [
-            'id'    => $user->id,
-            'name'  => $user->name,
+            'id' => $user->id,
+            'name' => $user->name,
             'email' => $user->email,
-            'is_student' => (bool) $user->student,
-            'is_employee' => (bool) $user->employee,
+            'employee_id' => $user->employee?->id,
+            'student_id' => $user->student?->id,
+            'roles' => $user->roles->map(fn ($role) => [
+                'id' => $role->id,
+                'name' => $role->name
+            ]),
         ];
     }
 }
