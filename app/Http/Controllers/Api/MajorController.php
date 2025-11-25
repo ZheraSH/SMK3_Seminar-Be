@@ -29,18 +29,4 @@ class MajorController extends Controller
             return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 500);
         }
     }
-
-    public function show(string $id)
-    {
-        try {
-            $data = $this->majorInterface->show($id);
-
-            return ResponseHelper::success(
-                new MajorResource($data),
-                'Detail data jurusan berhasil diambil'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::error('Data jurusan tidak ditemukan',404);
-        }
-    }
 }

@@ -29,18 +29,4 @@ class ReligionController extends Controller
             return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 500);
         }
     }
-
-    public function show(string $id)
-    {
-        try {
-            $data = $this->religionInterface->show($id);
-
-            return ResponseHelper::success(
-                new ReligionResource($data),
-                'Detail data agama berhasil diambil'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::error('Data agama tidak ditemukan',404);
-        }
-    }
 }

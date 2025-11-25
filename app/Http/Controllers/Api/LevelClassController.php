@@ -29,18 +29,4 @@ class LevelClassController extends Controller
             return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 500);
         }
     }
-
-    public function show(string $id)
-    {
-        try {
-            $data = $this->levelClassInterface->show($id);
-
-            return ResponseHelper::success(
-                new LevelClassResource($data),
-                'Detail data tingkat kelas berhasil diambil'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 500);
-        }
-    }
 }

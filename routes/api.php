@@ -51,19 +51,19 @@ Route::controller(LoginController::class)->group(function () {
     // Employees
     Route::apiResource('employees', EmployeeController::class);
     // Religions
-    Route::apiResource('religions', ReligionController::class)->only(['index', 'show']);
+    Route::apiResource('religions', ReligionController::class)->only('index');
     // Majors
-    Route::apiResource('majors', MajorController::class)->only(['index', 'show']);
+    Route::apiResource('majors', MajorController::class)->only('index');
     // Level Classes
-    Route::apiResource('level-classes', LevelClassController::class)->only(['index', 'show']);
+    Route::apiResource('level-classes', LevelClassController::class)->only('index');
     // Classrooms
     Route::apiResource('classrooms', ClassroomController::class);
     // Classroom Students
     Route::prefix('classroom-students')->controller(ClassroomStudentsController::class)->group(function () {
-        Route::get('{classroomId}/available-students', 'getAvailableStudents');
-        Route::post('{classroomId}/add-students', 'addStudents');
-        Route::delete('{classroomId}/remove-student/{studentId}', 'removeStudent');
-        Route::get('{classroomId}/active-students', 'getActiveStudents');
+        Route::get('{classroomId}/available-students', 'getAvailableStudents'); // list siswa yg belum punya classroom
+        Route::post('{classroomId}/add-students', 'addStudents'); // add siswa ke classroom
+        Route::delete('{classroomId}/remove-student/{studentId}', 'removeStudent'); //remove siswa dari classroom
+        Route::get('{classroomId}/active-students', 'getActiveStudents'); //list siswa yang aktif di classroom
     });
     Route::apiResource('classroom-students', ClassroomStudentsController::class);
     // School Years
@@ -84,13 +84,12 @@ Route::controller(LoginController::class)->group(function () {
         Route::get('day/{day}', 'getByDay'); // jam pelajaran khusus hari tertentu
     });
     Route::apiResource('lesson-hours', LessonHourController::class)->except(['update']);
-
     // Lesson Schedules
     Route::prefix('lesson-schedules')->controller(LessonSchedulesController::class)->group(function () {
         Route::get('{classroomId}/schedules/{day}', 'getByClassroomAndDay'); // jadwal kelas per hari
         Route::get('{classroomId}/schedules', 'getByClassroom'); // jadwal lengkap per kelas
     });
-    Route::apiResource('lesson-schedules', LessonSchedulesController::class);
+    Route::apiResource('lesson-schedules', LessonSchedulesController::class)->except(['index','show']);
     // Attendance Rules
     Route::prefix('attendance-rules')->controller(AttendanceRuleController::class)->group(function () {
         Route::post('day/{day}', 'updateByDay'); // update aturan absensi per hari
@@ -138,18 +137,18 @@ Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->group(fu
 
     // Teacher schedule
     Route::prefix('schedule')->controller(TeacherScheduleController ::class)->group(function () {
-        Route::get('daily', 'getDailySchedule');
-        Route::get('classroom', 'getClassroomSchedule');
-        Route::get('with-attendance', 'getScheduleWithAttendanceStatus');
+        Route::get('daily', 'getDailySchedule'); //jadwal mengajar perhari
+        Route::get('classroom', 'getClassroomSchedule'); //jadwal megajar di classroom
+        Route::get('with-attendance', 'getScheduleWithAttendanceStatus'); // jadwal dengan status absensi sudah atau belum
     });
 
     // Teacher attendance cross-check
-    // Route::prefix('attendance')->controller(TeacherAttendanceController::class)->group(function () {
-    //     Route::get('cross-check-data', 'getCrossCheckData');
-    //     Route::post('cross-check', 'submitCrossCheck');
-    //     Route::get('schedule', 'getTeacherSchedule');
-    //     Route::get('classroom-summary', 'getClassroomSummary');
-    // });
+    Route::prefix('attendance')->controller(TeacherAttendanceController::class)->group(function () {
+        Route::get('cross-check-data', 'getCrossCheckData'); //crosscheck jam pelajaran
+        Route::post('cross-check', 'submitCrossCheck'); //sumbit crosscheck
+        Route::get('schedule', 'getTeacherSchedule'); //jadwal pelajaran
+        Route::get('classroom-summary', 'getClassroomSummary'); //class yang di ajar
+    });
 });
 
 /*
