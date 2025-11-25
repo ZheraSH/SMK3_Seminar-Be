@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
             AttendanceRuleSeeder::class, //Data dummy
             RfidSeeder::class, //Data Dummy
             AttendancePermissionSeeder::class, //Data dummy
+            AttendanceSeeder::class, //Data dummy
         ]);
     }
 }

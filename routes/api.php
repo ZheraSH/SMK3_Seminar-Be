@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AttendanceRuleController;
 use App\Http\Controllers\Api\ClassroomController;
 use App\Http\Controllers\Api\ClassroomStudentsController;
+use App\Http\Controllers\Api\Counselor\CounselorAttendanceMonitoringController;
 use App\Http\Controllers\Api\Counselor\CounselorAttendancePermissionController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\LessonHourController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\Api\SemesterController;
 use App\Http\Controllers\Api\Student\StudentAttendancePermissionController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\Student\StudentLessonScheduleController;
+use App\Http\Controllers\Api\Student\StudentAttendanceHistoryController;
 use App\Http\Controllers\Api\SubjectController;
 use App\Http\Controllers\Api\Teacher\TeacherAttendanceController;
 use App\Http\Controllers\Api\Teacher\TeacherScheduleController;
@@ -118,6 +120,8 @@ Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(fu
     Route::get('/lesson-schedule', [StudentLessonScheduleController::class, 'getSchedule']);
     // izin tidak masuk siswa
     Route::apiResource('attendance-permissions', StudentAttendancePermissionController::class)->except(['update']);
+      // Student Attendance History
+    Route::get('attendance-history', [StudentAttendanceHistoryController::class, 'index']);
 });
 
 /*
@@ -166,8 +170,15 @@ Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->grou
         Route::post('{id}/reject', 'reject');   // tolak izin
     });
     Route::apiResource('attendance-permissions', CounselorAttendancePermissionController::class)->except(['store', 'destroy']);
+
+    // Monitoring Kehadiran Siswa (BK)
+    Route::prefix('attendance-monitoring')->controller(CounselorAttendanceMonitoringController::class) ->group(function () {
+        Route::get('/', 'index'); // monitoring list
+        Route::post('/sync', 'syncData'); // sync rekap
 });
 
+});
+    
 // Route::middleware(['auth:sanctum', 'role:homeroom_teacher'])->group(function () {
     // Tambahkan routes untuk homeroom teacher di sini
 // });

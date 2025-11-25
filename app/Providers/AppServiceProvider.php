@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Contracts\Interfaces\AttendanceInterface;
+use App\Contracts\Interfaces\AttendanceMonitoringInterface;
 use App\Contracts\Interfaces\AttendancePermissionInterface;
 use App\Contracts\Interfaces\LessonHourInterface;
 use App\Contracts\Interfaces\AttendanceRuleInterface;
@@ -70,6 +71,7 @@ use App\Observers\RfidObserver;
 use App\Observers\SchoolYearObserver;
 use App\Observers\SubjectObserver;
 use App\Observers\LessonHourObserver;
+use App\Contracts\Repositories\AttendanceMonitoringRepository;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -93,6 +95,7 @@ class AppServiceProvider extends ServiceProvider
         AttendanceInterface::class => AttendanceRepository::class,
         AttendancePermissionInterface::class => AttendancePermissionRepository::class,
         StudentLessonScheduleInterface::class => StudentLessonScheduleRepository::class,
+        AttendanceMonitoringInterface::class => AttendanceMonitoringRepository::class,
     ];
 
     public function register(): void
