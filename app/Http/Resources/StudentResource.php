@@ -40,7 +40,8 @@ class StudentResource extends JsonResource
 
     private function getActiveClassroomData()
     {
-        $activeClassroomStudent = $this->classroomStudents
+        $activeClassroomStudent = $this->student
+            ->classroomStudents
             ->where('status', StudentStatusEnum::ACTIVE->value)
             ->first();
 
@@ -53,9 +54,9 @@ class StudentResource extends JsonResource
         return [
             'id' => $activeClassroom->id,
             'name' => $activeClassroom->name,
-            'major' => $activeClassroom->major->code,
-            'level_class' => $activeClassroom->levelClass->name,
-            'schoolyear' => $activeClassroom->schoolyear->name,
+            'major' => $activeClassroom->major?->code,
+            'level_class' => $activeClassroom->levelClass?->name,
+            'schoolyear' => $activeClassroom->schoolyear?->name,
         ];
     }
 

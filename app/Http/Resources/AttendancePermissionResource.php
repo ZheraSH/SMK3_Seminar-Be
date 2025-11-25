@@ -24,7 +24,6 @@ class AttendancePermissionResource extends JsonResource
             'student' => [
                 'id' => $this->student->id,
                 'name' => $this->student->user?->name,
-                'nisn' => $this->student->nisn,
             ],
             'counselor' => $this->formatCounselor(),
             'verification_message' => $this->verificationMessage(),
