@@ -21,17 +21,19 @@ class TeacherClassroomScheduleResource extends JsonResource
                     'name' => $this->classroom->name,
                     'major' => $this->classroom->major->code ?? null,
                     'level' => $this->classroom->levelClass->name ?? null,
-                    'schoolYear' => $this->classroom->schoolYear->name ?? '2024/2025',
-                    'homeroom_teacher' => $this->classroom->employee ? [
-                        'id' => $this->classroom->employee->id ?? null,
-                        'name' => $this->classroom->employee->user->name ?? 'Tidak diketahui'
-                    ] : null
+                    'school_year' => $this->classroom->schoolYear->name ?? null,
+                    'homeroom_teacher' => $this->whenLoaded('employee', function () {
+                        return [
+                            'id' => $this->classroom->teacher->id,
+                            'name' => $this->classroom->teacher->user->name ?? 'Tidak diketahui',
+                        ];
+                    }),
                 ];
             }),
             'teacher' => $this->whenLoaded('employee', function () {
                 return [
-                    'id' => $this->employee->id ?? null,
-                    'name' => $this->employee->user->name ?? 'Tidak diketahui',
+                    'id' => $this->employee->id ?? $this->teacher->id ?? null,
+                    'name' => $this->employee->user->name ?? $this->teacher->user->name ?? 'Tidak diketahui',
                 ];
             }),
             'subject' => $this->whenLoaded('subject', function () {
@@ -44,15 +46,21 @@ class TeacherClassroomScheduleResource extends JsonResource
             'can_cross_check' => $lessonOrder >= 2,
             'has_cross_checked' => $this->has_cross_checked ?? false,
             'time_status' => $this->getTimeStatus(),
-            'lesson_hour' => $this->whenLoaded('lessonHour', function () {
-                if (!$this->lessonHour) {
-                    return null;
-                }
-                return [
-                    'start_time' => $this->lessonHour->start ?? $this->lessonHour->start_time,
-                    'end_time' => $this->lessonHour->end ?? $this->lessonHour->end_time,
-                ];
-            }),
+            'lesson_hour' => $this->getLessonHourInfo(),
+        ];
+    }
+
+    private function getLessonHourInfo(): ?array
+    {
+        if (!$this->lessonHour) {
+            return null;
+        }
+
+        return [
+            'id' => $this->lessonHour->id,
+            'start_time' => $this->lessonHour->start ?? $this->lessonHour->start_time,
+            'end_time' => $this->lessonHour->end ?? $this->lessonHour->end_time,
+            'name' => $this->lessonHour->name ?? "Jam Ke {$this->calculateLessonOrder()}",
         ];
     }
 

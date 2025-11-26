@@ -170,10 +170,10 @@ Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->grou
     Route::apiResource('attendance-permissions', CounselorAttendancePermissionController::class)->except(['store', 'destroy']);
 
     // Monitoring Kehadiran Siswa (BK)
-    Route::prefix('attendance-monitoring')->controller(CounselorAttendanceMonitoringController::class) ->group(function () {
-        Route::get('/', 'index'); // monitoring list
-        Route::post('/sync', 'syncData'); // sync rekap
-});
+    // Route::prefix('attendance-monitoring')->controller(CounselorAttendanceMonitoringController::class) ->group(function () {
+    //     Route::get('/', 'index'); // monitoring list
+    //     Route::post('/sync', 'syncData'); // sync rekap
+    // });
 
 });
     

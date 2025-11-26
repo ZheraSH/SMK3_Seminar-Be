@@ -12,82 +12,59 @@ use Carbon\Carbon;
 
 class TeacherAttendanceService
 {
-    private AttendanceInterface $attendance;
-    private LessonScheduleInterface $lessonSchedule;
-    private ClassroomStudentsInterface $classroomStudents;
-
-    public function __construct(
-        AttendanceInterface $attendance,
-        LessonScheduleInterface $lessonSchedule,
-        ClassroomStudentsInterface $classroomStudents
-    ) {
-        $this->attendance = $attendance;
-        $this->lessonSchedule = $lessonSchedule;
-        $this->classroomStudents = $classroomStudents;
+    private AttendanceInterface $attendanceInterface;
+    private LessonScheduleInterface $lessonScheduleInterface;
+    private ClassroomStudentsInterface $classroomStudentsInterface;
+    public function __construct(AttendanceInterface $attendanceInterface, LessonScheduleInterface $lessonScheduleInterface, ClassroomStudentsInterface $classroomStudentsInterface)
+    {
+        $this->attendanceInterface = $attendanceInterface;
+        $this->lessonScheduleInterface = $lessonScheduleInterface;
+        $this->classroomStudentsInterface = $classroomStudentsInterface;
     }
 
-    public function getCrossCheckData(string $classroomId, string $date, int $lessonOrder): array
+    public function getCrossCheckData(string $teacherId, string $classroomId, string $date, int $lessonOrder)
     {
         if ($lessonOrder < 2) {
             throw new \Exception('Cross-check hanya untuk jam pelajaran ke-2 dan seterusnya');
         }
 
-        $teacherId = auth()->user()->employee->id;
         $day = strtolower(Carbon::parse($date)->englishDayOfWeek);
-        
-        $lessonSchedule = $this->lessonSchedule->getByTeacherClassroomAndLessonOrder(
-            $teacherId,
-            $classroomId,
-            $day,
-            $lessonOrder
+        $schedule = $this->lessonScheduleInterface->getByTeacherClassroomAndLessonOrder(
+            $teacherId, $classroomId, $day, $lessonOrder
         );
-        
-        if (!$lessonSchedule) {
-            throw new \Exception('Anda tidak memiliki jadwal mengajar untuk kelas ini pada jam pelajaran ini');
-        }
 
-        $students = $this->classroomStudents->getByClassroom($classroomId);
-        
-        $attendanceData = [];
-        foreach ($students as $classroomStudent) {
+        $students = $this->classroomStudentsInterface->getByClassroom($classroomId);
+        $attendanceData = $students->map(function ($classroomStudent) use ($date, $lessonOrder) {
             $student = $classroomStudent->student;
-            
-            $existingAttendance = $this->attendance->getByStudentLesson(
-                $student->id,
-                $date,
-                $lessonOrder
-            );
+            $existingAttendance = $this->attendanceInterface->getByStudentLesson($student->id, $date, $lessonOrder);
 
-            $attendanceData[] = [
+            return [
                 'student_id' => $student->id,
                 'name' => $student->user->name,
                 'nisn' => $student->nisn,
                 'existing_attendance' => $existingAttendance ? [
                     'id' => $existingAttendance->id,
-                    'status' => $existingAttendance->status->value,
+                    'status' => $existingAttendance->status,
                     'status_label' => $existingAttendance->status->label(),
                 ] : null,
             ];
-        }
+        })->toArray();
 
         $summary = $this->getClassroomSummary($classroomId, $date);
 
-        return [
-            'lesson_schedule' => [
-                'id' => $lessonSchedule->id,
-                'subject' => $lessonSchedule->subject->name,
-                'lesson_order' => $lessonSchedule->lesson_order,
-                'start_time' => $lessonSchedule->lessonHour->start_time,
-                'end_time' => $lessonSchedule->lessonHour->end_time,
-            ],
+        return (object)[
+            'lesson_schedule' => $schedule,
             'summary' => $summary,
             'students' => $attendanceData,
-            'classroom' => [
-                'id' => $classroomId,
-                'name' => $students->first()->classroom->name ?? 'Unknown',
-            ],
+            'classroom' => $students->first()?->classroom ?? null,
             'date' => $date,
             'lesson_order' => $lessonOrder,
+            'total_students' => $summary['total_students'],
+            'present' => $summary['present'],
+            'late' => $summary['late'],
+            'alpha' => $summary['alpha'],
+            'leave' => $summary['leave'],
+            'sick' => $summary['sick'],
         ];
     }
 
@@ -95,65 +72,72 @@ class TeacherAttendanceService
     {
         return DB::transaction(function () use ($data, $teacherId) {
             $day = strtolower(Carbon::parse($data['date'])->englishDayOfWeek);
-            
-            $lessonSchedule = $this->lessonSchedule->getByTeacherClassroomAndLessonOrder(
-                $teacherId,
-                $data['classroom_id'],
-                $day,
-                $data['lesson_order']
-            );
-            
-            if (!$lessonSchedule) {
-                throw new \Exception('Anda tidak memiliki jadwal mengajar untuk kelas ini pada jam pelajaran ini');
-            }
-            
+
+            $this->validateTeacherSchedule($teacherId, $data['classroom_id'], $day, $data['lesson_order']);
+
             $results = [];
-
             foreach ($data['attendances'] as $attendanceData) {
-                $existing = $this->attendance->getByStudentLesson(
-                    $attendanceData['student_id'],
-                    $data['date'],
-                    $data['lesson_order']
-                );
-
-                $attendancePayload = [
-                    'student_id' => $attendanceData['student_id'],
-                    'classroom_student_id' => $this->getClassroomStudentId($attendanceData['student_id'], $data['classroom_id']),
-                    'teacher_id' => $teacherId,
-                    'subject_id' => $data['subject_id'],
-                    'lesson_schedule_id' => $data['lesson_schedule_id'],
-                    'date' => $data['date'],
-                    'lesson_order' => $data['lesson_order'],
-                    'attendance_type' => 'cross_check',
-                    'status' => $attendanceData['status'],
-                    'proof' => AttendanceProofEnum::CLASSROOM,
-                ];
-
-                if ($existing) {
-                    $attendance = $this->attendance->update($existing->id, $attendancePayload);
-                } else {
-                    $attendance = $this->attendance->store($attendancePayload);
-                }
-
-                $results[] = $attendance;
+                $results[] = $this->processStudentAttendance($teacherId, $attendanceData, $data);
             }
 
             return $results;
         });
     }
 
-    public function getTeacherSchedule(string $teacherId, string $date)
+    private function validateTeacherSchedule(string $teacherId, string $classroomId, string $day, int $lessonOrder): void
     {
-        $day = strtolower(Carbon::parse($date)->englishDayOfWeek);
-        return $this->lessonSchedule->getByTeacherAndDay($teacherId, $day);
+        $schedule = $this->lessonScheduleInterface->getByTeacherClassroomAndLessonOrder(
+            $teacherId, $classroomId, $day, $lessonOrder
+        );
+        if (!$schedule) {
+            throw new \Exception('Anda tidak memiliki jadwal mengajar untuk kelas ini pada jam pelajaran ini');
+        }
     }
 
-    public function getClassroomSummary(string $classroomId, string $date): array
+    private function processStudentAttendance(string $teacherId, array $attendanceData, array $requestData)
     {
-        $attendances = $this->attendance->getByClassroomAndDate($classroomId, $date);
-        
+        $existing = $this->attendanceInterface->getByStudentLesson(
+            $attendanceData['student_id'],
+            $requestData['date'],
+            $requestData['lesson_order']
+        );
+
+        $payload = $this->buildAttendancePayload($teacherId, $attendanceData, $requestData);
+
+        if ($existing) {
+            return $this->attendanceInterface->update($existing->id, $payload);
+        }
+
+        return $this->attendanceInterface->store($payload);
+    }
+
+    private function buildAttendancePayload(string $teacherId, array $attendanceData, array $requestData): array
+    {
+        $classroomStudentId = $this->classroomStudentsInterface
+            ->getByStudentAndClassroom($attendanceData['student_id'], $requestData['classroom_id'])?->id;
+
+        return [
+            'student_id' => $attendanceData['student_id'],
+            'classroom_student_id' => $classroomStudentId,
+            'teacher_id' => $teacherId,
+            'subject_id' => $requestData['subject_id'],
+            'lesson_schedule_id' => $requestData['lesson_schedule_id'],
+            'date' => $requestData['date'],
+            'lesson_order' => $requestData['lesson_order'],
+            'attendance_type' => 'cross_check',
+            'status' => $attendanceData['status'],
+            'proof' => AttendanceProofEnum::CLASSROOM->value,
+            'notes' => $attendanceData['notes'] ?? null,
+        ];
+    }
+
+    private function getClassroomSummary(string $classroomId, string $date): array
+    {
+        $attendances = $this->attendanceInterface->getByClassroomAndDate($classroomId, $date);
+        $totalStudents = $this->classroomStudentsInterface->countActiveByClassroom($classroomId);
+
         $summary = [
-            'total_students' => $this->classroomStudents->countActiveByClassroom($classroomId),
+            'total_students' => $totalStudents,
             'present' => 0,
             'late' => 0,
             'alpha' => 0,
@@ -161,34 +145,49 @@ class TeacherAttendanceService
             'sick' => 0,
         ];
 
-        foreach ($attendances as $attendance) {
-            if ($attendance->lesson_order === 1) {
-                switch ($attendance->status) {
-                    case AttendanceStatusEnum::PRESENT:
-                        $summary['present']++;
-                        break;
-                    case AttendanceStatusEnum::LATE:
-                        $summary['late']++;
-                        break;
-                    case AttendanceStatusEnum::ALPHA:
-                        $summary['alpha']++;
-                        break;
-                    case AttendanceStatusEnum::LEAVE:
-                        $summary['leave']++;
-                        break;
-                    case AttendanceStatusEnum::SICK:
-                        $summary['sick']++;
-                        break;
-                }
+        foreach ($attendances as $att) {
+            if ($att->lesson_order === 1) {
+                $key = match($att->status) {
+                    AttendanceStatusEnum::PRESENT->value => 'present',
+                    AttendanceStatusEnum::LATE->value => 'late',
+                    AttendanceStatusEnum::ALPHA->value => 'alpha',
+                    AttendanceStatusEnum::LEAVE->value => 'leave',
+                    AttendanceStatusEnum::SICK->value => 'sick',
+                    default => null
+                };
+                if ($key) $summary[$key]++;
             }
         }
 
         return $summary;
     }
 
-    private function getClassroomStudentId(string $studentId, string $classroomId): ?string
+    public function getClassroomSchedule(string $classroomId, string $date)
     {
-        $classroomStudent = $this->classroomStudents->getByStudentAndClassroom($studentId, $classroomId);
-        return $classroomStudent->id ?? null;
+        $day = strtolower(Carbon::parse($date)->englishDayOfWeek);
+        $schedules = $this->lessonScheduleInterface->getByClassroomAndDay($classroomId, $day);
+
+        foreach ($schedules as $schedule) {
+            $schedule->can_cross_check = $schedule->lesson_order >= 2;
+            $hasCrossCheck = $this->attendanceInterface->getByScheduleAndDate($schedule->id, $date);
+            $schedule->has_cross_checked = $hasCrossCheck->isNotEmpty();
+        }
+
+        return $schedules;
+    }
+
+    public function getScheduleWithAttendanceStatus(string $teacherId, string $date)
+    {
+        $day = strtolower(Carbon::parse($date)->englishDayOfWeek);
+        $schedules = $this->lessonScheduleInterface->getByTeacherAndDay($teacherId, $day);
+
+        foreach ($schedules as $schedule) {
+            $schedule->can_cross_check = $schedule->lesson_order >= 2;
+            $hasCrossCheck = $this->attendanceInterface->getByScheduleAndDate($schedule->id, $date);
+            $schedule->has_cross_checked = $hasCrossCheck->isNotEmpty();
+            $schedule->student_count = $this->classroomStudentsInterface->getByClassroom($schedule->classroom_id)->count();
+        }
+
+        return $schedules;
     }
 }

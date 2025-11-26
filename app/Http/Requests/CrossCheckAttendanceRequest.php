@@ -28,6 +28,7 @@ class CrossCheckAttendanceRequest extends ApiRequest
         return [
             'classroom_id.required' => 'Kelas wajib dipilih',
             'subject_id.required' => 'Mata pelajaran wajib dipilih',
+            'lesson_schedule_id.required' => 'Jadwal pelajaran wajib dipilih',
             'lesson_order.required' => 'Urutan jam pelajaran wajib diisi',
             'lesson_order.min' => 'Cross-check hanya untuk jam pelajaran ke-2 dan seterusnya',
             'attendances.required' => 'Data kehadiran siswa wajib diisi',
