@@ -3,14 +3,18 @@
 namespace App\Services;
 
 use App\Contracts\Interfaces\AttendancePermissionInterface;
+use App\Enums\UploadDiskEnum;
 use App\Http\Requests\StoreAttendancePermissionRequest;
 use App\Models\AttendancePermission;
+use App\Traits\UploadTrait;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
 class AttendancePermissionService
 {
+    use UploadTrait;
+
     private AttendancePermissionInterface $attendancePermission;
 
     public function __construct(AttendancePermissionInterface $attendancePermission)
@@ -23,6 +27,10 @@ class AttendancePermissionService
         $data = $request->validated();
         $data['student_id'] = auth()->user()->student->id;
         $data['status'] = 'pending';
+        
+        if ($request->hasFile('proof') && $request->file('proof')->isValid()) {
+            $data['proof'] = $this->upload(UploadDiskEnum::PROOF->value, $request->file('proof'));
+        }
         
         $permission = $this->attendancePermission->store($data);
         return $this->attendancePermission->show($permission->id);
@@ -50,6 +58,12 @@ class AttendancePermissionService
 
     public function deleteStudentPermission(string $id, string $studentId): bool
     {
+        $permission = $this->attendancePermission->show($id);
+        
+        if ($permission->proof) {
+            $this->remove($permission->proof);
+        }
+        
         return $this->attendancePermission->deleteIfPending($id, $studentId);
     }
 
