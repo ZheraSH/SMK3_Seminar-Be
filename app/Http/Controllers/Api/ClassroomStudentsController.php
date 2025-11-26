@@ -22,11 +22,11 @@ class ClassroomStudentsController extends Controller
     public function index(Request $request)
     {
         try {
-            $data = $this->classroomStudentsService->handleGetData($request);
+            $data = $this->classroomStudentsService->search($request);
 
             return ResponseHelper::pagination(
-                $data, 
-                ClassroomStudentsResource::class, 
+                $data,
+                ClassroomStudentsResource::class,
                 'Data siswa kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
