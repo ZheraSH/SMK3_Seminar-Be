@@ -62,7 +62,15 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
     public function getByTeacherAndDay(string $teacherId, string $day): Collection
     {
         return $this->model->query()
-            ->with(['subject', 'classroom.major', 'classroom.levelClass', 'lessonHour', 'employee.user'])
+            ->with([
+                'subject', 
+                'classroom.major', 
+                'classroom.levelClass', 
+                'classroom.teacher.user',
+                'classroom.schoolYear',
+                'lessonHour', 
+                'employee.user'
+            ])
             ->where('employee_id', $teacherId)
             ->where('lesson_schedules.day', $day)
             ->join('lesson_hours', 'lesson_schedules.lesson_hour_id', '=', 'lesson_hours.id')

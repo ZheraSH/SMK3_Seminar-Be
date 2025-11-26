@@ -31,6 +31,12 @@ class TeacherScheduleWithAttendanceResource extends JsonResource
                     'name' => $this->classroom->name,
                     'major' => $this->classroom->major->code ?? null,
                     'level' => $this->classroom->levelClass->name ?? null,
+                    'homeroom_teacher' => $this->classroom->teacher ? [
+                        'id' => $this->classroom->teacher->id,
+                        'name' => $this->classroom->teacher->user->name ?? 'Tidak diketahui',
+                        'type' => 'homeroom_teacher',
+                        'type_label' => 'Wali Kelas',
+                    ] : null,
                 ];
             }),
             'lesson_hour' => $this->whenLoaded('lessonHour', function () {
@@ -47,8 +53,8 @@ class TeacherScheduleWithAttendanceResource extends JsonResource
             }),
             'teacher' => $this->whenLoaded('employee', function () {
                 return [
-                    'id' => $this->employee->id ?? $this->teacher->id ?? null,
-                    'name' => $this->employee->user->name ?? $this->teacher->user->name ?? 'Tidak diketahui',
+                    'id' => $this->employee->id ?? null,
+                    'name' => $this->employee->user->name ?? 'Tidak diketahui',
                 ];
             }),
             'attendance' => [
@@ -125,8 +131,6 @@ class TeacherScheduleWithAttendanceResource extends JsonResource
             $timeFormat = strlen($startTime) <= 5 ? 'H:i' : 'H:i:s';
             $start = Carbon::createFromFormat($timeFormat, $startTime);
             $end = Carbon::createFromFormat($timeFormat, $endTime);
-
-            // Set tanggal ke hari ini untuk perbandingan
             $start = $start->setDate($now->year, $now->month, $now->day);
             $end = $end->setDate($now->year, $now->month, $now->day);
 
@@ -148,12 +152,10 @@ class TeacherScheduleWithAttendanceResource extends JsonResource
             return 1;
         }
 
-        // Jika lessonHour memiliki field order, gunakan itu
         if (isset($this->lessonHour->order) && !is_null($this->lessonHour->order)) {
             return $this->lessonHour->order;
         }
 
-        // Jika tidak, hitung manual berdasarkan hari
         try {
             $lessonHours = \App\Models\LessonHour::where('day', $this->day)
                 ->where('is_lesson', true)
@@ -163,7 +165,6 @@ class TeacherScheduleWithAttendanceResource extends JsonResource
             $position = $lessonHours->search(function ($lessonHour) {
                 return $lessonHour->id === $this->lessonHour->id;
             });
-
             return $position !== false ? $position + 1 : 1;
         } catch (\Exception $e) {
             return 1;

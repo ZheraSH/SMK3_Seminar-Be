@@ -20,6 +20,7 @@ class TeacherCrossCheckDataResource extends JsonResource
                 'level' => $classroom->levelClass->name ?? null,
                 'major' => $classroom->major->code ?? null,
                 'school_year' => $classroom->schoolYear->name ?? null,
+                'homeroom_teacher' => $this->getHomeroomTeacher($classroom),
             ] : null,
             'lesson_schedule' => $lessonSchedule ? [
                 'id' => $lessonSchedule->id,
@@ -29,10 +30,7 @@ class TeacherCrossCheckDataResource extends JsonResource
                     'id' => $lessonSchedule->subject->id,
                     'name' => $lessonSchedule->subject->name,
                 ] : null,
-                'teacher' => $lessonSchedule->employee ? [
-                    'id' => $lessonSchedule->employee->id,
-                    'name' => $lessonSchedule->employee->user->name ?? 'Tidak diketahui',
-                ] : null,
+                'subject_teacher' => $schedule->employee?->user?->name,
                 'lesson_hour' => $lessonSchedule->lessonHour ? [
                     'id' => $lessonSchedule->lessonHour->id,
                     'start_time' => $lessonSchedule->lessonHour->start ?? $lessonSchedule->lessonHour->start_time,
@@ -61,5 +59,18 @@ class TeacherCrossCheckDataResource extends JsonResource
                 ];
             }, $this->students) : [],
         ];
+    }
+
+    private function getHomeroomTeacher($classroom): ?array
+    {
+        if ($classroom->teacher && $classroom->teacher->user) {
+            return [
+                'id' => $classroom->teacher->id,
+                'name' => $classroom->teacher->user->name,
+                'type' => 'homeroom_teacher',
+                'type_label' => 'Wali Kelas',
+            ];
+        }
+        return null;
     }
 }

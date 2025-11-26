@@ -18,24 +18,18 @@ class TeacherAttendanceService
         private ClassroomStudentsInterface $classroomStudents
     ) {}
 
-    /**
-     * Get classrooms that teacher teaches on specific date
-     */
+
     public function getTeacherClassrooms(string $teacherId, string $date)
     {
         $day = $this->getDayFromDate($date);
         $schedules = $this->lessonSchedule->getByTeacherAndDay($teacherId, $day);
-        
-        // Group by classroom and get unique classrooms
         $classrooms = $schedules->map(function ($schedule) {
             return $schedule->classroom;
         })->unique('id')->values();
         
         return $classrooms;
     }
-    /**
-     * Get cross-check data
-     */
+
     public function getCrossCheckData(string $teacherId, string $classroomId, string $date, int $lessonOrder)
     {
         if ($lessonOrder < 2) {
@@ -69,12 +63,13 @@ class TeacherAttendanceService
         })->toArray();
 
         $summary = $this->getClassroomSummary($classroomId, $date);
-
+        $currentTeacher = auth()->user()->employee;
         return (object)[
             'lesson_schedule' => $schedule,
             'summary' => $summary,
             'students' => $attendanceData,
             'classroom' => $students->first()?->classroom ?? null,
+            'current_teacher' => $currentTeacher,
             'date' => $date,
             'lesson_order' => $lessonOrder,
             'total_students' => $summary['total_students'],
@@ -86,9 +81,6 @@ class TeacherAttendanceService
         ];
     }
 
-    /**
-     * Submit cross-check attendance
-     */
     public function submitCrossCheck(array $data, string $teacherId): array
     {
         return DB::transaction(function () use ($data, $teacherId) {
@@ -104,25 +96,22 @@ class TeacherAttendanceService
         });
     }
 
-    /**
-     * Get schedules with attendance status
-     */
     public function getScheduleWithAttendanceStatus(string $teacherId, string $date)
     {
         $day = $this->getDayFromDate($date);
         $schedules = $this->lessonSchedule->getByTeacherAndDay($teacherId, $day);
 
+        $currentTeacher = auth()->user()->employee;
         foreach ($schedules as $schedule) {
             $schedule->can_cross_check = $schedule->lesson_order >= 2;
             $hasCrossCheck = $this->attendance->getByScheduleAndDate($schedule->id, $date);
             $schedule->has_cross_checked = $hasCrossCheck->isNotEmpty();
             $schedule->student_count = $this->classroomStudents->getByClassroom($schedule->classroom_id)->count();
+            $schedule->current_teacher = $currentTeacher;
         }
-
         return $schedules;
     }
 
-    // Private methods tetap sama...
     private function getDayFromDate(string $date): string
     {
         return strtolower(Carbon::parse($date)->englishDayOfWeek);

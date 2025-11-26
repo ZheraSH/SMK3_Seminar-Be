@@ -13,12 +13,6 @@ class TeacherClassroomListResource extends JsonResource
         $attendanceSummary = $this->resource['attendance_summary'];
         $studentCount = $this->resource['student_count'];
 
-        $completedLessons = collect($schedules)->where('attendance_status', 'completed')->count();
-        $totalLessons = count($schedules);
-        
-        $firstLessonTime = collect($schedules)->min('start_time');
-        $lastLessonTime = collect($schedules)->max('end_time');
-
         return [
             'classroom' => [
                 'id' => $classroom->id,
