@@ -6,80 +6,76 @@ use App\Http\Controllers\Controller;
 use App\Helpers\ResponseHelper;
 use App\Http\Requests\GetCrossCheckDataRequest;
 use App\Http\Requests\CrossCheckAttendanceRequest;
-use App\Http\Requests\GetClassroomScheduleRequest;
 use App\Http\Resources\TeacherCrossCheckDataResource;
-use App\Http\Resources\TeacherClassroomScheduleResource;
-use App\Http\Resources\TeacherScheduleWithAttendanceResource;
+use App\Http\Resources\TeacherClassroomResource;
 use App\Services\TeacherAttendanceService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class TeacherAttendanceController extends Controller
 {
-    private TeacherAttendanceService $teacherAttendanceService;
+    public function __construct(
+        private TeacherAttendanceService $attendanceService
+    ) {}
 
-    public function __construct(TeacherAttendanceService $teacherAttendanceService)
+    public function getTeacherClassrooms(Request $request): JsonResponse
     {
-        $this->teacherAttendanceService = $teacherAttendanceService;
-    }
+        try {
+            $teacherId = auth()->user()->employee->id;
+            $date = $request->date ?? now()->format('Y-m-d');
 
-    public function getClassroomSchedule(GetClassroomScheduleRequest $request): JsonResponse
-    {
-        $validated = $request->validated();
-        $schedules = $this->teacherAttendanceService->getClassroomSchedule(
-            $validated['classroom_id'],
-            $validated['date']
-        );
-    
-        return ResponseHelper::success(
-            TeacherClassroomScheduleResource::collection($schedules),
-            'Jadwal kelas berhasil diambil'
-        );
+            $classrooms = $this->attendanceService->getTeacherClassrooms($teacherId, $date);
+
+            return ResponseHelper::success(
+                TeacherClassroomResource::collection($classrooms),
+                'Daftar kelas berhasil diambil'
+            );
+
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
+        }
     }
 
     public function getCrossCheckData(GetCrossCheckDataRequest $request): JsonResponse
     {
-        $teacherId = auth()->user()->employee->id;
-        $validated = $request->validated();
-        $data = $this->teacherAttendanceService->getCrossCheckData(
-            $teacherId,
-            $validated['classroom_id'],
-            $validated['date'],
-            $validated['lesson_order']
-        );
+        try {
+            $teacherId = auth()->user()->employee->id;
+            $validated = $request->validated();
 
-        return ResponseHelper::success(
-            new TeacherCrossCheckDataResource($data),
-            'Data cross-check berhasil diambil'
-        );
+            $data = $this->attendanceService->getCrossCheckData(
+                $teacherId,
+                $validated['classroom_id'],
+                $validated['date'],
+                $validated['lesson_order']
+            );
+
+            return ResponseHelper::success(
+                new TeacherCrossCheckDataResource($data),
+                'Data cross-check berhasil diambil'
+            );
+
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
+        }
     }
 
     public function submitCrossCheck(CrossCheckAttendanceRequest $request): JsonResponse
     {
-        $teacherId = auth()->user()->employee->id;
-        $attendances = $this->teacherAttendanceService->submitCrossCheck(
-            $request->validated(),
-            $teacherId
-        );
-        return ResponseHelper::success(
-            $attendances,
-            'Absensi cross-check berhasil disimpan',
-            201
-        );
-    }
+        try {
+            $teacherId = auth()->user()->employee->id;
+            $attendances = $this->attendanceService->submitCrossCheck(
+                $request->validated(),
+                $teacherId
+            );
 
-    public function getScheduleWithAttendanceStatus(GetCrossCheckDataRequest $request): JsonResponse
-    {
-        $teacherId = auth()->user()->employee->id;
-        $validated = $request->validated();
+            return ResponseHelper::success(
+                $attendances,
+                'Absensi cross-check berhasil disimpan',
+                201
+            );
 
-        $schedules = $this->teacherAttendanceService->getScheduleWithAttendanceStatus(
-            $teacherId,
-            $validated['date']
-        );
-
-        return ResponseHelper::success(
-            TeacherScheduleWithAttendanceResource::collection($schedules),
-            'Jadwal mengajar dengan status absensi berhasil diambil'
-        );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
+        }
     }
 }

@@ -8,66 +8,56 @@ class TeacherClassroomListResource extends JsonResource
 {
     public function toArray($request)
     {
+        $classroom = $this->resource['classroom'];
+        $schedules = $this->resource['schedules'];
+        $attendanceSummary = $this->resource['attendance_summary'];
+        $studentCount = $this->resource['student_count'];
+
+        $completedLessons = collect($schedules)->where('attendance_status', 'completed')->count();
+        $totalLessons = count($schedules);
+        
+        $firstLessonTime = collect($schedules)->min('start_time');
+        $lastLessonTime = collect($schedules)->max('end_time');
+
         return [
             'classroom' => [
-                'id' => $this->resource['classroom_id'],
-                'name' => $this->resource['classroom_name'],
-                'major' => $this->resource['major'],
-                'level' => $this->resource['level'],
-                'display_name' => $this->resource['classroom_name'] .
-                                ($this->resource['major'] ? ' - ' . $this->resource['major'] : '') .
-                                ($this->resource['level'] ? ' (' . $this->resource['level'] . ')' : ''),
-            ],
-            'schedule_info' => [
-                'total_lessons' => $this->resource['total_lessons'],
-                'completed_lessons' => $this->resource['completed_lessons'],
-                'pending_lessons' => $this->resource['total_lessons'] - $this->resource['completed_lessons'],
-                'completion_rate' => $this->resource['total_lessons'] > 0
-                    ? round(($this->resource['completed_lessons'] / $this->resource['total_lessons']) * 100, 2)
-                    : 0,
-                'first_lesson_time' => $this->resource['first_lesson_time'],
-                'last_lesson_time' => $this->resource['last_lesson_time'],
-                'time_range' => $this->resource['first_lesson_time'] . ' - ' . $this->resource['last_lesson_time'],
+                'id' => $classroom->id,
+                'name' => $classroom->name,
+                'school_year' => $classroom->schoolYear->name ?? '2024/2025',
+                'homeroom_teacher' => $this->getHomeroomTeacher($classroom),
             ],
             'students' => [
-                'total_count' => $this->resource['student_count'],
+                'total_count' => $studentCount,
             ],
-            'subjects' => collect($this->resource['subjects'])->map(function ($subject) {
+            'subjects' => collect($schedules)->map(function ($schedule) {
                 return [
-                    'name' => $subject['name'],
-                    'lesson_order' => $subject['lesson_order'],
-                    'time' => $subject['time'],
-                    'start_time' => explode('-', $subject['time'])[0],
-                    'end_time' => explode('-', $subject['time'])[1],
-                    'attendance_status' => $subject['attendance_status'],
-                    'attendance_status_label' => $this->getAttendanceStatusLabel($subject['attendance_status']),
-                    'is_completed' => $subject['attendance_status'] === 'completed',
-                    'can_cross_check' => $subject['lesson_order'] >= 2,
-                    'is_first_lesson' => $subject['lesson_order'] === 1,
+                    'attendance_status' => $schedule['attendance_status'],
+                    'attendance_status_label' => $this->getAttendanceStatusLabel($schedule['attendance_status']),
+                    'is_completed' => $schedule['attendance_status'] === 'completed',
+                    'can_cross_check' => $schedule['lesson_order'] >= 2,
+                    'is_first_lesson' => $schedule['lesson_order'] === 1,
                 ];
             }),
-            'attendance_summary' => [
-                'rfid_completed' => $this->resource['attendance_summary']['rfid_completed'],
-                'cross_check_completed' => $this->resource['attendance_summary']['cross_check_completed'],
-                'total_cross_check_available' => $this->resource['attendance_summary']['total_cross_check_available'],
-                'cross_check_completion_rate' => $this->resource['attendance_summary']['total_cross_check_available'] > 0
-                    ? round(($this->resource['attendance_summary']['cross_check_completed'] /
-                            $this->resource['attendance_summary']['total_cross_check_available']) * 100, 2)
-                    : 0,
-                'has_pending_actions' => !$this->resource['attendance_summary']['rfid_completed'] ||
-                    ($this->resource['attendance_summary']['total_cross_check_available'] >
-                     $this->resource['attendance_summary']['cross_check_completed']),
-            ],
             'status' => [
-                'is_fully_completed' => $this->resource['attendance_summary']['rfid_completed'] &&
-                    ($this->resource['attendance_summary']['total_cross_check_available'] ===
-                     $this->resource['attendance_summary']['cross_check_completed']),
-                'needs_rfid' => !$this->resource['attendance_summary']['rfid_completed'],
-                'needs_cross_check' => $this->resource['attendance_summary']['total_cross_check_available'] >
-                    $this->resource['attendance_summary']['cross_check_completed'],
-                'status_label' => $this->getClassroomStatusLabel(),
+                'is_fully_completed' => $attendanceSummary['is_fully_completed'],
+                'needs_rfid' => !$attendanceSummary['rfid_completed'],
+                'needs_cross_check' => $attendanceSummary['total_cross_check_available'] > $attendanceSummary['cross_check_completed'],
+                'status_label' => $this->getClassroomStatusLabel($attendanceSummary),
             ]
         ];
+    }
+
+    private function getHomeroomTeacher($classroom): ?array
+    {
+        if ($classroom->teacher && $classroom->teacher->user) {
+            return [
+                'id' => $classroom->teacher->id,
+                'name' => $classroom->teacher->user->name,
+                'type' => 'homeroom_teacher',
+                'type_label' => 'Wali Kelas',
+            ];
+        }
+        return null;
     }
 
     private function getAttendanceStatusLabel(string $status): string
@@ -80,11 +70,11 @@ class TeacherClassroomListResource extends JsonResource
         };
     }
 
-    private function getClassroomStatusLabel(): string
+    private function getClassroomStatusLabel(array $attendanceSummary): string
     {
-        $rfidCompleted = $this->resource['attendance_summary']['rfid_completed'];
-        $crossCheckCompleted = $this->resource['attendance_summary']['cross_check_completed'];
-        $totalCrossCheckAvailable = $this->resource['attendance_summary']['total_cross_check_available'];
+        $rfidCompleted = $attendanceSummary['rfid_completed'];
+        $crossCheckCompleted = $attendanceSummary['cross_check_completed'];
+        $totalCrossCheckAvailable = $attendanceSummary['total_cross_check_available'];
 
         if (!$rfidCompleted) {
             return 'Menunggu RFID';
