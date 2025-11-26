@@ -127,4 +127,10 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
             ->orderBy('period')
             ->get();
     }
+    public function getHistoryByStudentId($studentId, $perPage = 15)
+    {
+        return Attendance::where('student_id', $studentId)
+            ->orderBy('date', 'DESC')
+            ->paginate($perPage);
+    }
 }
