@@ -19,16 +19,6 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
         return $this->model->query()->get();
     }
 
-    public function paginate($perPage = 15): LengthAwarePaginator
-    {
-        return $this->model->paginate($perPage);
-    }
-
-    public function search($request): Collection
-    {
-        return $this->model->where('name', 'LIKE', '%' . $request->search . '%')->get();
-    }
-
     public function store(array $data): Attendance
     {
         return $this->model->query()->create($data);
@@ -41,12 +31,22 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
 
     public function update($id, array $data): bool
     {
-        return $this->model->show($id)->update($data);
+        return $this->model->findOrFail($id)->update($data);
     }
 
     public function delete($id): bool
     {
-        return $this->model->show($id)->delete();
+        return $this->model->findOrFail($id)->delete();
+    }
+
+    public function paginate($perPage = 15): LengthAwarePaginator
+    {
+        return $this->model->paginate($perPage);
+    }
+
+    public function search($request): Collection
+    {
+        return $this->model->where('name', 'LIKE', '%' . $request->search . '%')->get();
     }
 
     public function getByStudentAndDate(string $studentId, string $date): mixed
@@ -68,9 +68,20 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
     public function getByClassroomAndDate(string $classroomId, string $date): Collection
     {
         return $this->model
-            ->where('classroom_id', $classroomId)
+            ->whereHas('classroomStudent.classroom', function ($query) use ($classroomId) {
+                $query->where('id', $classroomId);
+            })
             ->whereDate('date', $date)
             ->get();
+    }
+
+    public function getByStudentLesson(string $studentId, string $date, int $lessonOrder): mixed
+    {
+        return $this->model
+            ->where('student_id', $studentId)
+            ->whereDate('date', $date)
+            ->where('lesson_order', $lessonOrder)
+            ->first();
     }
 
     public function getStudentMonthlyAttendance(string $studentId, string $month, string $year): Collection
@@ -87,17 +98,8 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
     {
         return $this->model
             ->whereDate('date', $date)
-            ->orderBy('period')
+            ->orderBy('lesson_order')
             ->get();
-    }
-
-    public function getByStudentLesson(string $studentId, string $date, int $lessonOrder): mixed
-    {
-        return $this->model
-            ->where('student_id', $studentId)
-            ->whereDate('date', $date)
-            ->where('lesson_order', $lessonOrder)
-            ->first();
     }
 
     public function getByScheduleAndDate(string $lessonScheduleId, string $date): Collection
@@ -124,12 +126,5 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
             ->orderBy('date')
             ->orderBy('period')
             ->get();
-    }
-
-    public function getHistoryByStudentId($studentId, $perPage = 15)
-    {
-        return Attendance::where('student_id', $studentId)
-            ->orderBy('date', 'DESC')
-            ->paginate($perPage);
     }
 }

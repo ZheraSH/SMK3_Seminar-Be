@@ -132,26 +132,24 @@ Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(fu
 */
 Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->group(function () {
     // Teacher Dashboard
-    // Route::prefix('dashboard')->controller(TeacherDashboardController::class)->group(function () {
-    //     Route::get('overview', 'getOverview');
-    //     Route::get('today-schedule', 'getTodaySchedule');
-    //     Route::get('classroom-list', 'getClassroomList');
-    //     Route::get('attendance-summary/{classroom_id}', 'getClassroomAttendanceSummary');
-    // });
+    Route::prefix('dashboard')->controller(TeacherDashboardController::class)->group(function () {
+        Route::get('overview', 'getOverview');
+        Route::get('today-schedule', 'getTodaySchedule');
+        Route::get('classroom-list', 'getClassroomList');
+        Route::get('attendance-summary/{classroom_id}', 'getClassroomAttendanceSummary');
+    });
 
     // Teacher schedule
     Route::prefix('schedule')->controller(TeacherScheduleController ::class)->group(function () {
-        Route::get('daily', 'getDailySchedule'); //jadwal mengajar perhari
-        Route::get('classroom', 'getClassroomSchedule'); //jadwal megajar di classroom
-        Route::get('with-attendance', 'getScheduleWithAttendanceStatus'); // jadwal dengan status absensi sudah atau belum
+        Route::get('daily', 'getDailySchedule'); //jadwal mengajar hari perhari
     });
 
     // Teacher attendance cross-check
     Route::prefix('attendance')->controller(TeacherAttendanceController::class)->group(function () {
-        Route::get('cross-check-data', 'getCrossCheckData'); //crosscheck jam pelajaran
-        Route::post('cross-check', 'submitCrossCheck'); //sumbit crosscheck
-        Route::get('schedule', 'getTeacherSchedule'); //jadwal pelajaran
-        Route::get('classroom-summary', 'getClassroomSummary'); //class yang di ajar
+        Route::get('classroom', 'getClassroomSchedule'); //jadwal megajar di classroom
+        Route::get('cross-check-data', 'getCrossCheckData'); // Data untuk cross-check
+        Route::post('cross-check', 'submitCrossCheck'); // Submit cross-check
+        Route::get('with-attendance', 'getScheduleWithAttendanceStatus'); // jadwal dengan status absensi sudah atau belum
     });
 });
 

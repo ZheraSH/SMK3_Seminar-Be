@@ -12,14 +12,13 @@ use App\Contracts\Interfaces\Eloquent\UpdateInterface;
 
 interface AttendanceInterface extends GetInterface, StoreInterface, UpdateInterface, ShowInterface, DeleteInterface, SearchInterface, PaginateInterface
 {
+    public function getStudentMonthlyAttendance(string $studentId, string $month, string $year): mixed;
+    public function getByStudentLesson(string $studentId, string $date, int $lessonOrder): mixed;
     public function getByStudentAndDate(string $studentId, string $date): mixed;
+    public function getStudentMonthly(string $studentId, string $month): mixed;
     public function getTodayByStudent(string $studentId): mixed;
     public function getByClassroomAndDate(string $classroomId, string $date): mixed;
-    public function getStudentMonthlyAttendance(string $studentId, string $month, string $year): mixed;
-    public function getByDate(string $date): mixed;
-    public function getByStudentLesson(string $studentId, string $date, int $lessonOrder): mixed;
-    public function getByScheduleAndDate(string $lessonScheduleId, string $date): mixed;
     public function getByClassroom(string $classroomId): mixed;
-    public function getStudentMonthly(string $studentId, string $month): mixed;
-    public function getHistoryByStudentId($studentId, $perPage = 15);
+    public function getByDate(string $date): mixed;
+    public function getByScheduleAndDate(string $lessonScheduleId, string $date): mixed;
 }

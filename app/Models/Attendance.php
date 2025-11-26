@@ -7,14 +7,23 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Enums\AttendanceStatusEnum;
 use App\Enums\AttendanceProofEnum;
-use App\Enums\TapTypeEnum;
-use App\Traits\Models\BelongsToClassroom;
+use App\Traits\Models\BelongsToClassroomStudents;
 use App\Traits\Models\BelongsToRfid;
 use App\Traits\Models\BelongsToStudent;
+use App\Traits\Models\BelongsToSubject;
+use App\Traits\Models\BelongsToTeacher;
+use App\Traits\Models\BelongsToLessonSchedule;
 
 class Attendance extends Model
 {
-    use HasFactory, BelongsToStudent, BelongsToClassroom, BelongsToRfid, SoftDeletes;
+    use HasFactory,
+         BelongsToStudent,
+         BelongsToSubject,
+         BelongsToTeacher,
+         BelongsToLessonSchedule,
+         BelongsToClassroomStudents,
+         BelongsToRfid,
+         SoftDeletes;
 
     public $incrementing = false;
     protected $keyType = 'string';
@@ -23,13 +32,17 @@ class Attendance extends Model
         'student_id',
         'classroom_student_id',
         'rfid_id',
+        'subject_id',
+        'teacher_id',
+        'lesson_schedule_id',
         'date',
-        'period',
         'checkin_time',
         'checkout_time',
+        'lesson_order',
+        'attendance_type',
         'status',
-        'tap_type',
         'proof',
+        'notes',
     ];
 
     protected $casts = [
@@ -37,7 +50,6 @@ class Attendance extends Model
         'checkin_time' => 'string',
         'checkout_time' => 'string',
         'status' => AttendanceStatusEnum::class,
-        'tap_type' => TapTypeEnum::class,
         'proof' => AttendanceProofEnum::class,
     ];
 
@@ -66,13 +78,13 @@ class Attendance extends Model
     public function scopePresent($query)
     {
         return $query->whereIn('status', [
-            AttendanceStatusEnum::PRESENT,
-            AttendanceStatusEnum::LATE
+            AttendanceStatusEnum::PRESENT->value,
+            AttendanceStatusEnum::LATE->value
         ]);
     }
 
     public function scopeAbsent($query)
     {
-        return $query->where('status', AttendanceStatusEnum::ALPHA);
+        return $query->where('status', AttendanceStatusEnum::ALPHA->value);
     }
 }

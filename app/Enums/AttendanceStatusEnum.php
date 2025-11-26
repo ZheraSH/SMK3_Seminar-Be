@@ -20,35 +20,4 @@ enum AttendanceStatusEnum: string
             self::SICK => 'Sakit',
         };
     }
-
-    public static function values(): array
-    {
-        return array_column(self::cases(), 'value');
-    }
-
-    public static function toArray(): array
-    {
-        $array = [];
-        foreach (self::cases() as $case) {
-            $array[$case->value] = $case->label();
-        }
-        return $array;
-    }
-
-    public static function getPresentStatuses(): array
-    {
-        return [
-            self::PRESENT->value,
-            self::LATE->value,
-        ];
-    }
-
-    public static function getAbsentStatuses(): array
-    {
-        return [
-            self::ALPHA->value,
-            self::LEAVE->value,
-            self::SICK->value,
-        ];
-    }
 }
