@@ -4,79 +4,34 @@ namespace App\Http\Controllers\Api\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Helpers\ResponseHelper;
-use App\Http\Resources\TeacherDashboardOverviewResource;
-use App\Http\Resources\TeacherScheduleWithAttendanceResource;
 use App\Http\Resources\TeacherClassroomListResource;
+use App\Http\Resources\TeacherScheduleWithAttendanceResource;
 use App\Services\TeacherDashboardService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class TeacherDashboardController extends Controller
 {
-    private TeacherDashboardService $teacherDashboardService;
+    public function __construct(
+        private TeacherDashboardService $dashboardService
+    ) {}
 
-    public function __construct(TeacherDashboardService $teacherDashboardService)
-    {
-        $this->teacherDashboardService = $teacherDashboardService;
-    }
-
-    public function getOverview(Request $request)
+    public function getClassroomList(Request $request): JsonResponse
     {
         try {
             $teacherId = auth()->user()->employee->id;
-
-            $overview = $this->teacherDashboardService->getDashboardOverviewWithValidation($request, $teacherId);
-
-            return ResponseHelper::success(
-                new TeacherDashboardOverviewResource($overview),
-                'Dashboard guru berhasil diambil'
-            );
-
-        } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
-        }
-    }
-
-    public function getTodaySchedule(Request $request)
-    {
-        try {
-            $teacherId = auth()->user()->employee->id;
-
-            $schedule = $this->teacherDashboardService->getTodayScheduleWithValidation($request, $teacherId);
-
-            if ($schedule->isEmpty()) {
-                return ResponseHelper::success(
-                    [],
-                    'Tidak ada jadwal mengajar untuk hari ini'
-                );
-            }
-
-            return ResponseHelper::success(
-                TeacherScheduleWithAttendanceResource::collection($schedule),
-                'Jadwal mengajar hari ini berhasil diambil'
-            );
-
-        } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
-        }
-    }
-
-    public function getClassroomList(Request $request)
-    {
-        try {
-            $teacherId = auth()->user()->employee->id;
-
-            $classroomList = $this->teacherDashboardService->getTodayClassroomListWithValidation($request, $teacherId);
+            $date = $request->date ?? now()->format('Y-m-d');
+            
+            $date = $this->dashboardService->validateDate($date);
+            $classroomList = $this->dashboardService->getClassroomList($teacherId, $date);
 
             if (empty($classroomList)) {
-                return ResponseHelper::success(
-                    [],
-                    'Tidak ada jadwal mengajar untuk hari ini'
-                );
+                return ResponseHelper::success([], 'Tidak ada kelas yang diajar hari ini');
             }
 
             return ResponseHelper::success(
                 TeacherClassroomListResource::collection($classroomList),
-                'Daftar kelas yang diajar hari ini berhasil diambil'
+                'Daftar kelas berhasil diambil'
             );
 
         } catch (\Throwable $th) {
@@ -84,20 +39,22 @@ class TeacherDashboardController extends Controller
         }
     }
 
-    public function getClassroomAttendanceSummary(Request $request, $classroom_id)
+    public function getTodaySchedule(Request $request): JsonResponse
     {
         try {
             $teacherId = auth()->user()->employee->id;
+            $date = $request->date ?? now()->format('Y-m-d');
+            
+            $date = $this->dashboardService->validateDate($date);
+            $schedules = $this->dashboardService->getTodaySchedule($teacherId, $date);
 
-            $attendanceSummary = $this->teacherDashboardService->getClassroomAttendanceSummaryWithValidationAndRequest(
-                $request,
-                $teacherId,
-                $classroom_id
-            );
+            if ($schedules->isEmpty()) {
+                return ResponseHelper::success([], 'Tidak ada jadwal mengajar untuk hari ini');
+            }
 
             return ResponseHelper::success(
-                $attendanceSummary,
-                'Ringkasan absensi kelas berhasil diambil'
+                TeacherScheduleWithAttendanceResource::collection($schedules),
+                'Jadwal mengajar hari ini berhasil diambil'
             );
 
         } catch (\Throwable $th) {
