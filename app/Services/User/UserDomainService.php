@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Auth;
+namespace App\Services\User;
 
 use App\Models\User;
 class UserDomainService
