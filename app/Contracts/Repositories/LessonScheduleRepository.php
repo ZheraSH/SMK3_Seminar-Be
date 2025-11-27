@@ -68,6 +68,10 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
                 'classroom.levelClass', 
                 'classroom.teacher.user',
                 'classroom.schoolYear',
+                'classroom.classroomStudents' => function($query) {
+                    $query->where('status', 'active');
+                },
+                'classroom.lessonSchedules.lessonHour',
                 'lessonHour', 
                 'employee.user'
             ])

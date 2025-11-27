@@ -23,11 +23,27 @@ class TeacherAttendanceService
     {
         $day = $this->getDayFromDate($date);
         $schedules = $this->lessonSchedule->getByTeacherAndDay($teacherId, $day);
-        $classrooms = $schedules->map(function ($schedule) {
-            return $schedule->classroom;
-        })->unique('id')->values();
-        
-        return $classrooms;
+        $schedules->load([
+            'classroom.major',
+            'classroom.levelClass', 
+            'classroom.teacher.user',
+            'classroom.schoolYear',
+            'classroom.classroomStudents' => function($query) {
+                $query->where('status', 'active');
+            },
+            'lessonHour'
+        ]);
+        $classroomData = [];
+        foreach ($schedules as $schedule) {
+            $classroomId = $schedule->classroom->id;
+            if (!isset($classroomData[$classroomId])) {
+                $classroomData[$classroomId] = (object)[
+                    'classroom' => $schedule->classroom,
+                    'first_schedule' => $schedule
+                ];
+            }
+        }
+        return collect($classroomData)->values();
     }
 
     public function getCrossCheckData(string $teacherId, string $classroomId, string $date, int $lessonOrder)
