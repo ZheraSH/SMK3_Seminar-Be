@@ -20,10 +20,10 @@ class EmployeeSeeder extends Seeder
 
         $employeeRoles = [
             RoleEnum::TEACHER->value,
-            RoleEnum::STAFF->value, 
             RoleEnum::HOMEROOM_TEACHER->value,
             RoleEnum::COUNSELOR->value,
-            RoleEnum::CURRICULUM_COORDINATOR->value,
+            // RoleEnum::STAFF->value, 
+            // RoleEnum::CURRICULUM_COORDINATOR->value,
         ];
 
         foreach ($employeeRoles as $role) {
@@ -38,7 +38,7 @@ class EmployeeSeeder extends Seeder
         $imageMale = 'admin_assets/dist/image/profile/teacher-1.png';
         $imageFemale = 'admin_assets/dist/image/profile/teacher-2.png';
 
-        for ($i = 1; $i <= 17; $i++) {
+        for ($i = 1; $i <= 250; $i++) {
 
             $gender = $faker->randomElement([
                 GenderEnum::MALE->value,

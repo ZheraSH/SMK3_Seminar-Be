@@ -36,26 +36,6 @@ class AttendancePermissionService
         return $this->attendancePermission->show($permission->id);
     }
 
-    public function getPermissionDetail(string $id): AttendancePermission
-    {
-        return $this->attendancePermission->show($id);
-    }
-
-    public function getStudentPermissions(string $studentId, Request $request): LengthAwarePaginator
-    {
-        return $this->attendancePermission->findByStudent($studentId, $request);
-    }
-
-    public function getCounselorPermissions(Request $request): LengthAwarePaginator
-    {
-        return $this->attendancePermission->searchByCounselor($request);
-    }
-
-    public function getPendingPermissions(): Collection
-    {
-        return $this->attendancePermission->getPendingPermissions();
-    }
-
     public function deleteStudentPermission(string $id, string $studentId): bool
     {
         $permission = $this->attendancePermission->show($id);
@@ -75,6 +55,25 @@ class AttendancePermissionService
     public function rejectPermission(string $id, string $counselorId): AttendancePermission
     {
         return $this->attendancePermission->rejectPermission($id, $counselorId);
+    }
+    public function getPermissionDetail(string $id): AttendancePermission
+    {
+        return $this->attendancePermission->show($id);
+    }
+
+    public function getStudentPermissions(string $studentId, Request $request): LengthAwarePaginator
+    {
+        return $this->attendancePermission->findByStudent($studentId, $request);
+    }
+
+    public function getCounselorPermissions(Request $request): LengthAwarePaginator
+    {
+        return $this->attendancePermission->searchByCounselor($request);
+    }
+
+    public function getPendingPermissions(): Collection
+    {
+        return $this->attendancePermission->getPendingPermissions();
     }
 
     public function getWithFilter(Request $request): LengthAwarePaginator

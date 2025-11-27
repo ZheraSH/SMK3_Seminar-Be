@@ -118,12 +118,29 @@ class AttendancePermissionRepository extends BaseRepository implements Attendanc
     {
         $query = $this->model
             ->with(['student.user', 'counselor.user'])
-            ->when($request->status, fn($q) => $q->where('status', $request->status))
-            ->when($request->type, fn($q) => $q->where('type', $request->type))
-            ->when(
-                $request->start_date && $request->end_date,
-                fn($q) => $q->whereBetween('start_date', [$request->start_date, $request->end_date])
-            )
+            ->when($request->search, function ($query) use ($request) {
+                $query->where(function ($q) use ($request) {
+                    $q->whereHas('student.user', function ($sub) use ($request) {
+                        $sub->where('name', 'LIKE', '%' . $request->search . '%');
+                    })
+                    ->orWhereHas('student', function ($sub) use ($request) {
+                        $sub->where('nisn', 'LIKE', '%' . $request->search . '%');
+                    });
+                });
+            })
+            ->when($request->filter, function ($query) use ($request) {
+                $query->where(function ($q) use ($request) {
+                    $q->whereHas('student.classroomStudents.classroom', function ($sub) use ($request) {
+                        $sub->where('name', 'LIKE', '%' . $request->filter . '%');
+                    })
+                    ->orWhereHas('student.classroomStudents.classroom.major', function ($sub) use ($request) {
+                        $sub->where('name', 'LIKE', '%' . $request->filter . '%');
+                    })
+                    ->orWhereHas('student.classroomStudents.classroom.levelClass', function ($sub) use ($request) {
+                        $sub->where('name', 'LIKE', '%' . $request->filter . '%');
+                    });
+                });
+            })
             ->latest();
 
         return $query->paginate(8);
