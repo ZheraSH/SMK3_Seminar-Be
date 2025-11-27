@@ -28,7 +28,7 @@ class StudentSeeder extends Seeder
         $imageMale = 'admin_assets/dist/image/profile/student-boy.png';
         $imageFemale = 'admin_assets/dist/image/profile/student-girl.png';
 
-        for ($i = 1; $i <= 324; $i++) {
+        for ($i = 1; $i <= 20; $i++) {
 
             $gender = $faker->randomElement([
                 GenderEnum::MALE->value,

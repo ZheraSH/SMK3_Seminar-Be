@@ -9,6 +9,6 @@ class AttendanceObserver
 {
     public function creating(Attendance $attendance)
     {
-        $attendance->attendance = Str::uuid();
+        $attendance->id = Str::uuid();
     }
 }

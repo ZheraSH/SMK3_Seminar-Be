@@ -113,8 +113,11 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
     public function getByClassroom(string $classroomId): Collection
     {
         return $this->model
-            ->where('classroom_id', $classroomId)
-            ->orderBy('period')
+            ->whereHas('classroomStudent', function ($query) use ($classroomId) {
+                $query->where('classroom_id', $classroomId);
+            })
+            ->orderBy('date')
+            ->orderBy('lesson_order')
             ->get();
     }
 
@@ -124,7 +127,7 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
             ->where('student_id', $studentId)
             ->whereMonth('date', $month)
             ->orderBy('date')
-            ->orderBy('period')
+            ->orderBy('lesson_order')
             ->get();
     }
     public function getHistoryByStudentId($studentId, $perPage = 15)

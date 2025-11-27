@@ -38,7 +38,7 @@ class EmployeeSeeder extends Seeder
         $imageMale = 'admin_assets/dist/image/profile/teacher-1.png';
         $imageFemale = 'admin_assets/dist/image/profile/teacher-2.png';
 
-        for ($i = 1; $i <= 250; $i++) {
+        for ($i = 1; $i <= 20; $i++) {
 
             $gender = $faker->randomElement([
                 GenderEnum::MALE->value,

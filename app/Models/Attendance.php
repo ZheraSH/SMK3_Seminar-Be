@@ -16,25 +16,20 @@ use App\Traits\Models\BelongsToLessonSchedule;
 
 class Attendance extends Model
 {
-    use HasFactory,
-         BelongsToStudent,
-         BelongsToSubject,
-         BelongsToTeacher,
-         BelongsToLessonSchedule,
-         BelongsToClassroomStudents,
-         BelongsToRfid,
-         SoftDeletes;
+    use HasFactory, BelongsToStudent, 
+    BelongsToSubject, BelongsToTeacher,
+    BelongsToLessonSchedule, BelongsToClassroomStudents,
+    BelongsToRfid, SoftDeletes;
 
     public $incrementing = false;
     protected $keyType = 'string';
-    
     protected $fillable = [
-        'student_id',
         'classroom_student_id',
-        'rfid_id',
-        'subject_id',
-        'teacher_id',
+        'student_id',
         'lesson_schedule_id',
+        'teacher_id',
+        'subject_id',
+        'rfid_id',
         'date',
         'checkin_time',
         'checkout_time',
@@ -42,7 +37,6 @@ class Attendance extends Model
         'attendance_type',
         'status',
         'proof',
-        'notes',
     ];
 
     protected $casts = [
