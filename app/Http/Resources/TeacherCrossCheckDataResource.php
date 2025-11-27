@@ -55,29 +55,18 @@ class TeacherCrossCheckDataResource extends JsonResource
                 'leave' => $this->leave ?? 0,
                 'sick' => $this->sick ?? 0,
             ],
-            'students' => [
-                'data' => $this->students ? array_map(function ($student) {
-                    return [
-                        'id' => $student['student_id'] ?? null,
-                        'name' => $student['name'] ?? 'Tidak diketahui',
-                        'nisn' => $student['nisn'] ?? null,
-                        'existing_attendance' => $student['existing_attendance'] ? [
-                            'id' => $student['existing_attendance']['id'] ?? null,
-                            'status' => $student['existing_attendance']['status'] ?? null,
-                            'status_label' => $student['existing_attendance']['status_label'] ?? null,
-                        ] : null,
-                    ];
-                }, $this->students) : [],
-                'pagination' => $this->students_pagination ?? [
-                    'current_page' => 1,
-                    'last_page' => 1,
-                    'per_page' => 20,
-                    'total' => 0,
-                    'from' => null,
-                    'to' => null,
-                    'has_more_pages' => false,
-                ],
-            ],
+            'students' => $this->students ? array_map(function ($student) {
+                return [
+                    'id' => $student['student_id'] ?? null,
+                    'name' => $student['name'] ?? 'Tidak diketahui',
+                    'nisn' => $student['nisn'] ?? null,
+                    'existing_attendance' => $student['existing_attendance'] ? [
+                        'id' => $student['existing_attendance']['id'] ?? null,
+                        'status' => $student['existing_attendance']['status'] ?? null,
+                        'status_label' => $student['existing_attendance']['status_label'] ?? null,
+                    ] : null,
+                ];
+            }, $this->students) : [],
         ];
     }
 }

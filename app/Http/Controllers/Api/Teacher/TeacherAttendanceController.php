@@ -46,9 +46,7 @@ class TeacherAttendanceController extends Controller
                 $teacherId,
                 $validated['classroom_id'],
                 $validated['date'],
-                $validated['lesson_order'],
-                $validated['page'] ?? 1,
-                $validated['per_page'] ?? 20
+                $validated['lesson_order']
             );
 
             return ResponseHelper::success(

@@ -46,7 +46,7 @@ class TeacherAttendanceService
         return collect($classroomData)->values();
     }
 
-    public function getCrossCheckData(string $teacherId, string $classroomId, string $date, int $lessonOrder, int $page = 1, int $perPage = 20)
+    public function getCrossCheckData(string $teacherId, string $classroomId, string $date, int $lessonOrder)
     {
         if ($lessonOrder < 2) {
             throw new \Exception('Cross-check hanya untuk jam pelajaran ke-2 dan seterusnya');
@@ -61,8 +61,8 @@ class TeacherAttendanceService
             throw new \Exception('Anda tidak memiliki jadwal mengajar untuk kelas ini pada jam pelajaran ini');
         }
 
-        $students = $this->classroomStudents->getByClassroomPaginated($classroomId, $perPage, ['*'], 'page', $page);
-        $attendanceData = $students->getCollection()->map(function ($classroomStudent) use ($date, $lessonOrder) {
+        $students = $this->classroomStudents->getByClassroom($classroomId);
+        $attendanceData = $students->map(function ($classroomStudent) use ($date, $lessonOrder) {
             $student = $classroomStudent->student;
             $existingAttendance = $this->attendance->getByStudentLesson($student->id, $date, $lessonOrder);
 
@@ -84,15 +84,6 @@ class TeacherAttendanceService
             'lesson_schedule' => $schedule,
             'summary' => $summary,
             'students' => $attendanceData,
-            'students_pagination' => [
-                'current_page' => $students->currentPage(),
-                'last_page' => $students->lastPage(),
-                'per_page' => $students->perPage(),
-                'total' => $students->total(),
-                'from' => $students->firstItem(),
-                'to' => $students->lastItem(),
-                'has_more_pages' => $students->hasMorePages(),
-            ],
             'classroom' => $students->first()?->classroom ?? null,
             'current_teacher' => $currentTeacher,
             'date' => $date,
