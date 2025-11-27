@@ -14,23 +14,22 @@ use Illuminate\Http\Request;
 
 class TeacherAttendanceController extends Controller
 {
-    public function __construct(
-        private TeacherAttendanceService $attendanceService
-    ) {}
+    private TeacherAttendanceService $attendanceService;
+    public function __construct(TeacherAttendanceService $attendanceService)
+    {
+        $this->attendanceService = $attendanceService;
+    }
 
     public function getTeacherClassrooms(Request $request): JsonResponse
     {
         try {
             $teacherId = auth()->user()->employee->id;
             $date = $request->date ?? now()->format('Y-m-d');
-
             $classrooms = $this->attendanceService->getTeacherClassrooms($teacherId, $date);
-
             return ResponseHelper::success(
                 TeacherClassroomResource::collection($classrooms),
                 'Daftar kelas berhasil diambil'
             );
-
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
@@ -41,19 +40,17 @@ class TeacherAttendanceController extends Controller
         try {
             $teacherId = auth()->user()->employee->id;
             $validated = $request->validated();
-
             $data = $this->attendanceService->getCrossCheckData(
                 $teacherId,
                 $validated['classroom_id'],
                 $validated['date'],
-                $validated['lesson_order']
+                $validated['lesson_order'],
+                $request
             );
-
             return ResponseHelper::success(
                 new TeacherCrossCheckDataResource($data),
                 'Data cross-check berhasil diambil'
             );
-
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
@@ -67,13 +64,11 @@ class TeacherAttendanceController extends Controller
                 $request->validated(),
                 $teacherId
             );
-
             return ResponseHelper::success(
                 $attendances,
                 'Absensi cross-check berhasil disimpan',
                 201
             );
-
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }

@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class TeacherCrossCheckDataResource extends JsonResource
 {
@@ -10,6 +11,23 @@ class TeacherCrossCheckDataResource extends JsonResource
     {
         $lessonSchedule = $this->lesson_schedule;
         $classroom = $this->classroom;
+        $studentsData = [];
+        $paginationMeta = null;
+
+        if ($this->students instanceof LengthAwarePaginator) {
+            $studentsPaginator = $this->students;
+            $studentsData = $studentsPaginator->getCollection()->toArray();
+            $paginationMeta = [
+                'current_page' => $studentsPaginator->currentPage(),
+                'last_page' => $studentsPaginator->lastPage(),
+                'per_page' => $studentsPaginator->perPage(),
+                'total' => $studentsPaginator->total(),
+                'from' => $studentsPaginator->firstItem(),
+                'to' => $studentsPaginator->lastItem(),
+            ];
+        } else {
+            $studentsData = $this->students ?? [];
+        }
 
         return [
             'date' => $this->date,
@@ -35,7 +53,6 @@ class TeacherCrossCheckDataResource extends JsonResource
                     'id' => $lessonSchedule->subject->id,
                     'name' => $lessonSchedule->subject->name,
                 ] : null,
-                // TEACHER dari lesson_schedule (guru pengajar)
                 'teacher' => $lessonSchedule->employee ? [
                     'id' => $lessonSchedule->employee->id,
                     'name' => $lessonSchedule->employee->user->name ?? 'Tidak diketahui',
@@ -55,7 +72,7 @@ class TeacherCrossCheckDataResource extends JsonResource
                 'leave' => $this->leave ?? 0,
                 'sick' => $this->sick ?? 0,
             ],
-            'students' => $this->students ? array_map(function ($student) {
+            'students' => array_map(function ($student) {
                 return [
                     'id' => $student['student_id'] ?? null,
                     'name' => $student['name'] ?? 'Tidak diketahui',
@@ -66,7 +83,8 @@ class TeacherCrossCheckDataResource extends JsonResource
                         'status_label' => $student['existing_attendance']['status_label'] ?? null,
                     ] : null,
                 ];
-            }, $this->students) : [],
+            }, $studentsData),
+            'pagination' => $paginationMeta,
         ];
     }
 }

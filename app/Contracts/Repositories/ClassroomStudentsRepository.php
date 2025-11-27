@@ -133,6 +133,32 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
         return $query->latest()->paginate($request->limit ?? 8);
     }
 
+    public function getByClassroomForAttendance(string $classroomId, Request $request = null): LengthAwarePaginator
+    {
+        $query = $this->model->query()
+            ->with([
+                'student.user',
+                'classroom.major',
+                'classroom.levelClass',
+                'classroom.schoolYear',
+                'classroom.teacher.user'
+            ])
+            ->where('classroom_id', $classroomId)
+            ->where('status', StudentStatusEnum::ACTIVE->value);
+
+        if ($request && $request->has('search') && !empty($request->search)) {
+            $query->where(function ($q) use ($request) {
+                $q->whereHas('student.user', function ($sub) use ($request) {
+                    $sub->where('name', 'LIKE', '%' . $request->search . '%');
+                })
+                ->orWhereHas('student', function ($sub) use ($request) {
+                    $sub->where('nisn', 'LIKE', '%' . $request->search . '%');
+                });
+            });
+        }
+
+        return $query->latest()->paginate(10);
+    }
     public function getByClassroomPaginated(string $classroomId, Request $request = null): LengthAwarePaginator
     {
         $query = $this->model->query()

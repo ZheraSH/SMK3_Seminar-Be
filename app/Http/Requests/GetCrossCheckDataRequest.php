@@ -17,6 +17,7 @@ class GetCrossCheckDataRequest extends ApiRequest
             'classroom_id' => 'required|exists:classrooms,id',
             'date' => 'required|date',
             'lesson_order' => 'required|integer|min:2',
+            'page' => 'sometimes|integer|min:1',
         ];
     }
 
