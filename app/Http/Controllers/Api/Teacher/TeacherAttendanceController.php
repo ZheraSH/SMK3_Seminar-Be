@@ -18,7 +18,7 @@ class TeacherAttendanceController extends Controller
         private TeacherAttendanceService $attendanceService
     ) {}
 
-    public function getTeacherClassrooms(Request $request): JsonResponse
+    public function getClassroomsForCrossCheck(Request $request): JsonResponse
     {
         try {
             $teacherId = auth()->user()->employee->id;
@@ -28,7 +28,7 @@ class TeacherAttendanceController extends Controller
 
             return ResponseHelper::success(
                 TeacherClassroomResource::collection($classrooms),
-                'Daftar kelas berhasil diambil'
+                'Daftar kelas untuk cross-check berhasil diambil'
             );
 
         } catch (\Throwable $th) {
@@ -36,7 +36,7 @@ class TeacherAttendanceController extends Controller
         }
     }
 
-    public function getCrossCheckData(GetCrossCheckDataRequest $request): JsonResponse
+    public function getData(GetCrossCheckDataRequest $request): JsonResponse
     {
         try {
             $teacherId = auth()->user()->employee->id;
@@ -53,7 +53,7 @@ class TeacherAttendanceController extends Controller
 
             return ResponseHelper::success(
                 new TeacherCrossCheckDataResource($data),
-                'Data cross-check berhasil diambil'
+                'Data untuk proses cross-check berhasil diambil'
             );
 
         } catch (\Throwable $th) {
@@ -61,7 +61,7 @@ class TeacherAttendanceController extends Controller
         }
     }
 
-    public function submitCrossCheck(CrossCheckAttendanceRequest $request): JsonResponse
+    public function submit(CrossCheckAttendanceRequest $request): JsonResponse
     {
         try {
             $teacherId = auth()->user()->employee->id;
@@ -72,7 +72,7 @@ class TeacherAttendanceController extends Controller
 
             return ResponseHelper::success(
                 $attendances,
-                'Absensi cross-check berhasil disimpan',
+                'Hasil cross-check berhasil disimpan',
                 201
             );
 
