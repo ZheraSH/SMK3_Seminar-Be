@@ -17,6 +17,8 @@ class GetCrossCheckDataRequest extends ApiRequest
             'classroom_id' => 'required|exists:classrooms,id',
             'date' => 'required|date',
             'lesson_order' => 'required|integer|min:2',
+            'page' => 'sometimes|integer|min:1',
+            'per_page' => 'sometimes|integer|min:1|max:100',
         ];
     }
 
@@ -29,6 +31,9 @@ class GetCrossCheckDataRequest extends ApiRequest
             'date.date' => 'Format tanggal tidak valid',
             'lesson_order.required' => 'Urutan jam pelajaran wajib diisi',
             'lesson_order.min' => 'Cross-check hanya untuk jam pelajaran ke-2 dan seterusnya',
+            'page.min' => 'Halaman harus minimal 1',
+            'per_page.min' => 'Data per halaman minimal 1',
+            'per_page.max' => 'Data per halaman maksimal 100',
         ];
     }
 }

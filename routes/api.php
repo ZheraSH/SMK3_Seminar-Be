@@ -133,7 +133,7 @@ Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(fu
 Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->group(function () {
     // Teacher Dashboard
     Route::prefix('dashboard')->controller(TeacherDashboardController::class)->group(function () {
-        Route::get('classroom-list', 'getClassroomList'); // Daftar kelas yang diajar hari ini
+        Route::get('classroom-list', [TeacherAttendanceController::class, 'getTeacherClassrooms']); // Daftar kelas untuk attendance
         Route::get('today-schedule', 'getTodaySchedule'); // Jadwal mengajar hari ini dengan status absensi
     });
 
