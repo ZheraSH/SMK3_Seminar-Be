@@ -142,11 +142,11 @@ Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->group(fu
         Route::get('daily', 'getDailySchedule'); // jadwal mengajar hari perhari (basic)
     });
 
-    // Teacher cross-check operations
-    Route::prefix('cross-check')->controller(TeacherAttendanceController::class)->group(function () {
-        Route::get('classrooms', 'getClassroomsForCrossCheck'); // Daftar kelas untuk cross-check
-        Route::get('data', 'getData'); // Data untuk proses cross-check
-        Route::post('submit', 'submit'); // Submit hasil cross-check
+    // Teacher attendance cross-check
+    Route::prefix('attendance')->controller(TeacherAttendanceController::class)->group(function () {
+        Route::get('classroom', 'getTeacherClassrooms'); // daftar classroom untuk attendance
+        Route::get('cross-check-data', 'getCrossCheckData'); // Data untuk cross-check
+        Route::post('cross-check', 'submitCrossCheck'); // Submit cross-check
     });
 });
 
