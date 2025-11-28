@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AttendanceRuleController;
 use App\Http\Controllers\Api\ClassroomController;
 use App\Http\Controllers\Api\ClassroomStudentsController;
+use App\Http\Controllers\Api\Counselor\CounselorAttendanceGlobalController;
 use App\Http\Controllers\Api\Counselor\CounselorAttendanceMonitoringController;
 use App\Http\Controllers\Api\Counselor\CounselorAttendancePermissionController;
 use App\Http\Controllers\Api\EmployeeController;
@@ -167,10 +168,15 @@ Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->grou
     Route::apiResource('attendance-permissions', CounselorAttendancePermissionController::class)->except(['store', 'destroy']);
 
     // Monitoring Kehadiran Siswa (BK)
-    // Route::prefix('attendance-monitoring')->controller(CounselorAttendanceMonitoringController::class) ->group(function () {
-    //     Route::get('/', 'index'); // monitoring list
-    //     Route::post('/sync', 'syncData'); // sync rekap
-    // });
+    Route::prefix('attendance-monitoring')->controller(CounselorAttendanceMonitoringController::class) ->group(function () {
+        Route::get('/', 'index'); // monitoring list
+        Route::post('/sync', 'syncData'); // sync rekap
+    });
+
+    Route::prefix('attendance')
+    ->group(function () {
+        Route::get('statistics', [CounselorAttendanceGlobalController::class, 'index']);
+    });
 
 });
     

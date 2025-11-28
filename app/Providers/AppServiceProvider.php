@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Contracts\Interfaces\AttendanceGlobalInterface;
 use App\Contracts\Interfaces\AttendanceInterface;
 use App\Contracts\Interfaces\AttendanceMonitoringInterface;
 use App\Contracts\Interfaces\AttendancePermissionInterface;
@@ -21,6 +22,7 @@ use App\Contracts\Interfaces\RoleInterface;
 use App\Contracts\Interfaces\StudentInterface;
 use App\Contracts\Interfaces\StudentLessonScheduleInterface;
 use App\Contracts\Interfaces\UserInterface;
+use App\Contracts\Repositories\AttendanceGlobalRepository;
 use App\Contracts\Repositories\AttendancePermissionRepository;
 use App\Contracts\Repositories\AttendanceRepository;
 use App\Contracts\Repositories\AttendanceRuleRepository;
@@ -96,6 +98,7 @@ class AppServiceProvider extends ServiceProvider
         AttendancePermissionInterface::class => AttendancePermissionRepository::class,
         StudentLessonScheduleInterface::class => StudentLessonScheduleRepository::class,
         AttendanceMonitoringInterface::class => AttendanceMonitoringRepository::class,
+        AttendanceGlobalInterface::class => AttendanceGlobalRepository::class,
     ];
 
     public function register(): void
