@@ -72,6 +72,11 @@ class TeacherCrossCheckDataResource extends JsonResource
                 'leave' => $this->leave ?? 0,
                 'sick' => $this->sick ?? 0,
             ],
+            'submission_status' => [
+                'has_submitted' => $this->has_submitted ?? false,
+                'submitted_at' => $this->submitted_at ?? null,
+                'can_resubmit' => $this->can_resubmit ?? true,
+            ],
             'students' => array_map(function ($student) {
                 return [
                     'id' => $student['student_id'] ?? null,
