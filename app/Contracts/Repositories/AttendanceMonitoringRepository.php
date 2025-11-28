@@ -43,7 +43,6 @@ class AttendanceMonitoringRepository implements AttendanceMonitoringInterface
             ', [$present, $sick, $leave, $alpha, $present])
             ->groupBy('s.id', 'u.name', 'c.name', 'm.code', 'c.major_id');
 
-        // Apply search filter
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('u.name', 'like', '%' . $filters['search'] . '%')
@@ -52,12 +51,10 @@ class AttendanceMonitoringRepository implements AttendanceMonitoringInterface
             });
         }
 
-        // Filter by classroom
         if (!empty($filters['classroom'])) {
             $query->where('c.name', 'like', '%' . $filters['classroom'] . '%');
         }
 
-        // Filter by major
         if (!empty($filters['major'])) {
             $query->where('m.code', 'like', '%' . $filters['major'] . '%');
         }

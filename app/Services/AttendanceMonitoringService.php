@@ -16,7 +16,6 @@ class AttendanceMonitoringService
      */
     public function getMonitoringData(array $filters)
     {
-        // Jika memilih jurusan lain → kosong total
         if (!empty($filters['major']) && $filters['major'] !== 'PPLG') {
 
             $perPage = $filters['limit'] ?? 15;
@@ -32,17 +31,13 @@ class AttendanceMonitoringService
         return $this->attendanceMonitoringRepository->getMonitoringData($filters);
     }
 
-
-
     /**
      * Recap should always reflect FILTER + LIST RESULT
      */
     public function getRecap(array $filters): array
     {
-        // Ambil list dulu agar recap selaras dgn list
         $list = $this->getMonitoringData($filters);
 
-        // Jika list tidak ada → recap 0
         if ($list->total() === 0) {
             return [
                 'jumlah_siswa_hadir_hari_ini' => 0,
@@ -53,11 +48,9 @@ class AttendanceMonitoringService
             ];
         }
 
-        // Ambil satu data untuk cek jurusan
         $first = $list->items()[0];
         $major = $first->major_code ?? null;
 
-        // Jika bukan PPLG → recap 0
         if ($major !== 'PPLG') {
             return [
                 'jumlah_siswa_hadir_hari_ini' => 0,
@@ -68,11 +61,8 @@ class AttendanceMonitoringService
             ];
         }
 
-        // Recap asli dari database
         return $this->attendanceMonitoringRepository->getRecap($filters);
     }
-
-
 
     /**
      * Sync data (simply pass-through)
