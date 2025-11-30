@@ -18,17 +18,7 @@ class EmployeeSeeder extends Seeder
     {
         $faker = \Faker\Factory::create('id_ID');
 
-        $employeeRoles = [
-            RoleEnum::TEACHER->value,
-            RoleEnum::HOMEROOM_TEACHER->value,
-            RoleEnum::COUNSELOR->value,
-            // RoleEnum::STAFF->value, 
-            // RoleEnum::CURRICULUM_COORDINATOR->value,
-        ];
-
-        foreach ($employeeRoles as $role) {
-            Role::firstOrCreate(['name' => $role]);
-        }
+        $this->createRoles();
 
         $religion = Religion::firstOrCreate(
             ['name' => 'Islam'],
@@ -38,8 +28,13 @@ class EmployeeSeeder extends Seeder
         $imageMale = 'admin_assets/dist/image/profile/teacher-1.png';
         $imageFemale = 'admin_assets/dist/image/profile/teacher-2.png';
 
-        for ($i = 1; $i <= 20; $i++) {
+        $teacherCount = 0;
+        $homeroomCount = 0;
+        $counselorCount = 0;
+        $curriculumCount = 0;
+        $staffCount = 0;
 
+        for ($i = 1; $i <= 20; $i++) {
             $gender = $faker->randomElement([
                 GenderEnum::MALE->value,
                 GenderEnum::FEMALE->value
@@ -48,6 +43,15 @@ class EmployeeSeeder extends Seeder
             $name = $this->generateRandomName($faker, $gender);
             $email = "employee{$i}@skaniga.com";
             $nip = $this->generateNIP($i);
+
+            $roles = $this->determineRoles(
+                $i, 
+                $teacherCount, 
+                $homeroomCount, 
+                $counselorCount, 
+                $curriculumCount, 
+                $staffCount
+            );
 
             $user = User::updateOrCreate(
                 ['email' => $email],
@@ -60,7 +64,6 @@ class EmployeeSeeder extends Seeder
                 ]
             );
 
-            $roles = $faker->randomElements($employeeRoles, $faker->numberBetween(1, 2));
             $user->syncRoles($roles);
 
             Employee::updateOrCreate(
@@ -78,6 +81,99 @@ class EmployeeSeeder extends Seeder
                     'phone_number' => $faker->phoneNumber(),
                 ]
             );
+
+            $this->updateCounters($roles, $teacherCount, $homeroomCount, $counselorCount, $curriculumCount, $staffCount);
+        }
+    }
+
+    private function createRoles(): void
+    {
+        $roles = [
+            RoleEnum::TEACHER->value,
+            RoleEnum::HOMEROOM_TEACHER->value,
+            RoleEnum::COUNSELOR->value,
+            RoleEnum::STAFF->value,
+            RoleEnum::CURRICULUM_COORDINATOR->value,
+        ];
+
+        foreach ($roles as $role) {
+            Role::firstOrCreate(['name' => $role]);
+        }
+    }
+
+    private function determineRoles(
+        int $index, 
+        int &$teacherCount, 
+        int &$homeroomCount, 
+        int &$counselorCount, 
+        int &$curriculumCount, 
+        int &$staffCount
+    ): array {
+
+        $maxTeachers = 8;
+        $maxHomeroom = 4;
+        $maxCounselor = 2;
+        $maxCurriculum = 2;
+        $maxStaff = 4;
+
+        // BK - role khusus, tidak bisa menjadi teacher
+        if ($counselorCount < $maxCounselor && $index % 5 == 0) {
+            $counselorCount++;
+            return [RoleEnum::COUNSELOR->value];
+        }
+
+        if ($staffCount < $maxStaff && $index % 4 == 0) {
+            $staffCount++;
+            return [RoleEnum::STAFF->value];
+        }
+
+        if ($curriculumCount < $maxCurriculum && $index % 6 == 0) {
+            $curriculumCount++;
+            $teacherCount++;
+            return [RoleEnum::TEACHER->value, RoleEnum::CURRICULUM_COORDINATOR->value];
+        }
+
+        if ($homeroomCount < $maxHomeroom && $index % 3 == 0) {
+            $homeroomCount++;
+            $teacherCount++;
+            return [RoleEnum::TEACHER->value, RoleEnum::HOMEROOM_TEACHER->value];
+        }
+
+        if ($teacherCount < $maxTeachers) {
+            $teacherCount++;
+            return [RoleEnum::TEACHER->value];
+        }
+
+        $staffCount++;
+        return [RoleEnum::STAFF->value];
+    }
+
+    private function updateCounters(
+        array $roles, 
+        int &$teacherCount, 
+        int &$homeroomCount, 
+        int &$counselorCount, 
+        int &$curriculumCount, 
+        int &$staffCount
+    ): void {
+        foreach ($roles as $role) {
+            switch ($role) {
+                case RoleEnum::TEACHER->value:
+                    $teacherCount++;
+                    break;
+                case RoleEnum::HOMEROOM_TEACHER->value:
+                    $homeroomCount++;
+                    break;
+                case RoleEnum::COUNSELOR->value:
+                    $counselorCount++;
+                    break;
+                case RoleEnum::CURRICULUM_COORDINATOR->value:
+                    $curriculumCount++;
+                    break;
+                case RoleEnum::STAFF->value:
+                    $staffCount++;
+                    break;
+            }
         }
     }
 

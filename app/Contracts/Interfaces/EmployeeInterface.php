@@ -12,5 +12,5 @@ use App\Contracts\Interfaces\Eloquent\UpdateInterface;
 
 interface EmployeeInterface extends GetInterface, StoreInterface, UpdateInterface, ShowInterface, DeleteInterface, PaginateInterface, SearchInterface
 {
-    // Define your methods here
+    public function countByRoles(array $roles): int;
 }

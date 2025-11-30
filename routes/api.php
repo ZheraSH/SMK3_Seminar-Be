@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\LessonSchedulesController;
 use App\Http\Controllers\Api\LevelClassController;
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\MajorController;
+use App\Http\Controllers\Api\OperatorDashboardController;
 use App\Http\Controllers\Api\ReligionController;
 use App\Http\Controllers\Api\RfidController;
 use App\Http\Controllers\Api\RfidTapController;
@@ -47,6 +48,12 @@ Route::controller(LoginController::class)->group(function () {
 */
 // Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
 
+    //Dashboard
+    Route::prefix('dashboard')->controller(OperatorDashboardController::class)->group(function () {
+        Route::get('counters', 'getMaster'); // total siswa/guru/kelas/attendance
+        Route::get('activities', 'getRfidTap'); //kegiatan tap RFID terbaru
+        Route::get('stats', 'getStatistics'); //statistik absen mingguan
+    });
     // Roles
     Route::apiResource('roles', RoleController::class)->only('index');
     // Students
@@ -118,7 +125,7 @@ Route::controller(LoginController::class)->group(function () {
 Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(function () {
 
     // jadwal pelajaran siswa
-    Route::get('/lesson-schedule', [StudentLessonScheduleController::class, 'getSchedule']);
+    Route::get('lesson-schedule', [StudentLessonScheduleController::class, 'getSchedule']);
     // izin tidak masuk siswa
     Route::apiResource('attendance-permissions', StudentAttendancePermissionController::class)->except(['update']);
       // Student Attendance History
@@ -171,11 +178,6 @@ Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->grou
     Route::prefix('attendance-monitoring')->controller(CounselorAttendanceMonitoringController::class) ->group(function () {
         Route::get('/', 'index'); // monitoring list
         Route::post('/sync', 'syncData'); // sync rekap
-    });
-
-    Route::prefix('attendance')
-    ->group(function () {
-        Route::get('statistics', [CounselorAttendanceGlobalController::class, 'index']);
     });
 
 });
