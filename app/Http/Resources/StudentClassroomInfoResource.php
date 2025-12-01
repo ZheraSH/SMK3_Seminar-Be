@@ -26,6 +26,7 @@ class StudentClassroomInfoResource extends JsonResource
                     'id' => $classroom->teacher->id,
                     'name' => $classroom->teacher->user->name ?? null,
                 ] : null,
+                'total_students' => $classroom->classroom_students_count ?? 0,
             ],
             'classmates' => [
                 'data' => $classmates->map(function ($classroomStudent) {
@@ -34,7 +35,6 @@ class StudentClassroomInfoResource extends JsonResource
                         'name' => $classroomStudent->student->user->name ?? null,
                     ];
                 }),
-                'total_students' => $classroom->classroomStudents_count ?? 0,
                 'pagination' => [
                     'current_page' => $classmates->currentPage(),
                     'per_page' => $classmates->perPage(),
