@@ -126,9 +126,6 @@ Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(fu
 
     // jadwal pelajaran siswa
     Route::get('lesson-schedule', [StudentLessonScheduleController::class, 'getSchedule']);
-    // API to get student's class info (classroom, homeroom teacher, classmates)
-    Route::get('class-info', [App\Http\Controllers\Api\StudentController::class, 'getStudentClassInfo']);
-
     // izin tidak masuk siswa
     Route::apiResource('attendance-permissions', StudentAttendancePermissionController::class)->except(['update']);
       // Student Attendance History
