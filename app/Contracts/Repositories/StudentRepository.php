@@ -169,4 +169,22 @@ class StudentRepository extends BaseRepository implements StudentInterface
             ->where('status', StudentStatusEnum::ACTIVE->value)
             ->get();
     }
+
+    public function getClassroomInfo(string $studentId): mixed
+    {
+        return $this->model
+            ->with([
+                'user:id,name',
+                'classroomStudents' => function($query) {
+                    $query->where('status', 'active')
+                          ->with([
+                              'classroom:id,name,school_year_id,teacher_id',
+                              'classroom.schoolYear:id,name',
+                              'classroom.teacher:id,user_id',
+                              'classroom.teacher.user:id,name'
+                          ]);
+                }
+            ])
+            ->find($studentId);
+    }
 }

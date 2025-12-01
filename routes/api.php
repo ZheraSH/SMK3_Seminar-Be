@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\Student\StudentAttendancePermissionController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\Student\StudentLessonScheduleController;
 use App\Http\Controllers\Api\Student\StudentAttendanceHistoryController;
+use App\Http\Controllers\Api\Student\StudentClassroomController as StudentStudentClassroomController;
 use App\Http\Controllers\Api\SubjectController;
 use App\Http\Controllers\Api\Teacher\TeacherAttendanceController;
 use App\Http\Controllers\Api\Teacher\TeacherScheduleController;
@@ -124,6 +125,8 @@ Route::controller(LoginController::class)->group(function () {
 */
 Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(function () {
 
+    //classroom info
+    Route::get('classroom-info', [StudentStudentClassroomController::class, 'getClassroomInfo']);
     // jadwal pelajaran siswa
     Route::get('lesson-schedule', [StudentLessonScheduleController::class, 'getSchedule']);
     // izin tidak masuk siswa

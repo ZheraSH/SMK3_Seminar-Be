@@ -15,6 +15,7 @@ interface StudentInterface extends GetInterface, StoreInterface, UpdateInterface
 {
     public function showWithActiveClassroom(mixed $id): mixed;
     public function getWithActiveClassrooms(): Collection;
+    public function getClassroomInfo(string $studentId): mixed;
     public function countActiveStudents(): mixed;
     public function getActiveStudents(): mixed;
     public function count(): mixed;
