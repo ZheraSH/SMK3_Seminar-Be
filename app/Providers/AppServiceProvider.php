@@ -74,6 +74,10 @@ use App\Observers\SchoolYearObserver;
 use App\Observers\SubjectObserver;
 use App\Observers\LessonHourObserver;
 use App\Contracts\Repositories\AttendanceMonitoringRepository;
+use App\Interfaces\StudentRepositoryInterface;
+use App\Repositories\StudentRepository;
+use App\Interfaces\StudentServiceInterface;
+use App\Services\StudentService;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -99,6 +103,9 @@ class AppServiceProvider extends ServiceProvider
         StudentLessonScheduleInterface::class => StudentLessonScheduleRepository::class,
         AttendanceMonitoringInterface::class => AttendanceMonitoringRepository::class,
         AttendanceGlobalInterface::class => AttendanceGlobalRepository::class,
+        // New Student API Bindings
+        StudentRepositoryInterface::class => StudentRepository::class,
+        StudentServiceInterface::class => StudentService::class,
     ];
 
     public function register(): void
