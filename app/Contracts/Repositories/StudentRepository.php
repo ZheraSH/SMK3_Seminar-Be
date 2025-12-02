@@ -170,6 +170,7 @@ class StudentRepository extends BaseRepository implements StudentInterface
             ->get();
     }
 
+
     public function getClassroomInfo(string $studentId): mixed
     {
         return $this->model
@@ -187,4 +188,16 @@ class StudentRepository extends BaseRepository implements StudentInterface
             ])
             ->find($studentId);
     }
+
+    public function findWithClassroom(string $id): mixed
+    {
+        return $this->model
+            ->with([
+                'classroomStudents.classroom.levelClass', 
+                'classroomStudents.classroom.major',
+                'classroomStudents.classroom.teacher'
+            ])
+            ->findOrFail($id);
+    }
+
 }

@@ -168,5 +168,18 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
         }
 
         return $query->exists();
+
+    }
+
+    public function getByStudentAndDay(string $studentId, string $day): mixed
+    {
+        return $this->model->whereHas('classroom.classroomStudents', function ($query) use ($studentId) {
+                $query->where('student_id', $studentId)
+                    ->where('status', 'active');     
+            })
+            ->where('day', $day)
+            ->with(['subject', 'employee.user', 'lessonHour', 'classroom'])
+            ->orderBy('lesson_hour_id')
+            ->get();
     }
 }

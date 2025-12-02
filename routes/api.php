@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\Student\StudentLessonScheduleController;
 use App\Http\Controllers\Api\Student\StudentAttendanceHistoryController;
 use App\Http\Controllers\Api\Student\StudentClassroomController as StudentStudentClassroomController;
+use App\Http\Controllers\Api\Student\StudentDashboardController;
 use App\Http\Controllers\Api\SubjectController;
 use App\Http\Controllers\Api\Teacher\TeacherAttendanceController;
 use App\Http\Controllers\Api\Teacher\TeacherScheduleController;
@@ -127,6 +128,8 @@ Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(fu
 
     //classroom info
     Route::get('classroom-info', [StudentStudentClassroomController::class, 'getClassroomInfo']);
+    // Student Dashboard
+    Route::get('/dashboard', [StudentDashboardController::class, 'index']);
     // jadwal pelajaran siswa
     Route::get('lesson-schedule', [StudentLessonScheduleController::class, 'getSchedule']);
     // izin tidak masuk siswa
@@ -182,6 +185,12 @@ Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->grou
         Route::get('/', 'index'); // monitoring list
         Route::post('/sync', 'syncData'); // sync rekap
     });
+    // Statistik Global (BK)
+    Route::prefix('attendance')
+    ->group(function () {
+        Route::get('statistics', [CounselorAttendanceGlobalController::class, 'index']);
+    });
+
 
 });
     

@@ -136,4 +136,20 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
             ->orderBy('date', 'DESC')
             ->paginate($perPage);
     }
+
+    public function getSummary(string $studentId): array
+    {
+        return $this->model->where('student_id', $studentId)
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN status = 'present' THEN 1 END) as present,
+                SUM(CASE WHEN status = 'sick' THEN 1 END) as sick,
+                SUM(CASE WHEN status = 'permission' THEN 1 END) as permission,
+                SUM(CASE WHEN status = 'late' THEN 1 END) as late,
+                SUM(CASE WHEN status = 'alpha' THEN 1 END) as alpha
+            ")
+            ->first()
+            ->toArray();
+    }
+
 }

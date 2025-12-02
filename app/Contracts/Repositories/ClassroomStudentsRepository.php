@@ -207,4 +207,13 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             ->where('status', StudentStatusEnum::ACTIVE->value)
             ->count();
     }
+    public function getLatestByStudent(string $studentId)
+{
+    return $this->model->where('student_id', $studentId)
+        ->where('status', 'active')
+        ->latest()
+        ->with(['classroom.levelClass', 'classroom.major'])
+        ->first();
+}
+
 }

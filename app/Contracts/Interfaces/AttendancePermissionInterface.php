@@ -22,4 +22,6 @@ interface AttendancePermissionInterface extends GetInterface, StoreInterface, Up
     public function rejectPermission(string $id, string $counselorId): AttendancePermission;
     public function searchByCounselor(Request $request): LengthAwarePaginator;
     public function count(): int;
+    public function getLatest(string $studentId): Collection;
+
 }

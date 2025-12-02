@@ -17,4 +17,6 @@ interface LessonScheduleInterface extends GetInterface, StoreInterface, UpdateIn
     public function getByTeacherClassroomAndLessonOrder(string $teacherId, string $classroomId, string $day, int $lessonOrder): mixed;
     public function checkClassroomConflict(string $classroomId, string $day, string $lessonHourId, ?string $excludeId = null): bool;
     public function checkTeacherConflict(string $employeeId, string $day, string $lessonHourId, ?string $excludeId = null): bool;
+    public function getByStudentAndDay(string $studentId, string $day): mixed;
+
 }
