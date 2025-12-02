@@ -17,6 +17,7 @@ class StudentClassroomInfoResource extends JsonResource
             'student' => [
                 'id' => $student->id,
                 'name' => $student->user->name ?? null,
+                'image' => $student->image ? asset('storage/' . $student->image) : null,
             ],
             'classroom' => [
                 'id' => $classroom->id,
@@ -25,6 +26,7 @@ class StudentClassroomInfoResource extends JsonResource
                 'homeroom_teacher' => $classroom->teacher ? [
                     'id' => $classroom->teacher->id,
                     'name' => $classroom->teacher->user->name ?? null,
+                    'image' => $classroom->teacher->image ? asset('storage/' . $classroom->teacher->image) : null,
                 ] : null,
                 'total_students' => $classroom->classroom_students_count ?? 0,
             ],
@@ -33,6 +35,7 @@ class StudentClassroomInfoResource extends JsonResource
                     return [
                         'id' => $classroomStudent->student->id ?? null,
                         'name' => $classroomStudent->student->user->name ?? null,
+                        'image' => $classroomStudent->student->image ? asset('storage/' . $classroomStudent->student->image) : null,
                     ];
                 }),
                 'pagination' => [

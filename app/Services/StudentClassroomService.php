@@ -35,7 +35,7 @@ class StudentClassroomService
         $classmates = $classroom->classroomStudents()
             ->where('student_id', '!=', $studentId)
             ->where('status', 'active')
-            ->with(['student:id,nisn,user_id', 'student.user:id,name'])
+            ->with(['student:id,nisn,user_id,image', 'student.user:id,name'])
             ->paginate(10);
     
         return [

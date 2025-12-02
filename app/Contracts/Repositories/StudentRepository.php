@@ -181,7 +181,7 @@ class StudentRepository extends BaseRepository implements StudentInterface
                           ->with([
                               'classroom:id,name,school_year_id,teacher_id',
                               'classroom.schoolYear:id,name',
-                              'classroom.teacher:id,user_id',
+                              'classroom.teacher:id,user_id,image',
                               'classroom.teacher.user:id,name'
                           ]);
                 }
