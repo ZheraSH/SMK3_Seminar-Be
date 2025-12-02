@@ -11,18 +11,15 @@ use App\Traits\Models\HasManyClassroomStudents;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Classroom extends Model
 {
-    use HasFactory, 
-        BelongsToMajor, BelongsToLevelClass, 
-        BelongsToSchoolYear, BelongsToTeacher, 
-        HasManyClassroomStudents,
-        HasManyLessonSchedule,
-        SoftDeletes;
+    use HasFactory, HasUuids, BelongsToMajor,
+        BelongsToLevelClass, BelongsToSchoolYear,
+        BelongsToTeacher, HasManyClassroomStudents,
+        HasManyLessonSchedule, SoftDeletes;
 
-    public $incrementing = false;
-    protected $keyType = 'string';
     protected $table = 'classrooms';
     protected $fillable = [
         'name',

@@ -13,16 +13,15 @@ use App\Traits\Models\BelongsToStudent;
 use App\Traits\Models\BelongsToSubject;
 use App\Traits\Models\BelongsToTeacher;
 use App\Traits\Models\BelongsToLessonSchedule;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Attendance extends Model
 {
-    use HasFactory, BelongsToStudent, 
+    use HasFactory, HasUuids, BelongsToStudent, 
     BelongsToSubject, BelongsToTeacher,
     BelongsToLessonSchedule, BelongsToClassroomStudents,
     BelongsToRfid, SoftDeletes;
 
-    public $incrementing = false;
-    protected $keyType = 'string';
     protected $fillable = [
         'classroom_student_id',
         'student_id',

@@ -8,19 +8,15 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Cache;
 use Spatie\Permission\Traits\HasRoles;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class User extends Authenticatable
 {
-    use HasFactory, HasApiTokens, HasRoles, HasOneStudent, HasOneEmployee, Notifiable, SoftDeletes;
-
-    public $incrementing = false;
-    protected $keyType = 'string';
+    use HasFactory, HasUuids, HasApiTokens, HasRoles, HasOneStudent, HasOneEmployee, Notifiable, SoftDeletes;
 
     protected $fillable = [
-        'id',
         'name',
         'slug',
         'email',

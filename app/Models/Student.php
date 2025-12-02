@@ -11,16 +11,15 @@ use App\Traits\Models\StudentHasManyClassroomStudents;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Student extends Model
 {
 
-    use HasFactory, BelongsToUser,
+    use HasFactory, HasUuids, BelongsToUser,
     BelongsToReligion, StudentHasManyClassroomStudents,
     HasOneRfid, SoftDeletes;
 
-    public $incrementing = false;
-    protected $keyType = 'string';
     protected $table = 'students';
     protected $fillable = [
         'user_id',

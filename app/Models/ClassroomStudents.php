@@ -7,16 +7,13 @@ use App\Traits\Models\BelongsToClassroom;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class ClassroomStudents extends Model
 {
-    use HasFactory, 
-        BelongsToClassroom,
-        BelongsToStudent,
-        SoftDeletes;
+    use HasFactory, HasUuids, BelongsToClassroom,
+        BelongsToStudent, SoftDeletes;
 
-    public $incrementing = false;
-    protected $keyType = 'string';
     protected $table = 'classroom_students';
     protected $fillable = [
         'classroom_id',

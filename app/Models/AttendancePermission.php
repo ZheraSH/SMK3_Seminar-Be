@@ -9,13 +9,12 @@ use App\Traits\Models\BelongsToStudent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class AttendancePermission extends Model
 {
-    use HasFactory, BelongsToStudent, BelongsToCounselor, SoftDeletes;
+    use HasFactory, HasUuids, BelongsToStudent, BelongsToCounselor, SoftDeletes;
 
-    public $incrementing = false;
-    protected $keyType = 'string';
     protected $table = 'attendance_permissions';
     protected $fillable = [
         'type',

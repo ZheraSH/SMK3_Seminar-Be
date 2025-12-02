@@ -10,16 +10,15 @@ use App\Traits\Models\HasManyClassrooms;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Employee extends Model
 {
 
-    use HasFactory, BelongsToUser,
+    use HasFactory, HasUuids, BelongsToUser,
     BelongsToReligion, HasManyClassrooms,
     BelongsToManySubjects, SoftDeletes;
 
-    public $incrementing = false;
-    protected $keyType = 'string';
     protected $table = 'employees';
     protected $fillable = [
         'user_id',

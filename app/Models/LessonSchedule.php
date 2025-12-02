@@ -11,16 +11,15 @@ use App\Traits\Models\BelongsToEmployee;
 use App\Traits\Models\BelongsToLessonHour;
 use App\Traits\Models\BelongsToSchoolYear;
 use App\Traits\Models\BelongsToSubject;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class LessonSchedule extends Model
 {
-    use HasFactory, BelongsToClassroom,
+    use HasFactory, HasUuids, BelongsToClassroom,
     BelongsToEmployee, BelongsToSchoolYear,
     BelongsToLessonHour, BelongsToSubject,
     SoftDeletes;
-    
-    public $incrementing = false;
-    protected $keyType = 'string';
+
     protected $table = 'lesson_schedules';
     protected $fillable = [
         'day',
