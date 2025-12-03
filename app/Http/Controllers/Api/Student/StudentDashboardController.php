@@ -18,7 +18,6 @@ class StudentDashboardController extends Controller
         try {
             $user = auth()->user();
 
-            // Validasi relasi student
             if (!$user->student) {
                 return ResponseHelper::success(null, 'Tidak ada data siswa', 200);
             }

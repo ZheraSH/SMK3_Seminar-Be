@@ -116,10 +116,20 @@ class StudentDashboardService
 
     private function getTodaySchedules(string $studentId): array
     {
-        $day = strtolower(\Carbon\Carbon::now()->englishDayOfWeek);
+        $day = strtolower(Carbon::now()->englishDayOfWeek);
 
-        return $this->studentScheduleService->getSchedule($studentId, $day);
+        $student = $this->studentRepo->findWithClassroom($studentId);
+
+        $classroomName = $this->getClassroomName($student);
+
+        $schedules = $this->studentScheduleService->getSchedule($studentId, $day);
+
+        return array_map(function ($item) use ($classroomName) {
+            $item['classroom'] = $classroomName;
+            return $item;
+        }, $schedules);
     }
+
 
     private function formatLessonHour(?int $seq, int $i): string
     {
