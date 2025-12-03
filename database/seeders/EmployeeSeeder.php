@@ -110,30 +110,30 @@ class EmployeeSeeder extends Seeder
         int &$staffCount
     ): array {
 
-        $maxTeachers = 8;
-        $maxHomeroom = 4;
+        $maxTeachers = 10;
+        $maxHomeroom = 10;
         $maxCounselor = 2;
         $maxCurriculum = 2;
-        $maxStaff = 4;
+        $maxStaff = 2;
 
         // BK - role khusus, tidak bisa menjadi teacher
-        if ($counselorCount < $maxCounselor && $index % 5 == 0) {
+        if ($counselorCount < $maxCounselor && $index % 4 == 0) {
             $counselorCount++;
             return [RoleEnum::COUNSELOR->value];
         }
 
-        if ($staffCount < $maxStaff && $index % 4 == 0) {
+        if ($staffCount < $maxStaff && $index % 2 == 0) {
             $staffCount++;
             return [RoleEnum::STAFF->value];
         }
 
-        if ($curriculumCount < $maxCurriculum && $index % 6 == 0) {
+        if ($curriculumCount < $maxCurriculum && $index % 4 == 0) {
             $curriculumCount++;
             $teacherCount++;
             return [RoleEnum::TEACHER->value, RoleEnum::CURRICULUM_COORDINATOR->value];
         }
 
-        if ($homeroomCount < $maxHomeroom && $index % 3 == 0) {
+        if ($homeroomCount < $maxHomeroom && $index % 8 == 0) {
             $homeroomCount++;
             $teacherCount++;
             return [RoleEnum::TEACHER->value, RoleEnum::HOMEROOM_TEACHER->value];
@@ -179,9 +179,9 @@ class EmployeeSeeder extends Seeder
 
     private function generateRandomName($faker, string $gender): string
     {
-        $maleFirstNames = ['Ahmad', 'Budi', 'Cahyo', 'Dedi', 'Eko', 'Fajar', 'Gunawan', 'Hadi', 'Irfan', 'Joko'];
-        $femaleFirstNames = ['Ani', 'Bunga', 'Citra', 'Dewi', 'Eka', 'Fitri', 'Gita', 'Hani', 'Indah', 'Juli'];
-        $lastNames = ['Santoso', 'Wijaya', 'Pratama', 'Kusuma', 'Setiawan', 'Hidayat', 'Nugroho', 'Saputra'];
+        $maleFirstNames = ['Tegar', 'Dimas', 'Firman', 'Sbastian', 'Valen', 'Ramzi', 'Gunawan', 'Nidal', 'Azadi', 'Jaka'];
+        $femaleFirstNames = ['Rofiatul', 'Rohmah', 'Inka', 'Putri', 'Ica', 'Riang', 'Nining', 'Niendy', 'Indah'];
+        $lastNames = ['Dedy', 'Abdillah', 'Pratama', 'Kusuma', 'Sunandar', 'Iskandar', 'Meifirdo', 'Atmaja'];
 
         $firstName = $gender === GenderEnum::MALE->value
             ? $faker->randomElement($maleFirstNames)

@@ -35,7 +35,7 @@ class StudentSeeder extends Seeder
                 GenderEnum::FEMALE->value
             ]);
 
-            $name = "Siswa {$i}";
+            $name = $this->generateRandomName($faker, $gender);
             $email = "siswa{$i}@skaniga.com";
             $nisn = '99' . str_pad((string) $i, 8, '0', STR_PAD_LEFT);
 
@@ -70,5 +70,20 @@ class StudentSeeder extends Seeder
                 ]
             );
         }
+    }
+
+    private function generateRandomName($faker, string $gender): string
+    {
+        $maleFirstNames = ['Nando', 'Saiful', 'Fairouz', 'Dimas', 'Angga','Hilman', 'King', 'Ega', 'Zherash', 'Shinozaki'];
+        $femaleFirstNames = ['Dwi', 'Vita', 'Weis', 'Sekar', 'Rani','Edel', 'Alexia', 'Rara', 'Ai', 'Lovita'];
+        $lastNames = ['Hamzi', 'Islami', 'Cairigio', 'Nayaka','Ramadhan', 'Rahmawati', 'Tirta'];
+
+        $first = $gender === GenderEnum::MALE->value
+            ? $faker->randomElement($maleFirstNames)
+            : $faker->randomElement($femaleFirstNames);
+
+        $last = $faker->randomElement($lastNames);
+
+        return "{$first} {$last}";
     }
 }
