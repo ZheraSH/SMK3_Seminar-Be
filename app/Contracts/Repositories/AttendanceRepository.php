@@ -227,6 +227,52 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
 
         return $students->values();
     }
+    /**
+ * Hitung total siswa berdasarkan filter jurusan/kelas
+ */
+public function totalStudents(array $filters = []): int
+{
+    $query = Student::query()->whereHas('classroomStudents');
+
+    if (!empty($filters['classroom_id'])) {
+        $query->whereHas('classroomStudents', function ($q) use ($filters) {
+            $q->where('classroom_id', $filters['classroom_id']);
+        });
+    }
+
+    if (!empty($filters['major_id'])) {
+        $query->whereHas('classroomStudents.classroom', function ($q) use ($filters) {
+            $q->where('major_id', $filters['major_id']);
+        });
+    }
+
+    return $query->count();
+}
+
+public function countByStatusOnDate(string $date, array $filters = []): array
+{
+    $query = $this->model->newQuery()->whereDate('date', $date);
+
+    if (!empty($filters['classroom_id'])) {
+        $query->whereHas('classroomStudent', function ($q) use ($filters) {
+            $q->where('classroom_id', $filters['classroom_id']);
+        });
+    }
+
+    if (!empty($filters['major_id'])) {
+        $query->whereHas('classroomStudent.classroom', function ($q) use ($filters) {
+            $q->where('major_id', $filters['major_id']);
+        });
+    }
+
+    return [
+        'present' => (clone $query)->where('status', AttendanceStatusEnum::PRESENT->value)->count(),
+        'izin'    => (clone $query)->where('status', AttendanceStatusEnum::LEAVE->value)->count(),
+        'sakit'   => (clone $query)->where('status', AttendanceStatusEnum::SICK->value)->count(),
+        'alpha'   => (clone $query)->where('status', AttendanceStatusEnum::ALPHA->value)->count(),
+    ];
+}
+
 }
 
        

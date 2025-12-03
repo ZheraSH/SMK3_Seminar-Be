@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ClassroomStudentsController;
 use App\Http\Controllers\Api\Counselor\CounselorAttendanceGlobalController;
 use App\Http\Controllers\Api\Counselor\CounselorAttendanceMonitoringController;
 use App\Http\Controllers\Api\Counselor\CounselorAttendancePermissionController;
+use App\Http\Controllers\Api\Counselor\CounselorDashboardController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\LessonHourController;
 use App\Http\Controllers\Api\LessonSchedulesController;
@@ -172,6 +173,8 @@ Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->group(fu
 */
 Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->group(function () {
 
+    // Dasboar BK
+    Route::get('/dashboard', [CounselorDashboardController::class, 'index']);
     // BK validasi izin
     Route::prefix('attendance-permissions')->controller(CounselorAttendancePermissionController::class)->group(function () {
         Route::get('pending', 'pending');   // list izin yg belum divalidasi
