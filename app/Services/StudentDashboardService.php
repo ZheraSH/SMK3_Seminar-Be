@@ -3,12 +3,18 @@
 namespace App\Services;
 
 use Carbon\Carbon;
-use App\Contracts\Interfaces\StudentInterface;
-use App\Contracts\Interfaces\AttendanceInterface;
-use App\Contracts\Interfaces\LessonScheduleInterface;
-use App\Contracts\Interfaces\AttendancePermissionInterface;
-use App\Contracts\Interfaces\ClassroomStudentsInterface;
 use App\Models\Student;
+use App\Models\Attendance;
+use Illuminate\Support\Facades\DB;
+use App\Enums\AttendanceStatusEnum;
+use App\Contracts\Interfaces\{
+    StudentInterface,
+    AttendanceInterface,
+    LessonScheduleInterface,
+    AttendancePermissionInterface,
+    ClassroomStudentsInterface
+};
+use App\Enums\PermissionStatusEnum;
 
 class StudentDashboardService
 {
@@ -17,144 +23,134 @@ class StudentDashboardService
         private AttendanceInterface $attendanceRepo,
         private LessonScheduleInterface $scheduleRepo,
         private AttendancePermissionInterface $permissionRepo,
-        private ClassroomStudentsInterface $classroomStudentRepository
+        private ClassroomStudentsInterface $classroomStudentRepo,
+        private StudentLessonScheduleService $studentScheduleService
     ) {}
+
 
     public function getDashboardData(string $studentId): array
     {
         $student = $this->studentRepo->findWithClassroom($studentId);
-        $header = $this->getHeader($student);
-        $attendanceSummary = $this->getAttendanceSummary($studentId);
-        $todaySchedules = $this->getTodaySchedules($studentId);
-        $latestPermissions = $this->getLatestPermissions($studentId);
 
         return [
-            'header' => $header,
-            'attendance' => ['summary' => $attendanceSummary],
-            'today_schedules' => $todaySchedules,
-            'latest_permissions' => $latestPermissions,
+            'header' => $this->getHeader($student),
+            'attendance' => [
+                'summary' => $this->getAttendanceSummary($studentId),
+            ],
+            'today_schedules' => $this->getTodaySchedules($studentId),
+            'latest_permissions' => $this->getLatestPermissions($studentId),
         ];
     }
 
     private function getHeader(Student $student): array
     {
-        $classroomName = $this->getClassroomName($student);
-
         return [
             'name' => $student->user->name ?? '-',
-            'classroom' => $classroomName,
+            'classroom' => $this->getClassroomName($student),
             'avatar' => $student->user->profile_picture ?? null,
         ];
     }
 
     private function getClassroomName(Student $student): string
     {
-        if ($student->classroom && $student->classroom->name) {
+        if ($student->classroom?->name) {
             return $student->classroom->name;
         }
 
-        $classroomStudent = $this->classroomStudentRepository
-            ->getLatestByStudent($student->id);
+        $cls = $this->classroomStudentRepo->getLatestByStudent($student->id);
+        if (!$cls || !$cls->classroom) return '-';
 
-        if ($classroomStudent && $classroomStudent->classroom) {
-            $level = $classroomStudent->classroom->levelClass->name ?? '';
-            $major = $classroomStudent->classroom->major->name ?? '';
-            return trim("$level $major") ?: '-';
-        }
+        $level = $cls->classroom->levelClass->name ?? '';
+        $major = $cls->classroom->major->name ?? '';
+        $name  = $cls->classroom->name;
 
-        return '-';
+        $map = [
+            'Pengembangan Perangkat Lunak & Game' => 'PPLG',
+            'Teknik Jaringan Komputer & Telekomunikasi' => 'TJKT',
+            'Desain Komunikasi Visual' => 'DKV',
+    ];
+
+    $shortMajor = $map[$major] ?? $major;
+
+    preg_match('/(\d+)/', $name, $match);
+    $rombel = $match[1] ?? '';
+
+    return trim("$level $shortMajor $rombel") ?: '-';
     }
 
-    private function getAttendanceSummary(string $studentId): array
-    {
-        $attendanceSummary = $this->attendanceRepo->getSummary($studentId);
+  private function getAttendanceSummary(string $studentId): array
+{
+    $presentVal = AttendanceStatusEnum::PRESENT->value;
+    $lateVal    = AttendanceStatusEnum::LATE->value;
+    $alphaVal   = AttendanceStatusEnum::ALPHA->value;
+    $sickVal    = AttendanceStatusEnum::SICK->value;
 
-        return [
-            'present' => $attendanceSummary['present'] ?? 18,
-            'sick_leave' => ($attendanceSummary['sick'] ?? 18) + ($attendanceSummary['leave'] ?? 0),
-            'late' => $attendanceSummary['late'] ?? 18,
-            'alpha' => $attendanceSummary['alpha'] ?? 18,
-        ];
-    }
+    $row = DB::table('attendances as a')
+        ->leftJoin('attendance_permissions as p', function ($join) {
+            $join->on('p.student_id', '=', 'a.student_id')
+                 ->whereRaw('a.date BETWEEN p.start_date AND p.end_date');
+        })
+        ->where('a.student_id', $studentId)
+        ->selectRaw("
+            SUM(CASE WHEN a.status = ? THEN 1 ELSE 0 END) as present,
+            SUM(CASE WHEN a.status = ? THEN 1 ELSE 0 END) as late,
+            SUM(CASE WHEN a.status = ? THEN 1 ELSE 0 END) as alpha,
+            SUM(CASE WHEN a.status = ? THEN 1 ELSE 0 END) as sick_absen
+        ", [$presentVal, $lateVal, $alphaVal, $sickVal])
+        ->first();
+
+    $approvedPermissionsCount = DB::table('attendance_permissions')
+        ->where('student_id', $studentId)
+        ->where('status', PermissionStatusEnum::APPROVED->value)
+        ->count();
+
+    return [
+        'present' => (int) $row->present,
+        'late'    => (int) $row->late,
+        'alpha'   => (int) $row->alpha,
+        'sick'    => (int) $row->sick_absen + (int) $approvedPermissionsCount,
+    ];
+}
+
+
 
     private function getTodaySchedules(string $studentId): array
     {
-        $dayName = strtolower(Carbon::now()->englishDayOfWeek);
+        $day = strtolower(\Carbon\Carbon::now()->englishDayOfWeek);
 
-        return $this->scheduleRepo
-            ->getByStudentAndDay($studentId, $dayName)
-            ->map(function ($item, $index) {
-                $hour = $this->formatLessonHour($item->lessonHour ?? null, $index);
-
-                return [
-                    'subject' => $item->subject->name ?? '-',
-                    'teacher' => $item->employee->user->name ?? '-',
-                    'hour' => $hour,
-                    'classroom' => $item->classroom->name ?? '-',
-                ];
-            })
-            ->values()
-            ->toArray();
+        return $this->studentScheduleService->getSchedule($studentId, $day);
     }
 
-    private function formatLessonHour($lessonHour, int $index): string
+    private function formatLessonHour(?int $seq, int $i): string
     {
-        if ($lessonHour && isset($lessonHour->sequence)) {
-            $sequence = (int)$lessonHour->sequence;
-            return "Jam Ke {$sequence} - " . ($sequence + 1);
-        }
-
-        $jamKe = $index + 1;
-        return "Jam Ke {$jamKe} - " . ($jamKe + 1);
+        $start = $seq ?: ($i + 1);
+        return "Jam Ke {$start} - " . ($start + 1);
     }
 
-    /**
-     * FIXED SECTION
-     * Konsisten gunakan formatPermission()
-     */
     private function getLatestPermissions(string $studentId): array
-{
-    $permissions = $this->permissionRepo->getLatest($studentId);
+    {
+        $perms = $this->permissionRepo->getLatest($studentId);
+        if ($perms->isEmpty()) return [];
 
-    if ($permissions->isEmpty()) {
-        return [];
+        return $perms->map(fn($p) => $this->formatPermission($p))
+            ->values()->toArray();
     }
 
-    return $permissions->map(
-        fn($permission) => $this->formatPermission($permission)
-    )->values()->toArray();
-}
-
-private function formatPermission($permission): array
-{
-    // Fix enum status → ambil string value
-    $rawStatus = $permission->status instanceof \BackedEnum
-        ? $permission->status->value
-        : (string) $permission->status;
-
-    $rawStatus = strtolower($rawStatus);
-
-    $statusMap = [
-        'approved' => 'Approve',
-        'rejected' => 'Decline',
-        'pending' => 'Waiting',
-    ];
-
-    $status = $statusMap[$rawStatus] ?? '-';
-    $date = $permission->created_at?->format('d/m/Y') ?? '-';
-    $reason = $this->truncateReason($permission->reason ?? '-');
-
-    return [
-        'Tanggal' => $date,
-        'Alasan' => $reason,
-        'Status' => $status,
-    ];
-}
-
-    private function truncateReason(string $reason): string
+    private function formatPermission($p): array
     {
-        return strlen($reason) > 50
-            ? substr($reason, 0, 50) . '...'
-            : $reason;
+        $statusValue = strtolower($p->status instanceof \BackedEnum ? $p->status->value : $p->status);
+
+        $statusEnum = PermissionStatusEnum::tryFrom($statusValue);
+
+        return [
+            'Tanggal' => $p->created_at?->format('d/m/Y') ?? '-',
+            'Alasan' => $this->limit($p->reason ?? '-'),
+            'Status' => $statusEnum?->label() ?? 'Unknown', 
+        ];
+    }
+
+    private function limit(string $txt): string
+    {
+        return strlen($txt) > 50 ? substr($txt, 0, 50) . '...' : $txt;
     }
 }

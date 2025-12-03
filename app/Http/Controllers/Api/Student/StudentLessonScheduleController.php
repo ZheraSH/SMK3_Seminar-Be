@@ -26,12 +26,10 @@ class StudentLessonScheduleController extends Controller
             $day = $request->query('day');
             $data = $this->scheduleService->getSchedule($student->id, $day);
 
-            // Ambil classroom melalui relasi classroomStudents
             $classroomStudent = $student->classroomStudents()
                 ->with('classroom')
-                ->where('status', 'active') // jika tidak ada field ini, hapus saja
+                ->where('status', 'active') 
                 ->first();
-
             $className = $classroomStudent?->classroom?->name ?? 'Kelas Tidak Ditemukan';
 
             $semester = SemesterHelper::getSemesterLabel();

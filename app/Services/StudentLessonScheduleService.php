@@ -14,7 +14,6 @@ class StudentLessonScheduleService
 
     public function getSchedule(string $studentId, ?string $day = null): array
     {
-        // Ambil student + kelas aktif
         $student = $this->scheduleRepo->getStudentById($studentId);
         $classroomId = $student->classroomStudents()
             ->where('status', 'ACTIVE')
@@ -36,7 +35,6 @@ class StudentLessonScheduleService
             $endTime   = Carbon::parse($hour->end)->format('H:i');
 
             if (!$hour->is_lesson) {
-                // Format Istirahat
                 $formatted[] = [
                     'no' => $order++,
                     'jam' => "{$startTime} - {$endTime}",
@@ -63,9 +61,9 @@ class StudentLessonScheduleService
                         'mata_pelajaran' => '-',
                         'guru' => null,
                     ];
-                }
+                }   
             }
-        }
+        }   
 
         return $formatted;
     }

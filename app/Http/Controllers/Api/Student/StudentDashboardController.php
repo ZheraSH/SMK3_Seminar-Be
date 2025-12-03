@@ -37,4 +37,13 @@ class StudentDashboardController extends Controller
             );
         }   
     }
+
+        public function approve($id)
+    {
+        $permission = $this->permissionRepo->show($id);
+
+        $this->service->approvePermission($permission);
+
+        return ResponseHelper::success("Berhasil Approve Izin");
+    }
 }

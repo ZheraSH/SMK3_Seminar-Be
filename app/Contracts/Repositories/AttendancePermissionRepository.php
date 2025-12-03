@@ -151,18 +151,18 @@
             return $this->model->query()->count();
         }
 
-        public function getLatest(string $studentId): Collection
-        {
-            $permissions =   $this->model
-                ->where('student_id', $studentId)
-                ->with(['student.user', 'counselor.user']) 
-                ->orderBy('created_at', 'desc')
-                ->limit(5)
-                ->get();
+ public function getLatest(string $studentId): Collection
+    {
+        $permissions = $this->model
+            ->where('student_id', $studentId)
+            ->with(['student.user', 'counselor.user'])
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
 
-            \Log::info("Latest permissions for student {$studentId}: {$permissions->count()}");
+        \Log::info("Latest permissions for student {$studentId}: {$permissions->count()}");
 
-            return $permissions;
+        return $permissions;
         }
 
 }
