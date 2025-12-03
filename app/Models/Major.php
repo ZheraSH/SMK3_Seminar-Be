@@ -12,6 +12,9 @@ class Major extends Model
 {
     use HasFactory, HasUuids, HasManyClassrooms, SoftDeletes;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+    protected $primaryKey = 'id';
     protected $table = 'majors';
     protected $fillable = [
         'name',

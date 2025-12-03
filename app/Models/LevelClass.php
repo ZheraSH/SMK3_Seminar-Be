@@ -12,6 +12,9 @@ class LevelClass extends Model
 {
     use HasFactory, HasUuids, BelongsToClassroom, SoftDeletes;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+    protected $primaryKey = 'id';
     protected $table = 'level_classes';
     protected $fillable = [
         'name',

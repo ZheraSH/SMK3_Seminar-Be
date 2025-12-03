@@ -20,6 +20,9 @@ class LessonSchedule extends Model
     BelongsToLessonHour, BelongsToSubject,
     SoftDeletes;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+    protected $primaryKey = 'id';
     protected $table = 'lesson_schedules';
     protected $fillable = [
         'day',

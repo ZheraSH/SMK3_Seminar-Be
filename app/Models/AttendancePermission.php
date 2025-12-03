@@ -15,6 +15,9 @@ class AttendancePermission extends Model
 {
     use HasFactory, HasUuids, BelongsToStudent, BelongsToCounselor, SoftDeletes;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+    protected $primaryKey = 'id';
     protected $table = 'attendance_permissions';
     protected $fillable = [
         'type',

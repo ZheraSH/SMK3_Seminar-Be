@@ -20,6 +20,9 @@ class Student extends Model
     BelongsToReligion, StudentHasManyClassroomStudents,
     HasOneRfid, SoftDeletes;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+    protected $primaryKey = 'id';    
     protected $table = 'students';
     protected $fillable = [
         'user_id',

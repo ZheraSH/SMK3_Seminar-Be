@@ -13,6 +13,9 @@ class Rfid extends Model
 {
     use HasFactory, HasUuids, BelongsToStudent, SoftDeletes;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+    protected $primaryKey = 'id';
     protected $table = 'rfids';
     protected $fillable = [
         'rfid',

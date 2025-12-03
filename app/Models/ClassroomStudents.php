@@ -12,8 +12,11 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 class ClassroomStudents extends Model
 {
     use HasFactory, HasUuids, BelongsToClassroom,
-        BelongsToStudent, SoftDeletes;
+    BelongsToStudent, SoftDeletes;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+    protected $primaryKey = 'id';
     protected $table = 'classroom_students';
     protected $fillable = [
         'classroom_id',

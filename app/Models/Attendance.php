@@ -22,6 +22,10 @@ class Attendance extends Model
     BelongsToLessonSchedule, BelongsToClassroomStudents,
     BelongsToRfid, SoftDeletes;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+    protected $primaryKey = 'id';
+    protected $table = 'attendances';
     protected $fillable = [
         'classroom_student_id',
         'student_id',

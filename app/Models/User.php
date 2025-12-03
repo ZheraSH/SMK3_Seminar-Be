@@ -16,6 +16,10 @@ class User extends Authenticatable
 {
     use HasFactory, HasUuids, HasApiTokens, HasRoles, HasOneStudent, HasOneEmployee, Notifiable, SoftDeletes;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+    protected $primaryKey = 'id';
+    protected $table = 'users';
     protected $fillable = [
         'name',
         'slug',

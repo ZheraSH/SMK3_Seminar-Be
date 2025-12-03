@@ -16,6 +16,9 @@ class Religion extends Model
     use HasFactory, HasUuids, HasManyStudents,
     HasManyEmployees, SoftDeletes;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+    protected $primaryKey = 'id';
     protected $table = 'religions';
     protected $fillable = [
         'name',

@@ -12,6 +12,9 @@ class AttendanceRule extends Model
 {
     use HasFactory, HasUuids, SoftDeletes;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+    protected $primaryKey = 'id';
     protected $table = 'attendance_rules';
     protected $fillable = [
         'day',

@@ -19,6 +19,9 @@ class Employee extends Model
     BelongsToReligion, HasManyClassrooms,
     BelongsToManySubjects, SoftDeletes;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+    protected $primaryKey = 'id';
     protected $table = 'employees';
     protected $fillable = [
         'user_id',
