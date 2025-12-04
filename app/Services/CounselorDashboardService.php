@@ -13,6 +13,9 @@ class CounselorDashboardService
         private ClassroomStudentsInterface $classroomStudentRepo,
     ) {}
 
+    /**
+     * Main Dashboard
+     */
     public function getDashboardData(array $filters = []): array
     {
         return [
@@ -21,6 +24,9 @@ class CounselorDashboardService
         ];
     }
 
+    /**
+     * Recap Kehadiran Hari Ini
+     */
     public function getTodayRecap(array $filters = []): array
     {
         $today = Carbon::today()->format('Y-m-d');
@@ -33,13 +39,32 @@ class CounselorDashboardService
         return [
             'date' => $today,
             'total_students' => $totalStudents,
-            'present' => ['count' => $recap['present'], 'percentage' => $pct($recap['present'])],
-            'izin'    => ['count' => $recap['izin'],    'percentage' => $pct($recap['izin'])],
-            'sakit'   => ['count' => $recap['sakit'],   'percentage' => $pct($recap['sakit'])],
-            'alpha'   => ['count' => $recap['alpha'],   'percentage' => $pct($recap['alpha'])],
+
+            'present' => [
+                'count' => $recap['present'] ?? 0,
+                'percentage' => $pct($recap['present'] ?? 0),
+            ],
+
+            'izin' => [
+                'count' => $recap['izin'] ?? 0,
+                'percentage' => $pct($recap['izin'] ?? 0),
+            ],
+
+            'sakit' => [
+                'count' => $recap['sakit'] ?? 0,
+                'percentage' => $pct($recap['sakit'] ?? 0),
+            ],
+            
+            'alpha' => [
+                'count' => $recap['alpha'] ?? 0,
+                'percentage' => $pct($recap['alpha'] ?? 0),
+            ],
         ];
     }
 
+    /**
+     * Ranking Alpha > BK Dashboard
+     */
     public function getTopAlphaStudents(array $filters = [], int $limit = 5): array
     {
         $filters['start_date'] = Carbon::now()->startOfMonth()->format('Y-m-d');
