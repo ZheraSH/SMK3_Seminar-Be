@@ -3,25 +3,33 @@
 namespace App\Traits;
 
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 trait ResolvesImageUrlTrait
 {
-    public function resolveImageUrl(?string $value): ?string
+    /**
+     * Resolve image URL with fallback
+     */
+    protected function resolveImageUrl(?string $photo, string $defaultImage = 'admin_assets/dist/image/profile/default.jpg'): string
     {
-        if (!$value) {
-            return null;
-        }
-    
-        if (Str ::startsWith($value, ['http://', 'https://'])) {
-            return $value;
+        if (!$photo) {
+            return asset($defaultImage);
         }
 
-        if (Str::startsWith($value, 'admin_assets')) {
-            return asset($value);
+        if (str_ends_with($photo, '.pdf')) {
+            if (Storage::disk('public')->exists($photo)) {
+                return url('storage/' . $photo);
+            }
+            return asset($defaultImage);
         }
 
-        return asset('storage/' . $value);
+        if (Storage::disk('public')->exists($photo)) {
+            return url('storage/' . $photo);
+        }
+
+        if (file_exists(public_path($photo))) {
+            return asset($photo);
+        }
+
+        return asset($defaultImage);
     }
-    
 }

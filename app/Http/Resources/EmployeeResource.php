@@ -13,15 +13,15 @@ class EmployeeResource extends JsonResource
     public function toArray($request): array
     {
         $user = $this->user;
+        $photo = $this->image;
 
         return [
             'id' => $this->id,
             'name' => $user?->name,
             'email' => $user?->email,
             'image' => $this->resolveImageUrl(
-                $this->image,
-                'admin_assets/dist/image/profile/teacher-boy.png'
-            ),
+                $photo,
+                'admin_assets/dist/image/profile/teacher-boy.jpg'),
             'gender' => $this->gender?->label(),
             'phone_number' => $this->phone_number,
             'religion' => $this->religion?->name,

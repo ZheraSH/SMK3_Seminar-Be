@@ -25,9 +25,8 @@ class EmployeeSeeder extends Seeder
             ['id' => (string) Str::uuid()]
         );
 
-        // FIXED PATH
-        $imageMale = 'admin_assets/dist/image/profile/teacher-boy.png';
-        $imageFemale = 'admin_assets/dist/image/profile/teacher-girl.png';
+        $imageMale = 'admin_assets/dist/image/profile/teacher-1.png';
+        $imageFemale = 'admin_assets/dist/image/profile/teacher-2.png';
 
         $teacherCount = 0;
         $homeroomCount = 0;
@@ -46,11 +45,11 @@ class EmployeeSeeder extends Seeder
             $nip = $this->generateNIP($i);
 
             $roles = $this->determineRoles(
-                $i,
-                $teacherCount,
-                $homeroomCount,
-                $counselorCount,
-                $curriculumCount,
+                $i, 
+                $teacherCount, 
+                $homeroomCount, 
+                $counselorCount, 
+                $curriculumCount, 
                 $staffCount
             );
 
@@ -103,11 +102,11 @@ class EmployeeSeeder extends Seeder
     }
 
     private function determineRoles(
-        int $index,
-        int &$teacherCount,
-        int &$homeroomCount,
-        int &$counselorCount,
-        int &$curriculumCount,
+        int $index, 
+        int &$teacherCount, 
+        int &$homeroomCount, 
+        int &$counselorCount, 
+        int &$curriculumCount, 
         int &$staffCount
     ): array {
 
@@ -117,6 +116,7 @@ class EmployeeSeeder extends Seeder
         $maxCurriculum = 2;
         $maxStaff = 2;
 
+        // BK - role khusus, tidak bisa menjadi teacher
         if ($counselorCount < $maxCounselor && $index % 4 == 0) {
             $counselorCount++;
             return [RoleEnum::COUNSELOR->value];
@@ -149,11 +149,11 @@ class EmployeeSeeder extends Seeder
     }
 
     private function updateCounters(
-        array $roles,
-        int &$teacherCount,
-        int &$homeroomCount,
-        int &$counselorCount,
-        int &$curriculumCount,
+        array $roles, 
+        int &$teacherCount, 
+        int &$homeroomCount, 
+        int &$counselorCount, 
+        int &$curriculumCount, 
         int &$staffCount
     ): void {
         foreach ($roles as $role) {
@@ -179,19 +179,22 @@ class EmployeeSeeder extends Seeder
 
     private function generateRandomName($faker, string $gender): string
     {
-        $maleFirst = ['Tegar','Dimas','Firman','Sbastian','Valen','Ramzi','Gunawan','Nidal','Azadi','Jaka'];
-        $femaleFirst = ['Rofiatul','Rohmah','Inka','Putri','Ica','Riang','Nining','Niendy','Indah'];
-        $last = ['Dedy','Abdillah','Pratama','Kusuma','Sunandar','Iskandar','Meifirdo','Atmaja'];
+        $maleFirstNames = ['Tegar', 'Dimas', 'Firman', 'Sbastian', 'Valen', 'Ramzi', 'Gunawan', 'Nidal', 'Azadi', 'Jaka'];
+        $femaleFirstNames = ['Rofiatul', 'Rohmah', 'Inka', 'Putri', 'Ica', 'Riang', 'Nining', 'Niendy', 'Indah'];
+        $lastNames = ['Dedy', 'Abdillah', 'Pratama', 'Kusuma', 'Sunandar', 'Iskandar', 'Meifirdo', 'Atmaja'];
 
-        $first = $gender === GenderEnum::MALE->value
-            ? $faker->randomElement($maleFirst)
-            : $faker->randomElement($femaleFirst);
+        $firstName = $gender === GenderEnum::MALE->value
+            ? $faker->randomElement($maleFirstNames)
+            : $faker->randomElement($femaleFirstNames);
 
-        return "{$first} " . $faker->randomElement($last);
+        $lastName = $faker->randomElement($lastNames);
+
+        return "{$firstName} {$lastName}";
     }
 
     private function generateNIP(int $index): string
     {
-        return (string) (19800000000000 + $index);
+        $baseYear = 19800000000000;
+        return (string) ($baseYear + $index);
     }
 }

@@ -9,6 +9,6 @@ trait HasManyClassrooms {
 
     public function classrooms(): HasMany
     {
-        return $this->hasMany(Classroom::class, 'teacher_id');
+        return $this->hasMany(Classroom::class);
     }
 }
