@@ -74,7 +74,7 @@ class LoginService
         }
 
         $user = Auth::user();
-        $user->load(['roles', 'student', 'employee']);
+        $user->load(['roles', 'student', 'employee', 'employee.classrooms']);
 
         if ($user->roles->isEmpty()) {
             return null;
@@ -90,12 +90,18 @@ class LoginService
 
     private function mapUser(User $user): array
     {
+        $isHomeroomTeacher = $user->roles->contains('name', 'homeroom_teacher');
+
         return [
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
+            'image' => $user->employee?->image ?? $user->student?->image ?? null,
             'employee_id' => $user->employee?->id,
             'student_id' => $user->student?->id,
+            'uuid_classroom' => $isHomeroomTeacher && $user->employee?->classrooms?->isNotEmpty() 
+                ? $user->employee->classrooms->first()->id 
+                : null,
             'roles' => $user->roles->map(fn ($role) => [
                 'id' => $role->id,
                 'name' => $role->name

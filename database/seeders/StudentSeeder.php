@@ -63,8 +63,8 @@ class StudentSeeder extends Seeder
                     'birth_date' => $faker->dateTimeBetween('-17 years', '-15 years')->format('Y-m-d'),
                     'birth_place' => $faker->city(),
                     'address' => $faker->address(),
-                    'number_kk' => (string) $faker->numerify('################'),
-                    'number_akta' => (string) $faker->numerify('#############'),
+                    'number_kk' => $faker->numerify('################'),
+                    'number_akta' => $faker->numerify('#############'),
                     'order_child' => $faker->numberBetween(1, 5),
                     'count_siblings' => $faker->numberBetween(0, 6),
                 ]
@@ -74,16 +74,14 @@ class StudentSeeder extends Seeder
 
     private function generateRandomName($faker, string $gender): string
     {
-        $maleFirstNames = ['Nando', 'Saiful', 'Fairouz', 'Dimas', 'Angga','Hilman', 'King', 'Ega', 'Zherash', 'Shinozaki'];
-        $femaleFirstNames = ['Dwi', 'Vita', 'Weis', 'Sekar', 'Rani','Edel', 'Alexia', 'Rara', 'Ai', 'Lovita'];
-        $lastNames = ['Hamzi', 'Islami', 'Cairigio', 'Nayaka','Ramadhan', 'Rahmawati', 'Tirta'];
+        $maleFirst = ['Nando','Saiful','Fairouz','Dimas','Angga','Hilman','King','Ega','Zherash','Shinozaki'];
+        $femaleFirst = ['Dwi','Vita','Weis','Sekar','Rani','Edel','Alexia','Rara','Ai','Lovita'];
+        $last = ['Hamzi','Islami','Cairigio','Nayaka','Ramadhan','Rahmawati','Tirta'];
 
         $first = $gender === GenderEnum::MALE->value
-            ? $faker->randomElement($maleFirstNames)
-            : $faker->randomElement($femaleFirstNames);
+            ? $faker->randomElement($maleFirst)
+            : $faker->randomElement($femaleFirst);
 
-        $last = $faker->randomElement($lastNames);
-
-        return "{$first} {$last}";
+        return "{$first} " . $faker->randomElement($last);
     }
 }
