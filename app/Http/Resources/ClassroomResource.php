@@ -14,6 +14,7 @@ class ClassroomResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'major' => $this->major?->name,
+            'major.code' => $this->major?->code,
             'level_class' => $this->levelClass?->name,
             'school_year' => $this->schoolYear?->name,
             'homeroom_teacher' => $this->teacher?->user?->name,
