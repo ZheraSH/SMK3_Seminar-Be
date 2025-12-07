@@ -25,8 +25,8 @@ class EmployeeSeeder extends Seeder
             ['id' => (string) Str::uuid()]
         );
 
-        $imageMale = 'admin_assets/dist/image/profile/teacher-1.png';
-        $imageFemale = 'admin_assets/dist/image/profile/teacher-2.png';
+        $imageMale = 'default_image/teacher-boy.png';
+        $imageFemale = 'default_image/teacher-girl.png';
 
         $teacherCount = 0;
         $homeroomCount = 0;

@@ -25,8 +25,8 @@ class StudentSeeder extends Seeder
             ['id' => (string) Str::uuid()]
         );
 
-        $imageMale = 'admin_assets/dist/image/profile/student-boy.png';
-        $imageFemale = 'admin_assets/dist/image/profile/student-girl.png';
+        $imageMale = 'default_image/student-boy.png';
+        $imageFemale = 'default_image/student-girl.png';
 
         for ($i = 1; $i <= 20; $i++) {
 

@@ -4,19 +4,19 @@ namespace App\Services\Auth;
 
 use App\Helpers\ResponseHelper;
 use App\Http\Requests\LoginRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 class LoginService
 {
     public function login(LoginRequest $request)
     {
         $credentials = $request->validated();
-        $this->throttle($credentials['email']);
 
         try {
+            $this->throttle($credentials['email']);
             $user = $this->validateLocalCredentials($credentials);
 
             if (!$user) {
@@ -26,18 +26,18 @@ class LoginService
             $token = $this->generateToken($user);
 
             return ResponseHelper::success([
-                'user'  => $this->mapUser($user),
+                'user'  => new UserResource($user),
                 'role'  => optional($user->roles->first())->name,
                 'token' => $token,
             ], 'Login berhasil');
 
-        } catch (\Throwable $e) {
-            Log::error('Login failed', [
-                'email' => $credentials['email'] ?? null,
-                'error' => $e->getMessage(),
-            ]);
+        } catch (\Exception $e) {
 
-            return ResponseHelper::error('Terjadi kesalahan saat login', 500);
+            if ($e->getCode() == 429) {
+                return ResponseHelper::error($e->getMessage(), 429);
+            }
+
+            return ResponseHelper::error('Terjadi kesalahan saat login.', 500);
         }
     }
 
@@ -51,8 +51,6 @@ class LoginService
 
         $user->currentAccessToken()->delete();
 
-        Log::info('Logout successful', ['user_id' => $user->id]);
-
         return ResponseHelper::success(null, 'Logout berhasil');
     }
 
@@ -60,21 +58,29 @@ class LoginService
     {
         $key = 'login_attempt:' . md5($email);
 
-        if (Cache::has($key)) {
+        $attempts = Cache::get($key, 0);
+
+        if ($attempts >= 5) {
             throw new \Exception('Terlalu banyak percobaan login. Coba lagi dalam 30 detik.', 429);
         }
 
-        Cache::put($key, true, 30);
+        Cache::put($key, $attempts + 1, 30);
     }
+
 
     private function validateLocalCredentials(array $credentials): ?User
     {
-        if (!Auth::attempt($credentials)) {
+        $user = $this->getUserByEmail($credentials['email']);
+
+        if (!$user) {
             return null;
         }
 
-        $user = Auth::user();
-        $user->load(['roles', 'student', 'employee', 'employee.classrooms']);
+        if (!$this->checkPassword($user, $credentials['password'])) {
+            return null;
+        }
+
+        $this->loadUserRelations($user);
 
         if ($user->roles->isEmpty()) {
             return null;
@@ -83,29 +89,29 @@ class LoginService
         return $user;
     }
 
-    private function generateToken(User $user): string
+
+    private function getUserByEmail(string $email): ?User
     {
-        return $user->createToken('auth_token')->plainTextToken;
+        return User::where('email', $email)->first();
     }
 
-    private function mapUser(User $user): array
+    private function checkPassword(User $user, string $password): bool
     {
-        $isHomeroomTeacher = $user->roles->contains('name', 'homeroom_teacher');
+        return password_verify($password, $user->password);
+    }
 
-        return [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'image' => $user->employee?->image ?? $user->student?->image ?? null,
-            'employee_id' => $user->employee?->id,
-            'student_id' => $user->student?->id,
-            'uuid_classroom' => $isHomeroomTeacher && $user->employee?->classrooms?->isNotEmpty() 
-                ? $user->employee->classrooms->first()->id 
-                : null,
-            'roles' => $user->roles->map(fn ($role) => [
-                'id' => $role->id,
-                'name' => $role->name
-            ]),
-        ];
+    private function loadUserRelations(User $user): void
+    {
+        $user->load([
+            'roles:id,name',
+            'student:id,user_id,image,nisn,gender',
+            'employee:id,user_id,image,NIP,NIK,gender'
+        ]);
+    }
+
+    private function generateToken(User $user): string
+    {
+        $user->tokens()->delete();
+        return $user->createToken('auth_token')->plainTextToken;
     }
 }
