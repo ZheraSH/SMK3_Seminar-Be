@@ -197,31 +197,37 @@ class TeacherAttendanceService
 
     private function validateSubmissionTime($lessonSchedule, $hasExistingSubmission, $currentTime): void
     {
-        $deadlineTime = Carbon::today('Asia/Jakarta')->setTime(16, 0, 0);
-
-        if ($currentTime->greaterThanOrEqualTo($deadlineTime)) {
-            throw new \Exception('Tidak dapat melakukan submit atau resubmit setelah pukul 16:00');
+        if (!$lessonSchedule->lessonHour) {
+            throw new \Exception('Data jam pelajaran tidak ditemukan');
         }
 
-        if ($hasExistingSubmission) {
-            if (!$lessonSchedule->lessonHour) {
-                throw new \Exception('Data jam pelajaran tidak ditemukan');
-            }
+        $startTime = $lessonSchedule->lessonHour->start ?? $lessonSchedule->lessonHour->start_time ?? null;
+        $endTime   = $lessonSchedule->lessonHour->end   ?? $lessonSchedule->lessonHour->end_time   ?? null;
 
-            $endTime = $lessonSchedule->lessonHour->end ?? $lessonSchedule->lessonHour->end_time ?? null;
-            if (!$endTime) {
-                throw new \Exception('Waktu berakhir jam pelajaran tidak ditemukan');
-            }
+        if (!$startTime || !$endTime) {
+            throw new \Exception('Waktu jam pelajaran tidak ditemukan');
+        }
 
-            if (!is_string($endTime)) {
-                throw new \Exception('Format waktu jam pelajaran tidak valid');
-            }
+        $lessonStart = Carbon::parse($startTime, 'Asia/Jakarta')->setDate(
+            $currentTime->year, $currentTime->month, $currentTime->day
+        );
+    
+        $lessonEnd = Carbon::parse($endTime, 'Asia/Jakarta')->setDate(
+            $currentTime->year, $currentTime->month, $currentTime->day
+        );
 
-            $lessonEndTime = Carbon::today('Asia/Jakarta')->setTimeFromTimeString($endTime);
+        $deadline = $lessonEnd->copy()->addDay();
 
-            if ($currentTime->greaterThan($lessonEndTime)) {
-                throw new \Exception('Tidak dapat melakukan resubmit karena jam pelajaran sudah berakhir');
-            }
+        if ($currentTime->lessThan($lessonStart)) {
+            throw new \Exception('Belum memasuki waktu pelajaran, tidak dapat melakukan submit');
+        }
+
+        if ($currentTime->greaterThan($deadline)) {
+            throw new \Exception('Waktu submit telah melewati batas 24 jam setelah pelajaran berakhir');
+        }
+
+        if ($hasExistingSubmission && $currentTime->greaterThan($deadline)) {
+            throw new \Exception('Waktu resubmit telah berakhir');
         }
     }
 
