@@ -18,12 +18,8 @@ class HomeroomTeacherSummaryService
     protected AttendanceInterface $attendanceInterface;
     protected AttendancePermissionInterface $permissionInterface;
 
-    public function __construct(
-        ClassroomRepository $classroomRepository,
-        ClassroomStudentsInterface $classroomStudentsInterface,
-        AttendanceInterface $attendanceInterface,
-        AttendancePermissionInterface $permissionInterface
-    ) {
+    public function __construct(ClassroomRepository $classroomRepository, ClassroomStudentsInterface $classroomStudentsInterface, AttendanceInterface $attendanceInterface, AttendancePermissionInterface $permissionInterface)
+    {
         $this->classroomRepository = $classroomRepository;
         $this->classroomStudentsInterface = $classroomStudentsInterface;
         $this->attendanceInterface = $attendanceInterface;
@@ -242,7 +238,6 @@ class HomeroomTeacherSummaryService
             return collect();
         }
 
-        // Filter by students in this classroom
         $studentIds = $allPermissions->pluck('student_id');
         
         $classroomStudentIds = \App\Models\ClassroomStudents::where('classroom_id', $classroomId)

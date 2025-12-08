@@ -13,8 +13,6 @@ class DailyStudentAttendanceResource extends JsonResource
             'student_name' => $this['student_name'],
             'nisn' => $this['nisn'],
             'status' => $this['status'],
-            'time_in' => $this['time_in'],
-            'time_out' => $this['time_out'],
             'date' => $this['date'],
         ];
     }

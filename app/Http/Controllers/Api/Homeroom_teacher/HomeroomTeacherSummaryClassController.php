@@ -15,24 +15,20 @@ use App\Services\HomeroomTeacherSummaryService;
 
 class HomeroomTeacherSummaryClassController extends Controller
 {
-    protected HomeroomTeacherSummaryService $service;
+    protected HomeroomTeacherSummaryService $homeroomTeacherSummaryService;
 
-    public function __construct(HomeroomTeacherSummaryService $service)
+    public function __construct(HomeroomTeacherSummaryService $homeroomTeacherSummaryService)
     {
-        $this->service = $service;
+        $this->homeroomTeacherSummaryService = $homeroomTeacherSummaryService;
     }
 
-    /**
-     * GET /api/homeroom-teacher/summary-class?date=2023-12-01
-
-     */
     public function getSummaryClass(SummaryClassRequest $request)
     {
         try {
             $teacher = $request->user();
             $date = $request->input('date');
 
-            $data = $this->service->getDailySummary($teacher, $date);
+            $data = $this->homeroomTeacherSummaryService->getDailySummary($teacher, $date);
 
             return ResponseHelper::success(
                 new SummaryClassResource($data),
@@ -46,10 +42,6 @@ class HomeroomTeacherSummaryClassController extends Controller
         }
     }
 
-    /**
-     * GET /api/homeroom-teacher/weekly-attendance?start_date=2023-12-01&end_date=2023-12-07
-     * Statistik kehadiran mingguan
-     */
     public function getWeeklyAttendanceStatistics(WeeklyStatisticsRequest $request)
     {
         try {
@@ -57,7 +49,7 @@ class HomeroomTeacherSummaryClassController extends Controller
             $startDate = $request->input('start_date');
             $endDate = $request->input('end_date');
 
-            $data = $this->service->getWeeklyStatistics($teacher, $startDate, $endDate);
+            $data = $this->homeroomTeacherSummaryService->getWeeklyStatistics($teacher, $startDate, $endDate);
 
             return ResponseHelper::success(
                 new WeeklyAttendanceStatisticsResource($data),
@@ -71,10 +63,6 @@ class HomeroomTeacherSummaryClassController extends Controller
         }
     }
 
-    /**
-     * GET /api/homeroom-teacher/daily-attendance?date=2023-12-01&per_page=10
-     * Daftar kehadiran harian siswa
-     */
     public function getDailyStudentAttendance(DailyAttendanceRequest $request)
     {
         try {
@@ -82,7 +70,7 @@ class HomeroomTeacherSummaryClassController extends Controller
             $date = $request->input('date');
             $perPage = $request->input('per_page', 10);
 
-            $data = $this->service->getDailyAttendance($teacher, $date, $perPage);
+            $data = $this->homeroomTeacherSummaryService->getDailyAttendance($teacher, $date, $perPage);
 
             return ResponseHelper::success([
                 'summary' => new SummaryClassResource($data['summary']),
