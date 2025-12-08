@@ -200,34 +200,36 @@ class TeacherAttendanceService
         if (!$lessonSchedule->lessonHour) {
             throw new \Exception('Data jam pelajaran tidak ditemukan');
         }
-
+    
         $startTime = $lessonSchedule->lessonHour->start ?? $lessonSchedule->lessonHour->start_time ?? null;
-        $endTime   = $lessonSchedule->lessonHour->end   ?? $lessonSchedule->lessonHour->end_time   ?? null;
-
+        $endTime   = $lessonSchedule->lessonHour->end ?? $lessonSchedule->lessonHour->end_time ?? null;
+    
         if (!$startTime || !$endTime) {
             throw new \Exception('Waktu jam pelajaran tidak ditemukan');
         }
 
         $lessonStart = Carbon::parse($startTime, 'Asia/Jakarta')->setDate(
-            $currentTime->year, $currentTime->month, $currentTime->day
-        );
-    
-        $lessonEnd = Carbon::parse($endTime, 'Asia/Jakarta')->setDate(
-            $currentTime->year, $currentTime->month, $currentTime->day
+            $currentTime->year,
+            $currentTime->month,
+            $currentTime->day
         );
 
-        $deadline = $lessonEnd->copy()->addDay();
+        $deadline = Carbon::createFromFormat(
+            'Y-m-d H:i:s',
+            $currentTime->format('Y-m-d') . ' 23:59:59',
+            'Asia/Jakarta'
+        );
 
         if ($currentTime->lessThan($lessonStart)) {
             throw new \Exception('Belum memasuki waktu pelajaran, tidak dapat melakukan submit');
         }
 
         if ($currentTime->greaterThan($deadline)) {
-            throw new \Exception('Waktu submit telah melewati batas 24 jam setelah pelajaran berakhir');
+            throw new \Exception('Waktu submit telah melewati batas hari ini');
         }
 
         if ($hasExistingSubmission && $currentTime->greaterThan($deadline)) {
-            throw new \Exception('Waktu resubmit telah berakhir');
+            throw new \Exception('Waktu resubmit telah berakhir hari ini');
         }
     }
 
