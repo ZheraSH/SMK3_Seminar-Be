@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 class EmployeeRepository extends BaseRepository implements EmployeeInterface
 {
     use PaginationTrait;
-    
+
     public function __construct(Employee $employee)
     {
         $this->model = $employee;

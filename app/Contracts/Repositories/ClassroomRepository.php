@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
 class ClassroomRepository extends BaseRepository implements ClassroomInterface
 {
     use PaginationTrait;
-    
+
     public function __construct(Classroom $classroom)
     {
         $this->model = $classroom;
@@ -27,12 +27,12 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
         'schoolYear',
         'teacher.user',
     ];
-    
+
     public function loadRelations($model)
     {
         return $model->load($this->defaultRelations);
     }
-    
+
     public function get(): Collection
     {
         return $this->model->query()
@@ -53,7 +53,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
     {
         $model = $this->model->create($data);
         return $this->loadRelations($model);
-    }    
+    }
 
     public function show(mixed $id): Classroom
     {
@@ -85,7 +85,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
     {
         $model = $this->model->findOrFail($id);
         return $model->update($data);
-    }    
+    }
 
     public function delete(mixed $id): bool
     {

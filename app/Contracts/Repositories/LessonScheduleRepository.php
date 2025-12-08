@@ -167,22 +167,20 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
         if ($excludeId) {
             $query->where('id', '!=', $excludeId);
         }
-
         return $query->exists();
+    }
 
-    }   
-
-public function getByStudentAndDay(string $studentId, string $day): mixed
-{
-    return \DB::table('student_lesson_schedules as sls')
-        ->join('lesson_schedules as ls', 'ls.id', '=', 'sls.lesson_schedule_id')
-        ->join('classrooms as c', 'c.id', '=', 'ls.classroom_id')
-        ->join('subjects as s', 's.id', '=', 'ls.subject_id')
-        ->join('employees as e', 'e.id', '=', 'ls.employee_id')
-        ->where('sls.student_id', $studentId)
-        ->where('ls.day', $day)
-        ->select('ls.*')
-        ->get();
-}
+    public function getByStudentAndDay(string $studentId, string $day): mixed
+    {
+        return \DB::table('student_lesson_schedules as sls')
+            ->join('lesson_schedules as ls', 'ls.id', '=', 'sls.lesson_schedule_id')
+            ->join('classrooms as c', 'c.id', '=', 'ls.classroom_id')
+            ->join('subjects as s', 's.id', '=', 'ls.subject_id')
+            ->join('employees as e', 'e.id', '=', 'ls.employee_id')
+            ->where('sls.student_id', $studentId)
+            ->where('ls.day', $day)
+            ->select('ls.*')
+            ->get();
+    }
 
 }

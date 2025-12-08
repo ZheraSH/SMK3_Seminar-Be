@@ -90,10 +90,9 @@ class RfidRepository extends BaseRepository implements RfidInterface
                   });
             });
         }
-
         return $query->limit($limit)->get();
     }
-    
+
     public function getByStudentId(string $studentId): ?Rfid
     {
         return $this->model->query()

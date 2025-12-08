@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 class StudentRepository extends BaseRepository implements StudentInterface
 {
     use PaginationTrait;
-    
+
     public function __construct(Student $student)
     {
         $this->model = $student;
@@ -120,8 +120,8 @@ class StudentRepository extends BaseRepository implements StudentInterface
             ->latest()
             ->paginate($pagination);
     }
-    
-    public function count(): int
+
+        public function count(): int
     {
         return $this->model->query()->count();
     }
@@ -199,5 +199,4 @@ class StudentRepository extends BaseRepository implements StudentInterface
             ])
             ->findOrFail($id);
     }
-
 }

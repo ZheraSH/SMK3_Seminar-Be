@@ -72,28 +72,25 @@ class SchoolYearRepository extends BaseRepository implements SchoolYearInterface
     }
 
     public function storeAuto(): mixed
-{
-    $this->unsetAll();
+    {
+        $this->unsetAll();
 
-    $latest = $this->model
-        ->orderByDesc('name')
-        ->first();
+        $latest = $this->model
+            ->orderByDesc('name')
+            ->first();
 
-    if (!$latest) {
-        $start = date('Y');
-        $end = $start + 1;
-    } else {
+        if (!$latest) {
+            $start = date('Y');
+            $end = $start + 1;
+        } else {
 
-        [$start, $end] = explode('/', $latest->name);
-
-        $start = (int)$start + 1; 
-        $end = $start + 1;
+            [$start, $end] = explode('/', $latest->name);
+            $start = (int)$start + 1; 
+            $end = $start + 1;
+        }
+        return $this->model->create([
+            'name'   => "{$start}/{$end}",
+            'active' => true,
+        ]);
     }
-
-    return $this->model->create([
-        'name'   => "{$start}/{$end}",
-        'active' => true,
-    ]);
-}
-
 }
