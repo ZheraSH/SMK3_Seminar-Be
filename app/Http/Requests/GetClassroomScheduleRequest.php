@@ -29,4 +29,3 @@ class GetClassroomScheduleRequest extends ApiRequest
         ];
     }
 }
-
