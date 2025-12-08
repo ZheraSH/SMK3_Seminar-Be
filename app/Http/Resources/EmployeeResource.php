@@ -19,9 +19,7 @@ class EmployeeResource extends JsonResource
             'id' => $this->id,
             'name' => $user?->name,
             'email' => $user?->email,
-            'image' => $this->resolveImageUrl(
-                $photo,
-                'admin_assets/dist/image/profile/teacher-boy.jpg'),
+            'image' => $this->resolveImageUrl($photo->image),
             'gender' => $this->gender?->label(),
             'phone_number' => $this->phone_number,
             'religion' => $this->religion?->name,

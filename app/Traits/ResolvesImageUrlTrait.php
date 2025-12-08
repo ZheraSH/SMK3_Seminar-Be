@@ -6,30 +6,26 @@ use Illuminate\Support\Facades\Storage;
 
 trait ResolvesImageUrlTrait
 {
-    /**
-     * Resolve image URL with fallback
-     */
-    protected function resolveImageUrl(?string $photo, string $defaultImage = 'admin_assets/dist/image/profile/default.jpg'): string
+    protected function resolveImageUrl(?string $path, string $default = 'admin_assets/dist/image/profile/default.jpg'): string
     {
-        if (!$photo) {
-            return asset($defaultImage);
+        if (!$path) {
+            return asset($default);
         }
 
-        if (str_ends_with($photo, '.pdf')) {
-            if (Storage::disk('public')->exists($photo)) {
-                return url('storage/' . $photo);
-            }
-            return asset($defaultImage);
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
         }
 
-        if (Storage::disk('public')->exists($photo)) {
-            return url('storage/' . $photo);
+        // Jika file ada di storage/public
+        if (Storage::disk('public')->exists($path)) {
+            return asset("storage/" . $path);
         }
 
-        if (file_exists(public_path($photo))) {
-            return asset($photo);
+        // Jika file ada di public/
+        if (file_exists(public_path($path))) {
+            return asset($path);
         }
 
-        return asset($defaultImage);
+        return asset($default);
     }
 }
