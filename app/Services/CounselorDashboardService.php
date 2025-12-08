@@ -62,9 +62,6 @@ class CounselorDashboardService
         ];
     }
 
-    /**
-     * Ranking Alpha > BK Dashboard
-     */
     public function getTopAlphaStudents(array $filters = [], int $limit = 5): array
     {
         $filters['start_date'] = Carbon::now()->startOfMonth()->format('Y-m-d');
@@ -84,6 +81,6 @@ class CounselorDashboardService
                 'status' => 'Alpha',
                 'total' => $s->alpha_total ?? 0,
             ];
-        })->toArray();
+        })->toArray();  
     }
 }

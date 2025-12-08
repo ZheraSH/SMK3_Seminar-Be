@@ -6,7 +6,7 @@ use App\Contracts\Interfaces\AttendanceInterface;
 use App\Enums\AttendanceStatusEnum;
 use App\Models\Attendance;
 use App\Models\Student;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\DB;  
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
