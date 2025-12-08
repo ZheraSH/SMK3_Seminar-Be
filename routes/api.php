@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Counselor\CounselorAttendanceMonitoringController;
 use App\Http\Controllers\Api\Counselor\CounselorAttendancePermissionController;
 use App\Http\Controllers\Api\Counselor\CounselorDashboardController;
 use App\Http\Controllers\Api\EmployeeController;
+use App\Http\Controllers\Api\Homeroom_teacher\HomeroomTeacherSummaryClassController;
 use App\Http\Controllers\Api\LessonHourController;
 use App\Http\Controllers\Api\LessonSchedulesController;
 use App\Http\Controllers\Api\LevelClassController;
@@ -197,9 +198,20 @@ Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->grou
 
 });
     
-// Route::middleware(['auth:sanctum', 'role:homeroom_teacher'])->group(function () {
-    // Tambahkan routes untuk homeroom teacher di sini
-// });
+/*
+|--------------------------------------------------------------------------
+| Homeroom_Teacher Routes
+|--------------------------------------------------------------------------
+| Akses hanya untuk wali kelas
+*/
+Route::middleware(['auth:sanctum', 'role:homeroom_teacher'])->prefix('homeroom-teacher')->group(function () {
+    // Semua endpoint recap membutuhkan UUID classroom pada path
+    Route::prefix('summary-class')->controller(HomeroomTeacherSummaryClassController::class)->group(function () {
+        Route::get('/', 'getSummaryClass'); // summary class
+        Route::get('weekly-attendance', 'getWeeklyAttendanceStatistics'); // weekly attendance
+        Route::get('daily-attendance', 'getDailyStudentAttendance'); // daily attendance
+    });
+});
 
 // Route::middleware(['auth:sanctum', 'role:curriculum_coordinator'])->group(function () {
     // Tambahkan routes untuk curriculum coordinator di sini
