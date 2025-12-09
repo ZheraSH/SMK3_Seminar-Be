@@ -14,13 +14,12 @@ class StudentResource extends JsonResource
     public function toArray(Request $request): array
     {
         $user = $this->user;
-        $photo = $this->image;
 
         return [
             'id' => $this->id,
             'name' => $user?->name,
             'email' => $user?->email,
-            'image' => $this->resolveImageUrl($photo->image),
+            'image' => $this->resolveImageUrl($this->image),
             'nisn' => $this->nisn,
             'gender' => $this->gender?->label(),
             'religion' => $this->religion?->name,
