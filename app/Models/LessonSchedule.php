@@ -28,7 +28,7 @@ class LessonSchedule extends Model
         'day',
         'classroom_id',
         'lesson_hour_id',
-        'employee_id',
+        'teacher_id',
         'subject_id',
     ];
 

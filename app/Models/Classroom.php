@@ -30,6 +30,6 @@ class Classroom extends Model
         'slug',
         'level_class_id',
         'school_year_id',
-        'teacher_id',
+        'homeroom_teacher_id',
     ];
 }
