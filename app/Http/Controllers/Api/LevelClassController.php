@@ -4,22 +4,22 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\LevelClassResource;
-use App\Contracts\Interfaces\LevelClassInterface;
+use App\Http\Resources\Operator\LevelClassResource;
+use App\Contracts\Repositories\LevelClassRepository;
 
 class LevelClassController extends Controller
 {
-    private LevelClassInterface $levelClassInterface;
+    private LevelClassRepository $levelClassRepository;
 
-    public function __construct(LevelClassInterface $levelClassInterface)
+    public function __construct(LevelClassRepository $levelClassRepository)
     {
-        $this->levelClassInterface = $levelClassInterface;
+        $this->levelClassRepository = $levelClassRepository;
     }
 
     public function index()
     {
         try {
-            $data = $this->levelClassInterface->get();
+            $data = $this->levelClassRepository->get();
 
             return ResponseHelper::success(
                 LevelClassResource::collection($data),
