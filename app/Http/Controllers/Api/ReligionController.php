@@ -2,27 +2,27 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\ReligionResource;
-use App\Contracts\Interfaces\ReligionInterface;
+use App\Contracts\Repositories\ReligionRepository;
+use App\Http\Resources\Operator\ReligionResource;
+use App\Helpers\ResponseHelper;
 
 class ReligionController extends Controller
 {
-    private ReligionInterface $religionInterface;
+    private ReligionRepository $religionRepository;
 
-    public function __construct(ReligionInterface $religionInterface)
+    public function __construct(ReligionRepository $religionRepository)
     {
-        $this->religionInterface = $religionInterface;
+        $this->religionRepository = $religionRepository;
     }
 
     public function index()
     {
         try {
-            $data = $this->religionInterface->get();
+            $religions = $this->religionRepository->get();
 
             return ResponseHelper::success(
-                ReligionResource::collection($data),
+                ReligionResource::collection($religions),
                 'Data agama berhasil diambil'
             );
         } catch (\Throwable $th) {
