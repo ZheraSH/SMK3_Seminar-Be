@@ -16,8 +16,8 @@ return new class extends Migration
             $table->Uuid('id')->primary();
             $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
             $table->string('image')->nullable();
-            $table->string('NIP', 18)->unique();
-            $table->string('NIK', 16);
+            $table->string('nip', 18)->unique();
+            $table->string('nik', 16);
             $table->foreignUuid('religion_id')->nullable()->constrained('religions')->nullOnDelete();
             $table->enum('gender',[GenderEnum::MALE->value, GenderEnum::FEMALE->value]);
             $table->date('birth_date');

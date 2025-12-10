@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->foreignUuid('level_class_id')->constrained('level_classes')->onDelete('restrict');
             $table->foreignUuid('school_year_id')->constrained('school_years')->onDelete('restrict');
-            $table->foreignUuid('teacher_id')->nullable()->constrained('employees')->nullOnDelete(); //wali kelas
+            $table->foreignUuid('homeroom_teacher_id')->nullable()->constrained('employees')->nullOnDelete();
             $table->softDeletes();
             $table->timestamps();
         });

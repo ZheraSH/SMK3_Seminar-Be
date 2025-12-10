@@ -8,6 +8,9 @@ use App\Enums\AttendanceProofEnum;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('attendances', function (Blueprint $table) {
@@ -45,6 +48,9 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('attendances');

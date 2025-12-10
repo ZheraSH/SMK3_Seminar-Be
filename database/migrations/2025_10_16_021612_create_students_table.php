@@ -27,8 +27,8 @@ return new class extends Migration
             $table->string('number_akta');
             $table->integer('order_child')->nullable();
             $table->integer('count_siblings')->nullable();
-            $table->enum('status',[StudentStatusEnum::ACTIVE->value, StudentStatusEnum::GRADUATED->value]);
-            // $table->integer('point')->nullable();
+            $table->enum('status',[StudentStatusEnum::ACTIVE->value, StudentStatusEnum::INACTIVE->value, StudentStatusEnum::GRADUATED->value]);
+            $table->integer('point')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

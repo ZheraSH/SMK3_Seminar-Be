@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up()
     {
         Schema::create('lesson_hours', function (Blueprint $table) {
@@ -15,12 +18,15 @@ return new class extends Migration
             $table->string('name');
             $table->time('start');
             $table->time('end');
-            $table->boolean('is_lesson')->default(true)->comment('true for lesson periods, false for breaks');
+            $table->boolean('is_lesson')->default(true);
             $table->softDeletes();
             $table->timestamps();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down()
     {
         Schema::dropIfExists('lesson_hours');
