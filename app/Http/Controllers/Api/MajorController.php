@@ -4,22 +4,22 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\MajorResource;
-use App\Contracts\Interfaces\MajorInterface;
+use App\Http\Resources\Operator\MajorResource;
+use App\Contracts\Repositories\MajorRepository;
 
 class MajorController extends Controller
 {
-    private MajorInterface $majorInterface;
+    private MajorRepository $majorRepository;
 
-    public function __construct(MajorInterface $majorInterface)
+    public function __construct(MajorRepository $majorRepository)
     {
-        $this->majorInterface = $majorInterface;
+        $this->majorRepository = $majorRepository;
     }
 
     public function index()
     {
         try {
-            $data = $this->majorInterface->get();
+            $data = $this->majorRepository->get();
 
             return ResponseHelper::success(
                 MajorResource::collection($data),
