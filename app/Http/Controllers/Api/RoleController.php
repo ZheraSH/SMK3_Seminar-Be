@@ -3,24 +3,28 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Contracts\Repositories\RoleRepository;
+use App\Http\Resources\Operator\RoleResource;
 use App\Helpers\ResponseHelper;
-use App\Services\RoleService;
 
 class RoleController extends Controller
 {
-    private RoleService $roleService;
+    private RoleRepository $roleRepository;
 
-    public function __construct(RoleService $roleService)
+    public function __construct(RoleRepository $roleRepository)
     {
-        $this->roleService = $roleService;
+        $this->roleRepository = $roleRepository;
     }
 
     public function index()
     {
         try {
-            $roles = $this->roleService->get();
+            $roles = $this->roleRepository->get();
 
-            return ResponseHelper::success($roles, 'Daftar role berhasil diambil');
+            return ResponseHelper::success(
+                RoleResource::collection($roles),
+                'Daftar role berhasil diambil'
+            );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 500);
         }

@@ -15,9 +15,8 @@ class RoleSeeder extends Seeder
 
         foreach (RoleEnum::cases() as $role) {
             Role::firstOrCreate(
-                ['name' => $role->value], // HANYA cari berdasarkan name
-                ['guard_name' => 'web']   // Data tambahan jika create
-                // ID akan otomatis di-generate oleh HasUuids trait
+                ['name' => $role->value],
+                ['guard_name' => 'web']
             );
         }
     }
