@@ -43,22 +43,14 @@ class SchoolYearRepository extends BaseRepository implements SchoolYearInterface
         return $this->model->latest()->paginate(12);
     }
 
-    public function search(Request $request, int $pagination = 12): mixed
-    {
-        return $this->model
-            ->when($request->keyword, fn($q) => 
-                $q->where('name', 'like', "%{$request->keyword}%")
-            )
-            ->when($request->active !== null, fn($q) =>
-                $q->where('active', $request->active)
-            )
-            ->latest()
-            ->paginate($pagination);
-    }
-
     public function active(): mixed
     {
         return $this->model->where('active', true)->first();
+    }
+
+    public function latest(): mixed
+    {
+        return $this->model->orderByDesc('name')->first();
     }
 
     public function setActive($id): mixed
@@ -69,28 +61,5 @@ class SchoolYearRepository extends BaseRepository implements SchoolYearInterface
     public function unsetAll(): mixed
     {
         return $this->model->query()->update(['active' => false]);
-    }
-
-    public function storeAuto(): mixed
-    {
-        $this->unsetAll();
-
-        $latest = $this->model
-            ->orderByDesc('name')
-            ->first();
-
-        if (!$latest) {
-            $start = date('Y');
-            $end = $start + 1;
-        } else {
-
-            [$start, $end] = explode('/', $latest->name);
-            $start = (int)$start + 1; 
-            $end = $start + 1;
-        }
-        return $this->model->create([
-            'name'   => "{$start}/{$end}",
-            'active' => true,
-        ]);
     }
 }
