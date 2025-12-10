@@ -14,13 +14,13 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             PermissionSeeder::class,
-            UserSeeder::class, //Data dummy
+            UserSeeder::class,
             ReligionSeeder::class,
             StudentSeeder::class, //Data dummy
             EmployeeSeeder::class, //Data dummy
-            SchoolYearSeeder::class,
             MajorSeeder::class,
             LevelClassSeeder::class,
+            SchoolYearSeeder::class, //Data dummy
             SubjectSeeder::class,
             ClassroomSeeder::class, //Data dummy
             ClassroomStudentSeeder::class, //Data dummy
@@ -28,8 +28,8 @@ class DatabaseSeeder extends Seeder
             LessonScheduleSeeder::class, //Data dummy
             AttendanceRuleSeeder::class, //Data dummy
             RfidSeeder::class, //Data Dummy
-            AttendancePermissionSeeder::class, //Data dummy
             AttendanceSeeder::class, //Data dummy
+            AttendancePermissionSeeder::class, //Data dummy
         ]);
     }
 }

@@ -2,21 +2,25 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\LevelClass;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class LevelClassSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $levelClasses = ['X', 'XI', 'XII',];
+        $levels = [
+            'X',
+            'XI',
+            'XII',
+        ];
 
-        foreach ($levelClasses as $name) {
-            LevelClass::firstOrCreate(['name' => $name]);
+        foreach ($levels as $level) {
+            LevelClass::firstOrCreate(
+                ['name' => $level],
+                ['id' => Str::uuid()]
+            );
         }
     }
 }

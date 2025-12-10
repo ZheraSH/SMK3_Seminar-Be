@@ -3,49 +3,81 @@
 namespace Database\Seeders;
 
 use App\Models\AttendancePermission;
-use App\Models\Student;
 use App\Models\Employee;
-use Carbon\Carbon;
+use App\Models\Student;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class AttendancePermissionSeeder extends Seeder
 {
+    // Konfigurasi jumlah izin per siswa - MUDAH DIUBAH!
+    private const MIN_PERMISSIONS_PER_STUDENT = 1;
+    private const MAX_PERMISSIONS_PER_STUDENT = 3;
+
     public function run(): void
     {
-        $students = Student::limit(5)->get();
-
-        $counselors = Employee::whereHas('user.roles', function ($q) {
+        $students = Student::all();
+        $counselors = Employee::whereHas('user.roles', function($q) {
             $q->where('name', 'counselor');
         })->get();
 
-        if ($counselors->isEmpty()) {
-            $this->command->warn('No counselors found. Seeder skipped.');
+        if ($students->isEmpty() || $counselors->isEmpty()) {
+            $this->command->error('Students or Counselors not found');
             return;
         }
 
+        $permissionsCreated = 0;
+
         foreach ($students as $student) {
-
-            $count = rand(1, 3);
-
-            for ($i = 0; $i < $count; $i++) {
-
-                $status = fake()->randomElement(['pending', 'approved', 'rejected']);
+            $permissionCount = rand(self::MIN_PERMISSIONS_PER_STUDENT, self::MAX_PERMISSIONS_PER_STUDENT);
+            
+            for ($i = 0; $i < $permissionCount; $i++) {
+                $status = $this->randomStatus();
                 $counselor = $counselors->random();
-
-                $data = [
-                    'type' => fake()->randomElement(['sick', 'permission', 'dispensation']),
-                    'start_date' => Carbon::now()->subDays(rand(1, 10)),
-                    'end_date' => Carbon::now()->subDays(rand(0, 9)),
-                    'reason' => fake()->sentence(8),
+                
+                AttendancePermission::create([
+                    'id' => Str::uuid(),
+                    'type' => $this->randomType(),
+                    'start_date' => Carbon::now()->subDays(rand(1, 30)),
+                    'end_date' => Carbon::now()->subDays(rand(0, 5)),
+                    'reason' => $this->randomReason(),
                     'proof' => null,
                     'status' => $status,
                     'student_id' => $student->id,
                     'counselor_id' => $status !== 'pending' ? $counselor->id : null,
                     'verified_at' => $status !== 'pending' ? Carbon::now()->subDay() : null,
-                ];
-
-                AttendancePermission::create($data);
+                ]);
+                
+                $permissionsCreated++;
             }
         }
+
+        $this->command->info("Created {$permissionsCreated} attendance permissions");
+    }
+
+    private function randomStatus(): string
+    {
+        $statuses = ['pending', 'approved', 'rejected'];
+        return $statuses[array_rand($statuses)];
+    }
+
+    private function randomType(): string
+    {
+        $types = ['sick', 'permission', 'dispensation'];
+        return $types[array_rand($types)];
+    }
+
+    private function randomReason(): string
+    {
+        $reasons = [
+            'Sakit demam',
+            'Keluarga meninggal',
+            'Kegiatan sekolah',
+            'Izin keluarga',
+            'Acara penting',
+            'Kondisi kesehatan'
+        ];
+        return $reasons[array_rand($reasons)];
     }
 }

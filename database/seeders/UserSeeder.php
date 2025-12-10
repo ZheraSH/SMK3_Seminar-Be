@@ -2,33 +2,27 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use App\Enums\RoleEnum;
-use Illuminate\Support\Str;
+use App\Models\User;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $role = Role::firstOrCreate(
-            ['name' => RoleEnum::SCHOOL->value],
-            ['guard_name' => 'web']
-        );
-
-        $user = User::updateOrCreate(
-            ['email' => 'operatorsekolah@skaniga.com'],
+        $user = User::firstOrCreate(
+            ['email' => 'operator@skaniga.com'],
             [
                 'id' => Str::uuid(),
-                'name' => RoleEnum::SCHOOL->label(),
-                'slug' => Str::slug(RoleEnum::SCHOOL->value),
-                'email_verified_at' => now(),
+                'name' => 'Operator Sekolah',
+                'slug' => Str::slug('Operator Sekolah'),
                 'password' => Hash::make('developer'),
+                'email_verified_at' => now(),
             ]
         );
 
-        $user->syncRoles([$role->name]);
+        $user->syncRoles([RoleEnum::SCHOOL->value]);
     }
 }

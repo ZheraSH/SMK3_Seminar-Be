@@ -2,61 +2,32 @@
 
 namespace Database\Seeders;
 
+use App\Enums\GenderEnum;
+use App\Enums\RoleEnum;
+use App\Models\Employee;
+use App\Models\Religion;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use App\Models\User;
-use App\Models\Employee;
-use App\Models\Religion;
-use App\Enums\GenderEnum;
-use App\Enums\RoleEnum;
-use Spatie\Permission\Models\Role;
 
 class EmployeeSeeder extends Seeder
 {
     public function run(): void
     {
-        $faker = \Faker\Factory::create('id_ID');
-
-        $this->createRoles();
-
-        $religion = Religion::firstOrCreate(
-            ['name' => 'Islam'],
-            ['id' => (string) Str::uuid()]
-        );
-
-        $imageMale = 'default_image/teacher-boy.png';
-        $imageFemale = 'default_image/teacher-girl.png';
-
-        $teacherCount = 0;
-        $homeroomCount = 0;
-        $counselorCount = 0;
-        $curriculumCount = 0;
-        $staffCount = 0;
+        $religion = Religion::where('name', 'Islam')->first();
 
         for ($i = 1; $i <= 20; $i++) {
-            $gender = $faker->randomElement([
-                GenderEnum::MALE->value,
-                GenderEnum::FEMALE->value
-            ]);
-
-            $name = $this->generateRandomName($faker, $gender);
+            $gender = $i % 2 == 0 ? GenderEnum::MALE : GenderEnum::FEMALE;
+            
+            $name = $this->generateName($i, $gender->value);
             $email = "employee{$i}@skaniga.com";
-            $nip = $this->generateNIP($i);
-
-            $roles = $this->determineRoles(
-                $i, 
-                $teacherCount, 
-                $homeroomCount, 
-                $counselorCount, 
-                $curriculumCount, 
-                $staffCount
-            );
-
-            $user = User::updateOrCreate(
+            $nip = "1980" . str_pad($i, 10, '0', STR_PAD_LEFT);
+            
+            $user = User::firstOrCreate(
                 ['email' => $email],
                 [
-                    'id' => (string) Str::uuid(),
+                    'id' => Str::uuid(),
                     'name' => $name,
                     'slug' => Str::slug($name),
                     'password' => Hash::make($nip),
@@ -64,137 +35,56 @@ class EmployeeSeeder extends Seeder
                 ]
             );
 
-            $user->syncRoles($roles);
+            $user->syncRoles($this->determineRoles($i));
 
-            Employee::updateOrCreate(
+            Employee::firstOrCreate(
                 ['user_id' => $user->id],
                 [
-                    'id' => (string) Str::uuid(),
-                    'image' => $gender === GenderEnum::MALE->value ? $imageMale : $imageFemale,
+                    'id' => Str::uuid(),
+                    'image' => $gender->value === GenderEnum::MALE->value 
+                        ? 'default_image/teacher-boy.png'
+                        : 'default_image/teacher-girl.png',
                     'NIP' => $nip,
-                    'NIK' => $faker->unique()->numerify('################'),
+                    'NIK' => '32' . str_pad($i, 14, '0', STR_PAD_LEFT),
                     'religion_id' => $religion->id,
-                    'gender' => $gender,
-                    'birth_date' => $faker->date('Y-m-d'),
-                    'birth_place' => $faker->city(),
-                    'address' => $faker->address(),
-                    'phone_number' => $faker->phoneNumber(),
+                    'gender' => $gender->value,
+                    'birth_date' => now()->subYears(rand(25, 50))->format('Y-m-d'),
+                    'birth_place' => $this->randomCity(),
+                    'address' => 'Jl. Contoh No.' . $i . ', Kota Contoh',
+                    'phone_number' => '08' . str_pad($i, 10, '0', STR_PAD_LEFT),
                 ]
             );
-
-            $this->updateCounters($roles, $teacherCount, $homeroomCount, $counselorCount, $curriculumCount, $staffCount);
         }
     }
 
-    private function createRoles(): void
+    private function generateName(int $index, string $gender): string
     {
-        $roles = [
-            RoleEnum::TEACHER->value,
-            RoleEnum::HOMEROOM_TEACHER->value,
-            RoleEnum::COUNSELOR->value,
-            RoleEnum::STAFF->value,
-            RoleEnum::CURRICULUM_COORDINATOR->value,
-        ];
-
-        foreach ($roles as $role) {
-            Role::firstOrCreate(['name' => $role]);
-        }
-    }
-
-    private function determineRoles(
-        int $index, 
-        int &$teacherCount, 
-        int &$homeroomCount, 
-        int &$counselorCount, 
-        int &$curriculumCount, 
-        int &$staffCount
-    ): array {
-
-        $maxTeachers = 10;
-        $maxHomeroom = 10;
-        $maxCounselor = 2;
-        $maxCurriculum = 2;
-        $maxStaff = 2;
-
-        // BK - role khusus, tidak bisa menjadi teacher
-        if ($counselorCount < $maxCounselor && $index % 4 == 0) {
-            $counselorCount++;
-            return [RoleEnum::COUNSELOR->value];
-        }
-
-        if ($staffCount < $maxStaff && $index % 2 == 0) {
-            $staffCount++;
-            return [RoleEnum::STAFF->value];
-        }
-
-        if ($curriculumCount < $maxCurriculum && $index % 4 == 0) {
-            $curriculumCount++;
-            $teacherCount++;
-            return [RoleEnum::TEACHER->value, RoleEnum::CURRICULUM_COORDINATOR->value];
-        }
-
-        if ($homeroomCount < $maxHomeroom && $index % 8 == 0) {
-            $homeroomCount++;
-            $teacherCount++;
-            return [RoleEnum::TEACHER->value, RoleEnum::HOMEROOM_TEACHER->value];
-        }
-
-        if ($teacherCount < $maxTeachers) {
-            $teacherCount++;
-            return [RoleEnum::TEACHER->value];
-        }
-
-        $staffCount++;
-        return [RoleEnum::STAFF->value];
-    }
-
-    private function updateCounters(
-        array $roles, 
-        int &$teacherCount, 
-        int &$homeroomCount, 
-        int &$counselorCount, 
-        int &$curriculumCount, 
-        int &$staffCount
-    ): void {
-        foreach ($roles as $role) {
-            switch ($role) {
-                case RoleEnum::TEACHER->value:
-                    $teacherCount++;
-                    break;
-                case RoleEnum::HOMEROOM_TEACHER->value:
-                    $homeroomCount++;
-                    break;
-                case RoleEnum::COUNSELOR->value:
-                    $counselorCount++;
-                    break;
-                case RoleEnum::CURRICULUM_COORDINATOR->value:
-                    $curriculumCount++;
-                    break;
-                case RoleEnum::STAFF->value:
-                    $staffCount++;
-                    break;
-            }
-        }
-    }
-
-    private function generateRandomName($faker, string $gender): string
-    {
-        $maleFirstNames = ['Tegar', 'Dimas', 'Firman', 'Sbastian', 'Valen', 'Ramzi', 'Gunawan', 'Nidal', 'Azadi', 'Jaka'];
-        $femaleFirstNames = ['Rofiatul', 'Rohmah', 'Inka', 'Putri', 'Ica', 'Riang', 'Nining', 'Niendy', 'Indah'];
+        $maleNames = ['Tegar', 'Dimas', 'Firman', 'Sbastian', 'Valen', 'Ramzi', 'Gunawan', 'Nidal', 'Azadi', 'Jaka'];
+        $femaleNames = ['Rofiatul', 'Rohmah', 'Inka', 'Putri', 'Ica', 'Riang', 'Nining', 'Niendy', 'Indah'];
         $lastNames = ['Dedy', 'Abdillah', 'Pratama', 'Kusuma', 'Sunandar', 'Iskandar', 'Meifirdo', 'Atmaja'];
-
+        
         $firstName = $gender === GenderEnum::MALE->value
-            ? $faker->randomElement($maleFirstNames)
-            : $faker->randomElement($femaleFirstNames);
-
-        $lastName = $faker->randomElement($lastNames);
-
+            ? $maleNames[($index - 1) % count($maleNames)]
+            : $femaleNames[($index - 1) % count($femaleNames)];
+            
+        $lastName = $lastNames[($index - 1) % count($lastNames)];
+        
         return "{$firstName} {$lastName}";
     }
 
-    private function generateNIP(int $index): string
+    private function randomCity(): string
     {
-        $baseYear = 19800000000000;
-        return (string) ($baseYear + $index);
+        $cities = ['Jakarta', 'Bandung', 'Surabaya', 'Yogyakarta', 'Semarang', 'Malang', 'Bali'];
+        return $cities[array_rand($cities)];
+    }
+
+    private function determineRoles(int $index): array
+    {
+        if ($index <= 2) return [RoleEnum::COUNSELOR->value];
+        if ($index <= 4) return [RoleEnum::STAFF->value];
+        if ($index <= 6) return [RoleEnum::CURRICULUM_COORDINATOR->value];
+        if ($index <= 10) return [RoleEnum::HOMEROOM_TEACHER->value];
+        
+        return [RoleEnum::TEACHER->value];
     }
 }

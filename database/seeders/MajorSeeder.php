@@ -2,14 +2,12 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Major;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class MajorSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $majors = [
@@ -24,7 +22,10 @@ class MajorSeeder extends Seeder
         foreach ($majors as $major) {
             Major::firstOrCreate(
                 ['name' => $major['name']],
-                ['code' => $major['code']]
+                [
+                    'id' => Str::uuid(),
+                    'code' => $major['code']
+                ]
             );
         }
     }

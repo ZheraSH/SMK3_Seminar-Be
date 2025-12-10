@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\PermissionEnum;
 use App\Models\Permission;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 use Spatie\Permission\PermissionRegistrar;
 
 class PermissionSeeder extends Seeder
@@ -16,7 +17,10 @@ class PermissionSeeder extends Seeder
         foreach (PermissionEnum::cases() as $permission) {
             Permission::firstOrCreate(
                 ['name' => $permission->value],
-                ['guard_name' => 'web']
+                [
+                    'id' => Str::uuid(),
+                    'guard_name' => 'web'
+                ]
             );
         }
     }

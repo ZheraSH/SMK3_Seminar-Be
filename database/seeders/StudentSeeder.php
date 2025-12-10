@@ -2,47 +2,32 @@
 
 namespace Database\Seeders;
 
+use App\Enums\GenderEnum;
+use App\Enums\RoleEnum;
+use App\Models\Religion;
+use App\Models\Student;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use App\Models\Student;
-use App\Models\User;
-use App\Models\Religion;
-use App\Enums\GenderEnum;
-use App\Enums\RoleEnum;
-use Spatie\Permission\Models\Role;
 
 class StudentSeeder extends Seeder
 {
     public function run(): void
     {
-        $faker = \Faker\Factory::create('id_ID');
-
-        Role::firstOrCreate(['name' => RoleEnum::STUDENT->value]);
-
-        $religion = Religion::firstOrCreate(
-            ['name' => 'Islam'],
-            ['id' => (string) Str::uuid()]
-        );
-
-        $imageMale = 'default_image/student-boy.png';
-        $imageFemale = 'default_image/student-girl.png';
+        $religion = Religion::where('name', 'Islam')->first();
 
         for ($i = 1; $i <= 20; $i++) {
-
-            $gender = $faker->randomElement([
-                GenderEnum::MALE->value,
-                GenderEnum::FEMALE->value
-            ]);
-
-            $name = $this->generateRandomName($faker, $gender);
-            $email = "siswa{$i}@skaniga.com";
-            $nisn = '99' . str_pad((string) $i, 8, '0', STR_PAD_LEFT);
-
-            $user = User::updateOrCreate(
+            $gender = $i % 2 == 0 ? GenderEnum::MALE : GenderEnum::FEMALE;
+            
+            $name = $this->generateName($i, $gender->value);
+            $email = "student{$i}@skaniga.com";
+            $nisn = '00' . str_pad($i, 10, '0', STR_PAD_LEFT);
+            
+            $user = User::firstOrCreate(
                 ['email' => $email],
                 [
-                    'id' => (string) Str::uuid(),
+                    'id' => Str::uuid(),
                     'name' => $name,
                     'slug' => Str::slug($name),
                     'password' => Hash::make($nisn),
@@ -52,38 +37,46 @@ class StudentSeeder extends Seeder
 
             $user->syncRoles([RoleEnum::STUDENT->value]);
 
-            Student::updateOrCreate(
+            Student::firstOrCreate(
                 ['user_id' => $user->id],
                 [
                     'id' => $user->id,
-                    'image' => $gender === GenderEnum::MALE->value ? $imageMale : $imageFemale,
+                    'image' => $gender->value === GenderEnum::MALE->value 
+                        ? 'default_image/student-boy.png'
+                        : 'default_image/student-girl.png',
                     'nisn' => $nisn,
                     'religion_id' => $religion->id,
-                    'gender' => $gender,
-                    'birth_date' => $faker->dateTimeBetween('-17 years', '-15 years')->format('Y-m-d'),
-                    'birth_place' => $faker->city(),
-                    'address' => $faker->address(),
-                    'number_kk' => (string) $faker->numerify('################'),
-                    'number_akta' => (string) $faker->numerify('#############'),
-                    'order_child' => $faker->numberBetween(1, 5),
-                    'count_siblings' => $faker->numberBetween(0, 6),
+                    'gender' => $gender->value,
+                    'birth_date' => now()->subYears(rand(15, 18))->format('Y-m-d'),
+                    'birth_place' => $this->randomCity(),
+                    'address' => 'Jl. Pelajar No.' . $i . ', Kota Contoh',
+                    'number_kk' => '32' . str_pad($i, 14, '0', STR_PAD_LEFT),
+                    'number_akta' => 'AK' . str_pad($i, 11, '0', STR_PAD_LEFT),
+                    'order_child' => rand(1, 3),
+                    'count_siblings' => rand(0, 4),
                 ]
             );
         }
     }
 
-    private function generateRandomName($faker, string $gender): string
+    private function generateName(int $index, string $gender): string
     {
-        $maleFirstNames = ['Nando', 'Saiful', 'Fairouz', 'Dimas', 'Angga','Hilman', 'King', 'Ega', 'Zherash', 'Shinozaki'];
-        $femaleFirstNames = ['Dwi', 'Vita', 'Weis', 'Sekar', 'Rani','Edel', 'Alexia', 'Rara', 'Ai', 'Lovita'];
+        $maleNames = ['Nando', 'Saiful', 'Fairouz', 'Dimas', 'Angga','Hilman', 'King', 'Ega', 'Zherash', 'Shinozaki'];
+        $femaleNames = ['Dwi', 'Vita', 'Weis', 'Sekar', 'Rani','Edel', 'Alexia', 'Rara', 'Ai', 'Lovita'];
         $lastNames = ['Hamzi', 'Islami', 'Cairigio', 'Nayaka','Ramadhan', 'Rahmawati', 'Tirta'];
+        
+        $firstName = $gender === GenderEnum::MALE->value
+            ? $maleNames[($index - 1) % count($maleNames)]
+            : $femaleNames[($index - 1) % count($femaleNames)];
+            
+        $lastName = $lastNames[($index - 1) % count($lastNames)];
+        
+        return "{$firstName} {$lastName}";
+    }
 
-        $first = $gender === GenderEnum::MALE->value
-            ? $faker->randomElement($maleFirstNames)
-            : $faker->randomElement($femaleFirstNames);
-
-        $last = $faker->randomElement($lastNames);
-
-        return "{$first} {$last}";
+    private function randomCity(): string
+    {
+        $cities = ['Jakarta', 'Bandung', 'Surabaya', 'Yogyakkarta', 'Semarang'];
+        return $cities[array_rand($cities)];
     }
 }

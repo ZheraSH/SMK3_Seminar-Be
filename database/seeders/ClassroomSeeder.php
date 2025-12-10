@@ -2,27 +2,42 @@
 
 namespace Database\Seeders;
 
+use App\Models\Classroom;
+use App\Models\Employee;
+use App\Models\Major;
+use App\Models\LevelClass;
+use App\Models\SchoolYear;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
-use App\Models\{Classroom, Major, LevelClass, SchoolYear, Employee};
 
 class ClassroomSeeder extends Seeder
 {
+    // Konfigurasi jumlah kelas per level - MUDAH DIUBAH!
+    private const CLASSES_PER_LEVEL = 3;
+
     public function run(): void
     {
         $major = Major::where('code', 'PPLG')->first();
-        $schoolYear = SchoolYear::latest()->first();
-        $teachers = Employee::limit(6)->get();
-        $levels = ['X', 'XI', 'XII'];
+        $schoolYear = SchoolYear::where('active', true)->first();
+        $levels = LevelClass::all();
+        $teachers = Employee::whereHas('user.roles', function($q) {
+            $q->whereIn('name', ['teacher', 'homeroom_teacher']);
+        })->get();
+
+        if (!$major || !$schoolYear || $levels->isEmpty() || $teachers->isEmpty()) {
+            $this->command->error('Required data not found for ClassroomSeeder');
+            return;
+        }
+
         $teacherIndex = 0;
 
-        foreach ($levels as $levelName) {
-            $level = LevelClass::where('name', $levelName)->first();
-            if (! $level) continue;
-
-            for ($i = 1; $i <= 3; $i++) {
-                $className = "{$levelName} PPLG {$i}";
-                $teacher = $teachers[$teacherIndex++ % $teachers->count()];
+        foreach ($levels as $level) {
+            for ($i = 1; $i <= self::CLASSES_PER_LEVEL; $i++) {
+                $className = "{$level->name} PPLG {$i}";
+                
+                // Get teacher (rotate through available teachers)
+                $teacher = $teachers[$teacherIndex % $teachers->count()];
+                $teacherIndex++;
 
                 Classroom::updateOrCreate(
                     ['name' => $className],
@@ -32,10 +47,12 @@ class ClassroomSeeder extends Seeder
                         'major_id' => $major->id,
                         'level_class_id' => $level->id,
                         'school_year_id' => $schoolYear->id,
-                        'teacher_id' => $teacher->id,
+                        'homeroom_teacher_id' => $teacher->id,
                     ]
                 );
             }
         }
+        
+        $this->command->info("Created " . ($levels->count() * self::CLASSES_PER_LEVEL) . " classrooms");
     }
 }

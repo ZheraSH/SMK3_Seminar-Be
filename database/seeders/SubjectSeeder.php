@@ -2,15 +2,13 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Subject;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class SubjectSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.a
-     */
-  public function run(): void
+    public function run(): void
     {
         $subjects = [
             'Bahasa Indonesia',
@@ -23,18 +21,18 @@ class SubjectSeeder extends Seeder
             'PJOK',
             'PKK',
             'Produktif PPLG',
-            // 'Produktif DKV',
-            // 'Praktik BDP',
-            // 'Praktik PH',
-            // 'Praktik KCS',
-            // 'Praktik Kuliner',
+            'Produktif DKV',
+            'Praktik BDP',
+            'Praktik PH',
+            'Praktik KCS',
+            'Praktik Kuliner',
         ];
 
         foreach ($subjects as $subject) {
-            Subject::firstOrCreate([
-                'name' => $subject,
-            ]);
+            Subject::firstOrCreate(
+                ['name' => $subject],
+                ['id' => Str::uuid()]
+            );
         }
     }
 }
-    

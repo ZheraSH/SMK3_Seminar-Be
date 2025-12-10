@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\AttendanceStatusEnum;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -23,10 +24,10 @@ class AttendanceSeeder extends Seeder
             $date = Carbon::today()->subDays($i)->toDateString();
 
             $status = match (true) {
-                $i < 2 => 'terlambat', // 2 kali terlambat
-                $i < 5 => 'alpha',     // 3 kali alpha (penting!)
-                $i < 7 => 'izin',      // 2 izin
-                default => 'hadir'     // sisanya hadir
+                $i < 2 => AttendanceStatusEnum::LATE->value,
+                $i < 5 => AttendanceStatusEnum::ALPHA->value,
+                $i < 7 => AttendanceStatusEnum::LEAVE->value,
+                default => AttendanceStatusEnum::PRESENT->value
             };
 
             DB::table('attendances')->insert([
@@ -37,7 +38,6 @@ class AttendanceSeeder extends Seeder
                 'subject_id' => null,
                 'teacher_id' => null,
                 'lesson_schedule_id' => null,
-
                 'date' => $date,
                 'checkin_time' => '07:00:00',
                 'checkout_time' => '15:00:00',
@@ -45,8 +45,6 @@ class AttendanceSeeder extends Seeder
                 'attendance_type' => 'rfid',
                 'status' => $status,
                 'proof' => 'manual',
-                'created_at' => now(),
-                'updated_at' => now(),
             ]);
         }
     }

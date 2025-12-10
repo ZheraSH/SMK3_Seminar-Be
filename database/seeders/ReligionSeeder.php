@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Religion;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class ReligionSeeder extends Seeder
 {
@@ -18,9 +19,11 @@ class ReligionSeeder extends Seeder
             // 'Konghucu',
         ];
 
-        foreach ($religions as $name) {
-            Religion::firstOrCreate(['name' => $name]);
+        foreach ($religions as $religion) {
+            Religion::firstOrCreate(
+                ['name' => $religion],
+                ['id' => Str::uuid()]
+            );
         }
-
     }
 }

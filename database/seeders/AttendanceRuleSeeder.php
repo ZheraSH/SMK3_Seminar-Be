@@ -1,5 +1,5 @@
 <?php
-// database/seeders/AttendanceRuleSeeder.php
+
 namespace Database\Seeders;
 
 use App\Models\AttendanceRule;
@@ -8,14 +8,10 @@ use Illuminate\Support\Str;
 
 class AttendanceRuleSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $attendanceRules = [
             [
-                'id' => Str::uuid(),
                 'day' => 'monday',
                 'checkin_start' => '05:00',
                 'checkin_end' => '07:00',
@@ -24,7 +20,6 @@ class AttendanceRuleSeeder extends Seeder
                 'is_holiday' => false,
             ],
             [
-                'id' => Str::uuid(),
                 'day' => 'tuesday',
                 'checkin_start' => '05:00',
                 'checkin_end' => '07:00',
@@ -33,7 +28,6 @@ class AttendanceRuleSeeder extends Seeder
                 'is_holiday' => false,
             ],
             [
-                'id' => Str::uuid(),
                 'day' => 'wednesday',
                 'checkin_start' => '05:00',
                 'checkin_end' => '07:00',
@@ -42,7 +36,6 @@ class AttendanceRuleSeeder extends Seeder
                 'is_holiday' => false,
             ],
             [
-                'id' => Str::uuid(),
                 'day' => 'thursday',
                 'checkin_start' => '05:00',
                 'checkin_end' => '07:00',
@@ -51,7 +44,6 @@ class AttendanceRuleSeeder extends Seeder
                 'is_holiday' => false,
             ],
             [
-                'id' => Str::uuid(),
                 'day' => 'friday',
                 'checkin_start' => '05:00',
                 'checkin_end' => '07:00',
@@ -60,7 +52,6 @@ class AttendanceRuleSeeder extends Seeder
                 'is_holiday' => false,
             ],
             [
-                'id' => Str::uuid(),
                 'day' => 'saturday',
                 'checkin_start' => null,
                 'checkin_end' => null,
@@ -69,7 +60,6 @@ class AttendanceRuleSeeder extends Seeder
                 'is_holiday' => true,
             ],
             [
-                'id' => Str::uuid(),
                 'day' => 'sunday',
                 'checkin_start' => null,
                 'checkin_end' => null,
@@ -80,7 +70,10 @@ class AttendanceRuleSeeder extends Seeder
         ];
 
         foreach ($attendanceRules as $rule) {
-            AttendanceRule::create($rule);
+            AttendanceRule::firstOrCreate(
+                ['day' => $rule['day']],
+                array_merge(['id' => Str::uuid()], $rule)
+            );
         }
     }
 }
