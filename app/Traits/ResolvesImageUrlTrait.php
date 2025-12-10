@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Storage;
 
 trait ResolvesImageUrlTrait
 {
-    protected function resolveImageUrl(?string $path, string $default = 'admin_assets/dist/image/profile/default.jpg'): string
+    protected function resolveImageUrl(?string $path, string $default = 'default_image/default.png'): string
     {
         if (!$path) {
             return asset($default);
@@ -16,12 +16,10 @@ trait ResolvesImageUrlTrait
             return $path;
         }
 
-        // Jika file ada di storage/public
         if (Storage::disk('public')->exists($path)) {
             return asset("storage/" . $path);
         }
 
-        // Jika file ada di public/
         if (file_exists(public_path($path))) {
             return asset($path);
         }
