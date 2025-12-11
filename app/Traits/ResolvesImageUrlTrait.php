@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Storage;
 
 trait ResolvesImageUrlTrait
 {
-    protected function resolveImageUrl(?string $path, string $default = 'default_image/default.png'): string
+    protected function resolveImageUrl(?string $path, string $default = 'storage/default_image/default.png'): string
     {
         if (!$path) {
             return asset($default);
