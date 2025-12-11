@@ -3,11 +3,14 @@
 namespace App\Http\Resources;
 
 use App\Enums\RoleEnum;
+use App\Traits\ResolvesImageUrlTrait;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class UserResource extends JsonResource
 {
+    use ResolvesImageUrlTrait;
+
     public function toArray(Request $request): array
     {
         $user = $this->resource;
@@ -26,16 +29,13 @@ class UserResource extends JsonResource
     private function getImageUrl($user): ?string
     {
         $imagePath = $user->employee?->image ?? $user->student?->image ?? null;
-        
+
         if (!$imagePath) {
-            return null;
+
+            return $this->resolveImageUrl(null);
         }
 
-        if (filter_var($imagePath, FILTER_VALIDATE_URL)) {
-            return $imagePath;
-        }
-
-        return asset($imagePath);
+        return $this->resolveImageUrl($imagePath);
     }
 
     private function mapRoles($roles): array
