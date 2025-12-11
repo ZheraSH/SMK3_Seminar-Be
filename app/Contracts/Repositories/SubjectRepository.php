@@ -41,9 +41,9 @@ class SubjectRepository extends BaseRepository implements SubjectInterface
         return $this->show($id)->delete();
     }
 
-    public function paginate(int $perPage = 12): mixed
+    public function paginate(): mixed
     {
-        return $this->model->query()->latest()->paginate($perPage);
+        return $this->model->latest()->paginate(12);
     }
 
     public function search(Request $request, int $perPage = 12): mixed
@@ -52,5 +52,25 @@ class SubjectRepository extends BaseRepository implements SubjectInterface
             ->when($request->keyword, fn($q) => $q->where('name', 'like', "%{$request->keyword}%"))
             ->latest()
             ->paginate($perPage);
+    }
+    public function storeOrRestore(array $data)
+    {
+
+        $subject = Subject::withTrashed()
+            ->where('name', $data['name'])
+            ->first();
+
+        if ($subject) {
+
+            if ($subject->trashed()) {
+                $subject->restore();
+            }
+
+            $subject->update($data);
+
+            return $subject;
+        }
+
+        return Subject::create($data);
     }
 }
