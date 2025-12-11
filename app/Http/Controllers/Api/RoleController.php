@@ -19,14 +19,14 @@ class RoleController extends Controller
     public function index()
     {
         try {
-            $roles = $this->roleRepository->get();
+            $data = $this->roleRepository->get();
 
             return ResponseHelper::success(
-                RoleResource::collection($roles),
-                'Daftar role berhasil diambil'
+                RoleResource::collection($data),
+                'List data role berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 500);
+            return ResponseHelper::notFound('List data role gagal diambil');
         }
     }
 }

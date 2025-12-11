@@ -25,10 +25,10 @@ class SchoolYearsController extends Controller
             return ResponseHelper::pagination(
                 $data,
                 SchoolYearResource::class,
-                'Daftar tahun ajaran berhasil diambil'
+                'List data tahun ajaran berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), 500);
+            return ResponseHelper::notFound('List data tahun ajaran gagal diambil');
         }
     }
 
@@ -38,7 +38,7 @@ class SchoolYearsController extends Controller
             $data = $this->schoolYearService->storeAuto();
             return ResponseHelper::success(
                 new SchoolYearResource($data),
-                'Tahun ajaran berhasil ditambahkan',
+                'Data Tahun ajaran berhasil ditambahkan',
                 201
             );
         } catch (\Throwable $th) {
@@ -50,7 +50,10 @@ class SchoolYearsController extends Controller
     {
         try {
             $this->schoolYearService->delete($id);
-            return ResponseHelper::success(null, 'Tahun ajaran berhasil dihapus');
+            return ResponseHelper::success(
+                null,
+                'Data Tahun ajaran berhasil dihapus'
+            );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
@@ -60,7 +63,10 @@ class SchoolYearsController extends Controller
     {
         try {
             $this->schoolYearService->activate($id);
-            return ResponseHelper::success(null, 'Tahun ajaran berhasil diaktifkan');
+            return ResponseHelper::success(
+                null,
+                'Data Tahun ajaran berhasil diaktifkan'
+            );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), 400);
         }
@@ -70,16 +76,13 @@ class SchoolYearsController extends Controller
     {
         try {
             $data = $this->schoolYearService->active();
-            if (!$data) {
-                return ResponseHelper::notFound('Tidak ada tahun ajaran aktif');
-            }
 
             return ResponseHelper::success(
                 new SchoolYearResource($data),
-                'Tahun ajaran aktif berhasil diambil'
+                'Data Tahun ajaran aktif berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), 500);
+            return ResponseHelper::notFound('Data tahun ajaran aktif gagal diambil');
         }
     }
 }

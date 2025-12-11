@@ -4,17 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Helpers\SemesterHelper;
-use Illuminate\Http\JsonResponse;
+use App\Helpers\ResponseHelper;
 
 class SemesterController extends Controller
 {
-    public function active(): JsonResponse
+    public function active()
     {
         $semester = SemesterHelper::getSemester();
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $semester
-        ]);
+        return ResponseHelper::success(
+            $semester,
+            'Semester aktif berhasil diambil'
+        );
     }
 }

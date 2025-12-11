@@ -23,10 +23,10 @@ class LevelClassController extends Controller
 
             return ResponseHelper::success(
                 LevelClassResource::collection($data),
-                'Data tingkat kelas berhasil diambil'
+                'List data tingkat kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 500);
+            return ResponseHelper::notFound('List data tingkat kelas gagal diambil');
         }
     }
 }

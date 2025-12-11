@@ -23,10 +23,10 @@ class MajorController extends Controller
 
             return ResponseHelper::success(
                 MajorResource::collection($data),
-                'Data jurusan berhasil diambil'
+                'List data jurusan berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 500);
+            return ResponseHelper::notFound('List data jurusan gagal diambil');
         }
     }
 }

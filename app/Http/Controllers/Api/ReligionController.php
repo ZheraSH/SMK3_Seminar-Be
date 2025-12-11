@@ -19,14 +19,14 @@ class ReligionController extends Controller
     public function index()
     {
         try {
-            $religions = $this->religionRepository->get();
+            $data = $this->religionRepository->get();
 
             return ResponseHelper::success(
-                ReligionResource::collection($religions),
-                'Data agama berhasil diambil'
+                ReligionResource::collection($data),
+                'List data agama berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(),$th->getCode() ?: 500);
+            return ResponseHelper::notFound('List data agama gagal diambil');
         }
     }
 }
