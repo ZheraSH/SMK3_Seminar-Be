@@ -21,8 +21,10 @@ class SchoolYearsController extends Controller
     {
         try {
             $data = $this->schoolYearService->paginate($request);
-            return ResponseHelper::success(
-                SchoolYearResource::collection($data),
+
+            return ResponseHelper::pagination(
+                $data,
+                SchoolYearResource::class,
                 'Daftar tahun ajaran berhasil diambil'
             );
         } catch (\Throwable $th) {

@@ -4,7 +4,6 @@ namespace App\Contracts\Repositories;
 
 use App\Contracts\Interfaces\SchoolYearInterface;
 use App\Models\SchoolYear;
-use Illuminate\Http\Request;
 
 class SchoolYearRepository extends BaseRepository implements SchoolYearInterface
 {

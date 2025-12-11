@@ -16,7 +16,7 @@ class SchoolYearService
 
     public function paginate($request)
     {
-        return $this->schoolYearRepository->search($request);
+        return $this->schoolYearRepository->paginate($request);
     }
 
     public function storeAuto()
