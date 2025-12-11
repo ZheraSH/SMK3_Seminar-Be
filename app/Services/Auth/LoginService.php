@@ -3,7 +3,7 @@
 namespace App\Services\Auth;
 
 use App\Helpers\ResponseHelper;
-use App\Http\Requests\LoginRequest;
+use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -67,7 +67,6 @@ class LoginService
         Cache::put($key, $attempts + 1, 30);
     }
 
-
     private function validateLocalCredentials(array $credentials): ?User
     {
         $user = $this->getUserByEmail($credentials['email']);
@@ -89,7 +88,6 @@ class LoginService
         return $user;
     }
 
-
     private function getUserByEmail(string $email): ?User
     {
         return User::where('email', $email)->first();
@@ -104,8 +102,8 @@ class LoginService
     {
         $user->load([
             'roles:id,name',
-            'student:id,user_id,image,nisn,gender',
-            'employee:id,user_id,image,NIP,NIK,gender'
+            'student:id,user_id,image,nisn',
+            'employee:id,user_id,image,nip'
         ]);
     }
 

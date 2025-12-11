@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Auth;
+
+use App\Http\Requests\ApiRequest;
 
 class LoginRequest extends ApiRequest
 {
@@ -13,7 +15,7 @@ class LoginRequest extends ApiRequest
     {
         return [
             'email' => 'required|email|max:255',
-            'password' => 'required|string|min:6|max:255'
+            'password' => 'required|string|min:6|max:100'
         ];
     }
 
@@ -25,7 +27,7 @@ class LoginRequest extends ApiRequest
             'email.max' => 'Email maksimal 255 karakter.',
             'password.required' => 'Password harus diisi.',
             'password.min' => 'Password minimal 6 karakter.',
-            'password.max' => 'Password maksimal 255 karakter.',
+            'password.max' => 'Password maksimal 100 karakter.',
         ];
     }
     protected function prepareForValidation()
