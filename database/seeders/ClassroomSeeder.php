@@ -12,32 +12,36 @@ use Illuminate\Support\Str;
 
 class ClassroomSeeder extends Seeder
 {
-    // Konfigurasi jumlah kelas per level - MUDAH DIUBAH!
     private const CLASSES_PER_LEVEL = 3;
+    private const TOTAL_CLASSES = 9;
 
     public function run(): void
     {
         $major = Major::where('code', 'PPLG')->first();
         $schoolYear = SchoolYear::where('active', true)->first();
         $levels = LevelClass::all();
-        $teachers = Employee::whereHas('user.roles', function($q) {
-            $q->whereIn('name', ['teacher', 'homeroom_teacher']);
+        
+        $homeroomTeachers = Employee::whereHas('user.roles', function($q) {
+            $q->where('name', 'homeroom_teacher');
         })->get();
 
-        if (!$major || !$schoolYear || $levels->isEmpty() || $teachers->isEmpty()) {
-            $this->command->error('Required data not found for ClassroomSeeder');
+        if ($homeroomTeachers->count() < self::TOTAL_CLASSES) {
             return;
         }
 
         $teacherIndex = 0;
+        $usedTeachers = [];
 
         foreach ($levels as $level) {
             for ($i = 1; $i <= self::CLASSES_PER_LEVEL; $i++) {
                 $className = "{$level->name} PPLG {$i}";
                 
-                // Get teacher (rotate through available teachers)
-                $teacher = $teachers[$teacherIndex % $teachers->count()];
+                $teacher = $homeroomTeachers[$teacherIndex];
                 $teacherIndex++;
+
+                if (in_array($teacher->id, $usedTeachers)) {
+                    continue;
+                }
 
                 Classroom::updateOrCreate(
                     ['name' => $className],
@@ -50,9 +54,9 @@ class ClassroomSeeder extends Seeder
                         'homeroom_teacher_id' => $teacher->id,
                     ]
                 );
+                
+                $usedTeachers[] = $teacher->id;
             }
         }
-        
-        $this->command->info("Created " . ($levels->count() * self::CLASSES_PER_LEVEL) . " classrooms");
     }
 }
