@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('image')->nullable();
             $table->string('nip', 18)->unique();
             $table->string('nik', 16);
-            $table->foreignUuid('religion_id')->constrained('religions')->nullOnDelete();
+            $table->foreignUuid('religion_id')->constrained('religions')->OnDelete('cascade');
             $table->enum('gender',[GenderEnum::MALE->value, GenderEnum::FEMALE->value]);
             $table->date('birth_date');
             $table->string('birth_place');
