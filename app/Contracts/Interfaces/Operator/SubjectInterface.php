@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Contracts\Interfaces;
+namespace App\Contracts\Interfaces\Operator;
 
 use App\Contracts\Interfaces\Eloquent\DeleteInterface;
 use App\Contracts\Interfaces\Eloquent\GetInterface;

@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Contracts\Repositories;
+namespace App\Contracts\Repositories\Operator;
 
-use App\Contracts\Interfaces\ReligionInterface;
-use App\Models\Religion;
+use App\Contracts\Interfaces\Operator\LevelClassInterface;
+use App\Contracts\Repositories\BaseRepository;
+use App\Models\LevelClass;
 
-class ReligionRepository extends BaseRepository implements ReligionInterface
+class LevelClassRepository extends BaseRepository implements LevelClassInterface
 {
-    public function __construct(Religion $religion)
+    public function __construct(LevelClass $levelClass)
     {
-        $this->model = $religion;
+        $this->model = $levelClass;
     }
 
     public function get(): mixed

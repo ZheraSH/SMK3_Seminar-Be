@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Contracts\Repositories;
+namespace App\Contracts\Repositories\Operator;
 
-use App\Contracts\Interfaces\SubjectInterface;
+use App\Contracts\Interfaces\Operator\SubjectInterface;
+use App\Contracts\Repositories\BaseRepository;
 use App\Models\Subject;
 use App\Traits\PaginationTrait;
 use Illuminate\Http\Request;

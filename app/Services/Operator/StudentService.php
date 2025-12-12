@@ -2,7 +2,7 @@
 
 namespace App\Services\Operator;
 
-use App\Contracts\Repositories\StudentRepository;
+use App\Contracts\Repositories\Operator\StudentRepository;
 use App\Contracts\Repositories\UserRepository;
 use App\Http\Requests\Operator\StoreStudentRequest;
 use App\Http\Requests\Operator\UpdateStudentRequest;

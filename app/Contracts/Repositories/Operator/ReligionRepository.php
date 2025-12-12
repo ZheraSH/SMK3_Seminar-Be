@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Contracts\Repositories;
+namespace App\Contracts\Repositories\Operator;
 
-use App\Contracts\Interfaces\MajorInterface;
-use App\Models\Major;
+use App\Contracts\Interfaces\Operator\ReligionInterface;
+use App\Contracts\Repositories\BaseRepository;
+use App\Models\Religion;
 
-class MajorRepository extends BaseRepository implements MajorInterface
+class ReligionRepository extends BaseRepository implements ReligionInterface
 {
-    public function __construct(Major $major)
+    public function __construct(Religion $religion)
     {
-        $this->model = $major;
+        $this->model = $religion;
     }
 
     public function get(): mixed

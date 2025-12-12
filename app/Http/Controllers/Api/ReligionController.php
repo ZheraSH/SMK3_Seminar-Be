@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Contracts\Repositories\ReligionRepository;
+use App\Contracts\Repositories\Operator\ReligionRepository;
 use App\Http\Resources\Operator\ReligionResource;
 use App\Helpers\ResponseHelper;
 

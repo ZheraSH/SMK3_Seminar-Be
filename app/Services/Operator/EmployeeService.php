@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Operator;
 
-use App\Contracts\Repositories\EmployeeRepository;
+use App\Contracts\Repositories\Operator\EmployeeRepository;
 use App\Contracts\Repositories\UserRepository;
 use App\Http\Requests\Operator\StoreEmployeeRequest;
 use App\Http\Requests\Operator\UpdateEmployeeRequest;

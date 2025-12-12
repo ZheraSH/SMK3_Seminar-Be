@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Contracts\Repositories\SubjectRepository;
+use App\Contracts\Repositories\Operator\SubjectRepository;
 use App\Http\Requests\Operator\StoreSubjectRequest;
 use App\Http\Requests\Operator\UpdateSubjectRequest;
 use App\Http\Resources\Operator\SubjectResource;

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Operator;
 
-use App\Contracts\Repositories\SchoolYearRepository; 
+use App\Contracts\Repositories\Operator\SchoolYearRepository; 
 use Illuminate\Support\Facades\DB;
 
 class SchoolYearService

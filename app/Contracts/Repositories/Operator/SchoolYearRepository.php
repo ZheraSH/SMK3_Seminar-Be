@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Contracts\Repositories;
+namespace App\Contracts\Repositories\Operator;
 
-use App\Contracts\Interfaces\SchoolYearInterface;
+use App\Contracts\Interfaces\Operator\SchoolYearInterface;
+use App\Contracts\Repositories\BaseRepository;
 use App\Models\SchoolYear;
 
 class SchoolYearRepository extends BaseRepository implements SchoolYearInterface

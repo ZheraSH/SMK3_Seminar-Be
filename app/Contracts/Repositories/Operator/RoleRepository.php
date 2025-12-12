@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Contracts\Repositories;
+namespace App\Contracts\Repositories\Operator;
 
-use App\Contracts\Interfaces\LevelClassInterface;
-use App\Models\LevelClass;
+use App\Contracts\Interfaces\Operator\RoleInterface;
+use App\Contracts\Repositories\BaseRepository;
+use App\Models\Role;
 
-class LevelClassRepository extends BaseRepository implements LevelClassInterface
+class RoleRepository extends BaseRepository implements RoleInterface
 {
-    public function __construct(LevelClass $levelClass)
+    public function __construct(Role $role)
     {
-        $this->model = $levelClass;
+        $this->model = $role;
     }
 
     public function get(): mixed

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Contracts\Repositories\RoleRepository;
+use App\Contracts\Repositories\Operator\RoleRepository;
 use App\Http\Resources\Operator\RoleResource;
 use App\Helpers\ResponseHelper;
 

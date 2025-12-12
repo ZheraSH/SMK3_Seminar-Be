@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Contracts\Repositories;
+namespace App\Contracts\Repositories\Operator;
 
-use App\Contracts\Interfaces\EmployeeInterface;
+use App\Contracts\Interfaces\Operator\EmployeeInterface;
+use App\Contracts\Repositories\BaseRepository;
 use App\Models\Employee;
 use App\Traits\PaginationTrait;
 use Illuminate\Database\Eloquent\Collection;

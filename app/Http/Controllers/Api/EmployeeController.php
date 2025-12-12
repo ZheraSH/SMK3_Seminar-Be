@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Operator\StoreEmployeeRequest;
 use App\Http\Requests\Operator\UpdateEmployeeRequest;
 use App\Http\Resources\Operator\EmployeeResource;
-use App\Services\EmployeeService;
+use App\Services\Operator\EmployeeService;
 use App\Models\Employee;
 use App\Helpers\ResponseHelper;
 use Illuminate\Http\Request;

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Operator\MajorResource;
-use App\Contracts\Repositories\MajorRepository;
+use App\Contracts\Repositories\Operator\MajorRepository;
 
 class MajorController extends Controller
 {

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Operator\LevelClassResource;
-use App\Contracts\Repositories\LevelClassRepository;
+use App\Contracts\Repositories\Operator\LevelClassRepository;
 
 class LevelClassController extends Controller
 {

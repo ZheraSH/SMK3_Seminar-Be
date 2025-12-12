@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Contracts\Repositories;
+namespace App\Contracts\Repositories\Operator;
 
-use App\Contracts\Interfaces\RoleInterface;
-use App\Models\Role;
+use App\Contracts\Interfaces\Operator\MajorInterface;
+use App\Contracts\Repositories\BaseRepository;
+use App\Models\Major;
 
-class RoleRepository extends BaseRepository implements RoleInterface
+class MajorRepository extends BaseRepository implements MajorInterface
 {
-    public function __construct(Role $role)
+    public function __construct(Major $major)
     {
-        $this->model = $role;
+        $this->model = $major;
     }
 
     public function get(): mixed

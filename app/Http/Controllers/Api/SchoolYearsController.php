@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Operator\SchoolYearResource;
-use App\Services\SchoolYearService;
+use App\Services\Operator\SchoolYearService;
 use Illuminate\Http\Request;
 
 class SchoolYearsController extends Controller
