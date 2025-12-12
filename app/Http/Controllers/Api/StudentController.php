@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreStudentRequest;
-use App\Http\Requests\UpdateStudentRequest;
-use App\Http\Resources\StudentResource;
-use App\Services\StudentService;
+use App\Http\Requests\Operator\StoreStudentRequest;
+use App\Http\Requests\Operator\UpdateStudentRequest;
+use App\Http\Resources\Operator\StudentResource;
+use App\Services\Operator\StudentService;
 use App\Models\Student;
 use App\Helpers\ResponseHelper;
 use Illuminate\Http\Request;
@@ -31,7 +31,7 @@ class StudentController extends Controller
                 'List data siswa berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
+            return ResponseHelper::notFound('List data siswa gagal diambil');
         }
     }
 
@@ -60,7 +60,7 @@ class StudentController extends Controller
                 'Detail data siswa berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error('Data siswa tidak ditemukan', 404);
+            return ResponseHelper::notFound('detail data siswa tidak ditemukan');
         }
     }
 
@@ -82,7 +82,7 @@ class StudentController extends Controller
     {
         try {
             $this->studentService->delete($student->id);
-            
+
             return ResponseHelper::success(
                 null,
                 'Data siswa berhasil dihapus'

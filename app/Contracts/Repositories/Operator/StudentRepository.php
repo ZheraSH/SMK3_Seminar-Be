@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Contracts\Repositories;
+namespace App\Contracts\Repositories\Operator;
 
-use App\Contracts\Interfaces\StudentInterface;
+use App\Contracts\Interfaces\Operator\StudentInterface;
+use App\Contracts\Repositories\BaseRepository;
 use App\Enums\StudentStatusEnum;
 use App\Models\Student;
 use App\Traits\PaginationTrait;
@@ -179,7 +180,7 @@ class StudentRepository extends BaseRepository implements StudentInterface
                 'classroomStudents' => function($query) {
                     $query->where('status', 'active')
                           ->with([
-                              'classroom:id,name,school_year_id,teacher_id',
+                              'classroom:id,name,school_year_id,homeroom_teacher_id',
                               'classroom.schoolYear:id,name',
                               'classroom.teacher:id,user_id,image',
                               'classroom.teacher.user:id,name'

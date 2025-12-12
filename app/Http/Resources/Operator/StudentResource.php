@@ -1,28 +1,29 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Operator;
 
 use App\Enums\StudentStatusEnum;
 use App\Traits\ResolvesImageUrlTrait;
+use App\Traits\Resources\HasEnumLabelsTrait;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class StudentResource extends JsonResource
 {
-    use ResolvesImageUrlTrait;
+    use ResolvesImageUrlTrait, HasEnumLabelsTrait;
 
     public function toArray(Request $request): array
     {
         $user = $this->user;
-        $photo = $this->image;
 
         return [
             'id' => $this->id,
             'name' => $user?->name,
             'email' => $user?->email,
-            'image' => $this->resolveImageUrl($photo->image),
+            'image' => $this->resolveImageUrl($this->image),
             'nisn' => $this->nisn,
-            'gender' => $this->gender?->label(),
+            'gender_value' => $this->getEnumValue($this->gender),
+            'gender_label' => $this->getEnumLabel($this->gender),
             'religion' => $this->religion?->name,
             'birth_date' => $this->birth_date,
             'birth_place' => $this->birth_place,
@@ -51,9 +52,6 @@ class StudentResource extends JsonResource
         return [
             'id' => $activeClassroom->id,
             'name' => $activeClassroom->name,
-            'major' => $activeClassroom->major?->code,
-            'level_class' => $activeClassroom->levelClass?->name,
-            'schoolyear' => $activeClassroom->schoolyear?->name,
         ];
     }
 

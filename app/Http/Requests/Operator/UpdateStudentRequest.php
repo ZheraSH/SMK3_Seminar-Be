@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Operator;
 
 use Illuminate\Validation\Rule;
 use App\Models\Student;
 use App\Models\User;
 use App\Enums\GenderEnum;
+use App\Http\Requests\ApiRequest;
 
-class StoreStudentRequest extends ApiRequest
+class UpdateStudentRequest extends ApiRequest
 {
     public function authorize(): bool
     {
@@ -16,19 +17,23 @@ class StoreStudentRequest extends ApiRequest
 
     public function rules(): array
     {
+        $studentId = $this->route('student')?->id ?? $this->route('id');
+        $student = Student::find($studentId);
+        $userId = $student?->user_id;
+
         return [
             'name' => 'required|string|max:255',
             'email' => [
                 'required',
                 'email',
-                Rule::unique(User::class, 'email'),
+                Rule::unique(User::class, 'email')->ignore($userId),
             ],
-            'image' => 'nullable|mimes:png,jpeg,jpg|max:1024',
+            'image' => 'nullable|mimes:png,jpeg,jpg|max:2048',
             'nisn' => [
-                'required',
+                'sometimes',
                 'numeric',
                 'digits:10',
-                Rule::unique(Student::class, 'nisn'),
+                Rule::unique(Student::class, 'nisn')->ignore($studentId),
             ],
             'religion_id' => 'required|exists:religions,id',
             'gender' => 'required|in:' . implode(',', GenderEnum::values()),
@@ -37,7 +42,7 @@ class StoreStudentRequest extends ApiRequest
             'address' => 'required|string|max:500',
             'number_kk' => 'required|numeric|digits:16',
             'number_akta' => 'required|numeric|digits_between:10,20',
-            'order_child' => 'required|integer|min:1',
+            'order_child' => 'nullable|integer|min:1',
             'count_siblings' => 'nullable|integer|min:0',
         ];
     }
@@ -50,7 +55,7 @@ class StoreStudentRequest extends ApiRequest
             'email.email' => 'Email tidak valid',
             'email.unique' => 'Email sudah digunakan',
             'image.mimes' => 'Foto harus berekstensi png, jpg, atau jpeg',
-            'image.max' => 'Ukuran foto maksimal 1MB',
+            'image.max' => 'Ukuran foto maksimal 2MB',
             'nisn.required' => 'NISN tidak boleh kosong',
             'nisn.numeric' => 'NISN harus berupa angka',
             'nisn.digits' => 'NISN harus 10 digit',
@@ -72,7 +77,6 @@ class StoreStudentRequest extends ApiRequest
             'number_akta.required' => 'Nomor akta tidak boleh kosong',
             'number_akta.numeric' => 'Nomor akta harus berupa angka',
             'number_akta.digits_between' => 'Nomor akta harus antara 10-20 digit',
-            'order_child.required' => 'Anak ke- tidak boleh kosong',
             'order_child.integer' => 'Anak ke- harus berupa angka',
             'order_child.min' => 'Anak ke- minimal 1',
             'count_siblings.integer' => 'Jumlah saudara harus berupa angka',

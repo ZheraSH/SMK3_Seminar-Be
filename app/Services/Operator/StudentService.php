@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Operator;
 
-use App\Contracts\Interfaces\StudentInterface;
-use App\Contracts\Interfaces\UserInterface;
-use App\Http\Requests\StoreStudentRequest;
-use App\Http\Requests\UpdateStudentRequest;
+use App\Contracts\Repositories\StudentRepository;
+use App\Contracts\Repositories\UserRepository;
+use App\Http\Requests\Operator\StoreStudentRequest;
+use App\Http\Requests\Operator\UpdateStudentRequest;
 use App\Enums\RoleEnum;
 use App\Enums\StudentStatusEnum;
 use App\Enums\UploadDiskEnum;
@@ -20,13 +20,13 @@ class StudentService
 {
     use UploadTrait;
 
-    private UserInterface $user;
-    private StudentInterface $student;
+    private UserRepository $userRepository;
+    private StudentRepository $studentRepository;
 
-    public function __construct(UserInterface $user, StudentInterface $student)
+    public function __construct(UserRepository $userRepository, StudentRepository $studentRepository)
     {
-        $this->user = $user;
-        $this->student = $student;
+        $this->userRepository = $userRepository;
+        $this->studentRepository = $studentRepository;
     }
 
     public function store(StoreStudentRequest $request): Student
@@ -46,20 +46,20 @@ class StudentService
             'password' => Hash::make($data['nisn']),
         ];
 
-        $user = $this->user->store($userData);
+        $user = $this->userRepository->store($userData);
         $user->assignRole(RoleEnum::STUDENT->value);
 
         $studentData = collect($data)->except(['name', 'email'])->toArray();
         $studentData['id'] = (string) Str::uuid();
         $studentData['user_id'] = $user->id;
 
-        $student = $this->student->store($studentData);
-        return $this->student->show($student->id);
+        $student = $this->studentRepository->store($studentData);
+        return $this->studentRepository->show($student->id);
     }
 
     public function update(string $id, UpdateStudentRequest $request): Student
     {
-        $student = $this->student->show($id);
+        $student = $this->studentRepository->show($id);
         $data = $request->validated();
 
         $userData = [
@@ -72,7 +72,7 @@ class StudentService
             $userData['password'] = Hash::make($data['nisn']);
         }
 
-        $this->user->update($student->user_id, $userData);
+        $this->userRepository->update($student->user_id, $userData);
 
         $studentData = collect($data)->except(['name', 'email', 'role'])->toArray();
 
@@ -80,38 +80,38 @@ class StudentService
             $studentData['image'] = $this->handleUpload($student->image, $request->file('image'));
         }
 
-        $this->student->update($student->id, $studentData);
+        $this->studentRepository->update($student->id, $studentData);
 
-        return $this->student->show($id);
+        return $this->studentRepository->show($id);
     }
 
     public function delete(string $id): bool
     {
-        $student = $this->student->show($id);
+        $student = $this->studentRepository->show($id);
 
         if ($student->image) {
             $this->remove($student->image);
         }
 
-        $this->student->delete($student->id);
-        $this->user->delete($student->user_id);
+        $this->studentRepository->delete($student->id);
+        $this->userRepository->delete($student->user_id);
 
         return true;
     }
 
     public function show(string $id): Student
     {
-        return $this->student->show($id);
+        return $this->studentRepository->show($id);
     }
 
     public function getWithFilter(Request $request): LengthAwarePaginator
     {
-        return $this->student->search($request);
+        return $this->studentRepository->search($request);
     }
 
     public function getActiveClassroom(string $studentId)
     {
-        $student = $this->student->showWithActiveClassroom($studentId);
+        $student = $this->studentRepository->showWithActiveClassroom($studentId);
 
         return $student->classroomStudents
             ->firstWhere('status', StudentStatusEnum::ACTIVE->value)?->classroom;
@@ -119,7 +119,7 @@ class StudentService
 
     public function getActiveClassroomStudent(string $studentId)
     {
-        $student = $this->student->showWithActiveClassroom($studentId);
+        $student = $this->studentRepository->showWithActiveClassroom($studentId);
 
         return $student->classroomStudents
             ->firstWhere('status', StudentStatusEnum::ACTIVE->value);
@@ -132,12 +132,12 @@ class StudentService
 
     public function getActiveStudents()
     {
-        return $this->student->getActiveStudents();
+        return $this->studentRepository->getActiveStudents();
     }
 
     public function countActiveStudents(): int
     {
-        return $this->student->countActiveStudents();
+        return $this->studentRepository->countActiveStudents();
     }
 
     private function handleUpload(?string $oldFile, object $file): string
