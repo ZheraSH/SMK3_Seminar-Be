@@ -1,30 +1,31 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Operator;
 
-use App\Enums\RoleEnum;
 use App\Traits\ResolvesImageUrlTrait;
+use App\Traits\Resources\HasEnumLabelsTrait;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Enums\RoleEnum;
 
 class EmployeeResource extends JsonResource
 {
-    use ResolvesImageUrlTrait;
+    use ResolvesImageUrlTrait, HasEnumLabelsTrait;
 
     public function toArray($request): array
     {
         $user = $this->user;
-        $photo = $this->image;
 
         return [
             'id' => $this->id,
             'name' => $user?->name,
             'email' => $user?->email,
-            'image' => $this->resolveImageUrl($photo->image),
-            'gender' => $this->gender?->label(),
+            'image' => $this->resolveImageUrl($this->image),
+            'gender_value' => $this->getEnumValue($this->gender),
+            'gender_label' => $this->getEnumLabel($this->gender),
             'phone_number' => $this->phone_number,
             'religion' => $this->religion?->name,
-            'NIP' => $this->NIP,
-            'NIK' => $this->NIK,
+            'nip' => $this->nip,
+            'nik' => $this->nik,
             'birth_place' => $this->birth_place,
             'birth_date' => $this->birth_date,
             'address' => $this->address,
@@ -32,7 +33,6 @@ class EmployeeResource extends JsonResource
                 'value' => $role->name,
                 'label' => RoleEnum::tryFrom($role->name)?->label() ?? $role->name,
             ]),
-            'subjects' => SubjectResource::collection($this->whenLoaded('subjects')),
         ];
     }
 }

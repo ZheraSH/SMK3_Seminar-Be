@@ -15,15 +15,45 @@ class EmployeeSeeder extends Seeder
 {
     private const TOTAL_EMPLOYEES = 30;
 
+    // Distribusi berdasarkan kebutuhan sekolah
+    // 9 kelas butuh 9 wali kelas, 12 guru reguler, 3 BK, 6 staff
     private const DISTRIBUTION = [
-        'HOMEROOM_TEACHER' => 9,
-        'TEACHER_ONLY' => 12,
-        'COUNSELOR' => 3,
-        'STAFF' => 6,
+        // Kategori Guru (Teacher Roles)
+        'teacher_only' => [ // Key string, value array
+            'roles' => ['teacher'],
+            'count' => 12
+        ],
+        'homeroom_only' => [
+            'roles' => ['homeroom_teacher'],
+            'count' => 9
+        ],
+        'counselor_only' => [
+            'roles' => ['counselor'],
+            'count' => 3
+        ],
+        'teacher_homeroom' => [
+            'roles' => ['teacher', 'homeroom_teacher'],
+            'count' => 2
+        ],
+        'teacher_counselor' => [
+            'roles' => ['teacher', 'counselor'],
+            'count' => 2
+        ],
+        'homeroom_counselor' => [
+            'roles' => ['homeroom_teacher', 'counselor'],
+            'count' => 1
+        ],
+        
+        // Kategori Staff (Staff Roles)
+        'staff_tu' => [
+            'roles' => ['staff_tu'],
+            'count' => 5
+        ],
+        'curriculum_coordinator' => [
+            'roles' => ['curriculum_coordinator'],
+            'count' => 2
+        ],
     ];
-
-    private $homeroomTeachers = [];
-    private $regularTeachers = [];
 
     public function run(): void
     {
@@ -34,48 +64,47 @@ class EmployeeSeeder extends Seeder
         }
 
         $counter = 1;
-
-        for ($i = 1; $i <= self::DISTRIBUTION['HOMEROOM_TEACHER']; $i++) {
-            $employee = $this->createEmployee($counter, $religion, true);
-            $this->homeroomTeachers[] = $employee->id;
-            $counter++;
-        }
-
-        for ($i = 1; $i <= self::DISTRIBUTION['TEACHER_ONLY']; $i++) {
-            $employee = $this->createEmployee($counter, $religion, false);
-            $this->regularTeachers[] = $employee->id;
-            $counter++;
-        }
-
-        for ($i = 1; $i <= self::DISTRIBUTION['COUNSELOR']; $i++) {
-            $this->createEmployee($counter, $religion, false, RoleEnum::COUNSELOR->value);
-            $counter++;
-        }
-
-        for ($i = 1; $i <= self::DISTRIBUTION['STAFF']; $i++) {
-            $roles = ($i === 1) 
-                ? [RoleEnum::STAFF->value, RoleEnum::CURRICULUM_COORDINATOR->value]
-                : [RoleEnum::STAFF->value];
+        $totalCreated = 0;
+        
+        // Catatan wali kelas untuk ClassroomSeeder
+        $homeroomTeacherIds = [];
+        
+        // Generate berdasarkan distribusi
+        foreach (self::DISTRIBUTION as $category => $data) {
+            $roleArray = $data['roles'];
+            $count = $data['count'];
             
-            $this->createEmployee($counter, $religion, false, $roles);
-            $counter++;
+            for ($i = 0; $i < $count; $i++) {
+                // Generate NIP dan NIK valid
+                $nip = $this->generateValidNIP($counter);
+                $nik = $this->generateValidNIK($counter);
+                
+                $employee = $this->createEmployee($counter, $religion, $roleArray, $nip, $nik);
+                
+                // Simpan ID wali kelas untuk ClassroomSeeder
+                if (in_array(RoleEnum::HOMEROOM_TEACHER->value, $roleArray)) {
+                    $homeroomTeacherIds[] = $employee->id;
+                }
+                
+                $counter++;
+                $totalCreated++;
+            }
         }
     }
 
-    private function createEmployee(int $index, Religion $religion, bool $isHomeroom = false, $roles = null): Employee
-    {
+    private function createEmployee(
+        int $index, 
+        Religion $religion, 
+        array $roles, 
+        string $nip, 
+        string $nik
+    ): Employee {
         $gender = $this->determineGender($index);
         $name = $this->generateName($index, $gender->value);
         $email = "employee{$index}@skaniga.com";
-        $nip = $this->generateNIP($index);
         
-        if ($roles === null) {
-            $roles = $isHomeroom 
-                ? [RoleEnum::TEACHER->value, RoleEnum::HOMEROOM_TEACHER->value]
-                : [RoleEnum::TEACHER->value];
-        } elseif (!is_array($roles)) {
-            $roles = [$roles];
-        }
+        // Validasi: roles tidak boleh campur kategori guru dan staff
+        $this->validateRoleCombination($roles);
 
         $user = User::firstOrCreate(
             ['email' => $email],
@@ -98,7 +127,7 @@ class EmployeeSeeder extends Seeder
                     ? 'default_image/teacher-boy.png'
                     : 'default_image/teacher-girl.png',
                 'nip' => $nip,
-                'nik' => $this->generateNIK($index),
+                'nik' => $nik,
                 'religion_id' => $religion->id,
                 'gender' => $gender->value,
                 'birth_date' => $this->generateBirthDate($index),
@@ -109,6 +138,71 @@ class EmployeeSeeder extends Seeder
         );
 
         return $employee;
+    }
+
+    private function validateRoleCombination(array $roles): void
+    {
+        $teacherRoles = RoleEnum::teacherRoles();
+        $staffRoles = RoleEnum::staffRoles();
+        
+        $hasTeacherRole = !empty(array_intersect($roles, $teacherRoles));
+        $hasStaffRole = !empty(array_intersect($roles, $staffRoles));
+        
+        // Validasi: Tidak boleh campur guru dan staff
+        if ($hasTeacherRole && $hasStaffRole) {
+            return; // Skip exception agar seeder tetap jalan
+        }
+        
+        // Validasi: Guru max 2 role
+        if ($hasTeacherRole && count($roles) > 2) {
+            return;
+        }
+        
+        // Validasi: Staff max 1 role
+        if ($hasStaffRole && count($roles) > 1) {
+            return;
+        }
+        
+        // Validasi kombinasi role guru
+        if ($hasTeacherRole && count($roles) == 2) {
+            $sortedRoles = $roles;
+            sort($sortedRoles);
+            
+            $validCombinations = [
+                [RoleEnum::TEACHER->value, RoleEnum::HOMEROOM_TEACHER->value],
+                [RoleEnum::TEACHER->value, RoleEnum::COUNSELOR->value],
+                [RoleEnum::HOMEROOM_TEACHER->value, RoleEnum::COUNSELOR->value],
+            ];
+            
+            if (!in_array($sortedRoles, $validCombinations)) {
+                return;
+            }
+        }
+    }
+
+    private function generateValidNIP(int $index): string
+    {
+        $base = '198';
+        $year = date('y');
+        $sequence = str_pad($index, 10, '0', STR_PAD_LEFT);
+        $random = str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
+        
+        $nip = $base . $year . $sequence . $random;
+        return substr($nip, 0, 18);
+    }
+
+    private function generateValidNIK(int $index): string
+    {
+        $province = '32';
+        $regency = '04';
+        $district = '11';
+        $birthDay = str_pad(rand(1, 28), 2, '0', STR_PAD_LEFT);
+        $birthMonth = str_pad(rand(1, 12), 2, '0', STR_PAD_LEFT);
+        $birthYear = rand(65, 85);
+        $unique = str_pad($index, 4, '0', STR_PAD_LEFT);
+        
+        $nik = $province . $regency . $district . $birthDay . $birthMonth . $birthYear . $unique;
+        return substr($nik, 0, 16);
     }
 
     private function determineGender(int $index): GenderEnum
@@ -131,26 +225,13 @@ class EmployeeSeeder extends Seeder
         return "{$firstName} {$lastName}";
     }
 
-    private function generateNIP(int $index): string
-    {
-        $year = 1980 + ($index % 20);
-        $unique = str_pad($index, 10, '0', STR_PAD_LEFT);
-        return "{$year}{$unique}";
-    }
-
-    private function generateNIK(int $index): string
-    {
-        $province = '32';
-        $random = str_pad($index, 14, '0', STR_PAD_LEFT);
-        return "{$province}{$random}";
-    }
-
     private function generateBirthDate(int $index): string
     {
-        $minAge = 25;
-        $maxAge = 55;
-        $age = $minAge + (($index - 1) % ($maxAge - $minAge + 1));
-        return now()->subYears($age)->subMonths(rand(0, 11))->subDays(rand(0, 30))->format('Y-m-d');
+        $birthYear = 1900 + rand(65, 85);
+        $birthMonth = rand(1, 12);
+        $birthDay = rand(1, 28);
+        
+        return sprintf('%04d-%02d-%02d', $birthYear, $birthMonth, $birthDay);
     }
 
     private function randomCity(): string
@@ -164,14 +245,20 @@ class EmployeeSeeder extends Seeder
         $streets = ['Jl. Merdeka', 'Jl. Sudirman', 'Jl. Gatot Subroto', 'Jl. Thamrin', 'Jl. Hayam Wuruk'];
         $street = $streets[array_rand($streets)];
         $city = $this->randomCity();
-        return "{$street} No. {$index}, {$city}";
+        
+        $rt = str_pad(rand(1, 10), 2, '0', STR_PAD_LEFT);
+        $rw = str_pad(rand(1, 10), 2, '0', STR_PAD_LEFT);
+        
+        return "{$street} No. {$index}, RT {$rt}/RW {$rw}, {$city}";
     }
 
     private function generatePhoneNumber(int $index): string
     {
         $prefix = ['0812', '0813', '0821', '0822', '0853', '0856', '0857', '0858'];
         $selectedPrefix = $prefix[array_rand($prefix)];
-        $number = str_pad($index, 8, '0', STR_PAD_LEFT);
-        return "{$selectedPrefix}{$number}";
+        $middle = str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
+        $end = str_pad($index, 4, '0', STR_PAD_LEFT);
+        
+        return "{$selectedPrefix}{$middle}{$end}";
     }
 }

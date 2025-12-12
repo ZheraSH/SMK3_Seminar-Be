@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreEmployeeRequest;
-use App\Http\Requests\UpdateEmployeeRequest;
-use App\Http\Resources\EmployeeResource;
+use App\Http\Requests\Operator\StoreEmployeeRequest;
+use App\Http\Requests\Operator\UpdateEmployeeRequest;
+use App\Http\Resources\Operator\EmployeeResource;
 use App\Services\EmployeeService;
 use App\Models\Employee;
 use App\Helpers\ResponseHelper;

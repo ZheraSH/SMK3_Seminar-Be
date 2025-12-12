@@ -2,121 +2,151 @@
 
 namespace App\Services;
 
-use App\Contracts\Interfaces\EmployeeInterface;
-use App\Contracts\Interfaces\UserInterface;
-use App\Http\Requests\StoreEmployeeRequest;
-use App\Http\Requests\UpdateEmployeeRequest;
+use App\Contracts\Repositories\EmployeeRepository;
+use App\Contracts\Repositories\UserRepository;
+use App\Http\Requests\Operator\StoreEmployeeRequest;
+use App\Http\Requests\Operator\UpdateEmployeeRequest;
 use App\Enums\RoleEnum;
 use App\Enums\UploadDiskEnum;
-use App\Models\Employee;
 use App\Traits\UploadTrait;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class EmployeeService
 {
     use UploadTrait;
 
-    private UserInterface $user;
-    private EmployeeInterface $employee;
+    private UserRepository $userRepository;
+    private EmployeeRepository $employeeRepository;
     
-    public function __construct(UserInterface $user, EmployeeInterface $employee)
+    public function __construct(UserRepository $userRepository, EmployeeRepository $employeeRepository)
     {
-        $this->user = $user;
-        $this->employee = $employee;
+        $this->userRepository = $userRepository;
+        $this->employeeRepository = $employeeRepository;
     }
 
-    public function store(StoreEmployeeRequest $request): Employee
+    public function store(StoreEmployeeRequest $request)
     {
-        $data = $request->validated();
-        $roles = $data['roles'] ?? [RoleEnum::TEACHER->value];
+        return DB::transaction(function () use ($request) {
+            $data = $request->validated();
+            $roles = $data['roles'];
 
-        if ($request->hasFile('image') && $request->file('image')->isValid()) {
-            $data['image'] = $this->upload(UploadDiskEnum::TEACHER->value, $request->file('image'));
-        }
+            $this->validateRoles($roles);
 
-        $userData = [
-            'id' => (string) Str::uuid(),
-            'name' => $data['name'],
-            'slug' => Str::slug($data['name']),
-            'email' => $data['email'],
-            'password' => Hash::make($data['NIP']),
-        ];
+            if ($request->hasFile('image')) {
+                $data['image'] = $this->upload(
+                    UploadDiskEnum::TEACHER->value,
+                    $request->file('image')
+                );
+            }
 
-        $user = $this->user->store($userData);
-        $user->syncRoles($roles);
+            $user = $this->userRepository->store([
+                'id'       => (string) Str::uuid(),
+                'name'     => $data['name'],
+                'slug'     => Str::slug($data['name']),
+                'email'    => $data['email'],
+                'password' => Hash::make($data['nip']),
+            ]);
 
-        $employeeData = collect($data)->except(['name', 'email', 'roles'])->toArray();
-        $employeeData['id'] = (string) Str::uuid();
-        $employeeData['user_id'] = $user->id;
+            $user->syncRoles($roles);
 
-        $employee = $this->employee->store($employeeData);
-        return $this->employee->show($employee->id);
+            $employee = $this->employeeRepository->store([
+                'id'      => (string) Str::uuid(),
+                'user_id' => $user->id,
+                ...collect($data)->except(['roles', 'name', 'email'])->toArray(),
+            ]);
+
+            return $this->employeeRepository->show($employee->id);
+        });
     }
 
-    public function update(string $id, UpdateEmployeeRequest $request): Employee
+    public function update(string $id, UpdateEmployeeRequest $request)
     {
-        $employee = $this->employee->show($id);
-        $data = $request->validated();
-        $roles = $data['roles'] ?? [RoleEnum::TEACHER->value];
+        return DB::transaction(function () use ($id, $request) {
+            $employee = $this->employeeRepository->show($id);
+            $data = $request->validated();
+            $roles = $data['roles'];
 
-        $userData = [
-            'name' => $data['name'],
-            'slug' => Str::slug($data['name']),
-            'email' => $data['email'],
-        ];
+            $this->validateRoles($roles);
 
-        if (isset($data['NIP']) && $data['NIP'] !== $employee->NIP) {
-            $userData['password'] = Hash::make($data['NIP']);
-        }
+            $updateData = [
+                'name'  => $data['name'],
+                'slug'  => Str::slug($data['name']),
+                'email' => $data['email'],
+            ];
 
-        $this->user->update($employee->user_id, $userData);
-        
-        $user = $this->user->show($employee->user_id);
-        $user->syncRoles($roles);
+            $this->userRepository->update($employee->user_id, $updateData);
 
-        $employeeData = collect($data)->except(['name', 'email', 'roles'])->toArray();
+            $user = $this->userRepository->show($employee->user_id);
+            $user->syncRoles($roles);
 
-        if ($request->hasFile('image') && $request->file('image')->isValid()) {
-            $employeeData['image'] = $this->handleUpload($employee->image, $request->file('image'));
-        }
+            if ($request->hasFile('image')) {
+                $data['image'] = $this->handleUpload($employee->image, $request->file('image'));
+            }
 
-        $this->employee->update($employee->id, $employeeData);
+            $this->employeeRepository->update($id, collect($data)->except(['roles', 'name', 'email'])->toArray());
 
-        return $this->employee->show($id);
+            return $this->employeeRepository->show($id);
+        });
     }
 
     public function delete(string $id): bool
     {
-        $employee = $this->employee->show($id);
+        return DB::transaction(function () use ($id) {
+            $employee = $this->employeeRepository->show($id);
 
-        if ($employee->image) {
-            $this->remove($employee->image);
-        }
+            if ($employee->image) {
+                $this->remove($employee->image);
+            }
 
-        $this->employee->delete($employee->id);
-        $this->user->delete($employee->user_id);
+            $this->employeeRepository->delete($employee->id);
+            $this->userRepository->delete($employee->user_id);
 
-        return true;
+            return true;
+        });
     }
 
-    public function show(string $id): Employee
+    public function show(string $id)
     {
-        return $this->employee->show($id);
+        return $this->employeeRepository->show($id);
     }
 
-    public function getWithFilter(Request $request): LengthAwarePaginator
+    public function getWithFilter($request)
     {
-        return $this->employee->search($request);
+        return $this->employeeRepository->search($request);
     }
 
-    private function handleUpload(?string $oldFile, object $file): string
+    private function handleUpload(?string $old, $file)
     {
-        if ($oldFile) {
-            $this->remove($oldFile);
+        if ($old) {
+            $this->remove($old);
         }
         return $this->upload(UploadDiskEnum::TEACHER->value, $file);
+    }
+
+    private function validateRoles(array $roles): void
+    {
+        $teacherRoles = RoleEnum::teacherRoles();
+        $staffRoles = RoleEnum::staffRoles();
+
+        $guruCount = count(array_intersect($roles, $teacherRoles));
+        $staffCount = count(array_intersect($roles, $staffRoles));
+
+        if ($guruCount > 0 && $staffCount > 0) {
+            throw new \InvalidArgumentException('Tidak boleh memilih role dari kategori guru dan staff sekaligus.');
+        }
+
+        if ($guruCount > 0) {
+            if (count($roles) > 2) {
+                throw new \InvalidArgumentException('Kategori guru maksimal memilih 2 role.');
+            }
+        }
+
+        if ($staffCount > 0) {
+            if (count($roles) > 1) {
+                throw new \InvalidArgumentException('Kategori staff hanya boleh memilih 1 role.');
+            }
+        }
     }
 }
