@@ -109,32 +109,6 @@ class StudentService
         return $this->studentRepository->search($request);
     }
 
-    public function getActiveClassroom(string $studentId)
-    {
-        $student = $this->studentRepository->showWithActiveClassroom($studentId);
-
-        return $student->classroomStudents
-            ->firstWhere('status', StudentStatusEnum::ACTIVE->value)?->classroom;
-    }
-
-    public function getActiveClassroomStudent(string $studentId)
-    {
-        $student = $this->studentRepository->showWithActiveClassroom($studentId);
-
-        return $student->classroomStudents
-            ->firstWhere('status', StudentStatusEnum::ACTIVE->value);
-    }
-
-    public function hasActiveClassroom(string $studentId): bool
-    {
-        return !is_null($this->getActiveClassroom($studentId));
-    }
-
-    public function getActiveStudents()
-    {
-        return $this->studentRepository->getActiveStudents();
-    }
-
     public function countActiveStudents(): int
     {
         return $this->studentRepository->countActiveStudents();
