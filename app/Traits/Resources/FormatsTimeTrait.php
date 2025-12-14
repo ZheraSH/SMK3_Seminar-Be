@@ -1,5 +1,5 @@
 <?php
-namespace App\Traits;
+namespace App\Traits\Resources;
 
 trait FormatsTimeTrait
 {
@@ -10,7 +10,7 @@ trait FormatsTimeTrait
             return $time->format('H.i');
         }
         if (is_string($time) && preg_match('/^(\d{1,2}):(\d{2})/', $time, $matches)) {
-            return $matches[1] . '.' . $matches[2];
+            return $matches[1] . ':' . $matches[2];
         }
         return (string) $time;
     }

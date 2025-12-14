@@ -3,7 +3,7 @@
 namespace App\Http\Resources\Operator;
 
 use App\Enums\StudentStatusEnum;
-use App\Traits\ResolvesImageUrlTrait;
+use App\Traits\Resources\ResolvesImageUrlTrait;
 use App\Traits\Resources\HasEnumLabelsTrait;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;

@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\Operator;
 
-use App\Traits\ResolvesImageUrlTrait;
+use App\Traits\Resources\ResolvesImageUrlTrait;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ClassroomStudentsResource extends JsonResource
