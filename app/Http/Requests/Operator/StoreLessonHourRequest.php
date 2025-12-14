@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Operator;
 
 use Illuminate\Validation\Rule;
 use App\Enums\DayEnum;
+use App\Http\Requests\ApiRequest;
 
 class StoreLessonHourRequest extends ApiRequest
 {
@@ -16,14 +17,9 @@ class StoreLessonHourRequest extends ApiRequest
     {
         return [
             'day' => 'required|in:' . implode(',', DayEnum::values()),
-            'name' => [
-                'required',
-                'string',
-                'max:100',
-                Rule::unique('lesson_hours', 'name')->where('day', $this->day)->whereNull('deleted_at')
-            ],
             'start' => 'required|date_format:H:i',
             'end' => 'required|date_format:H:i|after:start',
+            'is_lesson' => 'required|boolean',
         ];
     }
 
@@ -32,13 +28,13 @@ class StoreLessonHourRequest extends ApiRequest
         return [
             'day.required' => 'Hari wajib dipilih',
             'day.in' => 'Hari tidak valid',
-            'name.required' => 'Nama jam pelajaran wajib diisi',
-            'name.unique' => 'Nama jam pelajaran sudah digunakan untuk hari ini',
             'start.required' => 'Waktu mulai wajib diisi',
             'start.date_format' => 'Format waktu mulai harus HH:MM',
             'end.required' => 'Waktu selesai wajib diisi',
             'end.date_format' => 'Format waktu selesai harus HH:MM',
             'end.after' => 'Waktu selesai harus setelah waktu mulai',
+            'is_lesson.required' => 'Tipe jam wajib dipilih',
+            'is_lesson.boolean' => 'Tipe jam tidak valid',
         ];
     }
 
@@ -46,9 +42,9 @@ class StoreLessonHourRequest extends ApiRequest
     {
         return [
             'day' => 'hari',
-            'name' => 'nama jam pelajaran',
             'start' => 'waktu mulai',
             'end' => 'waktu selesai',
+            'is_lesson' => 'tipe jam',
         ];
     }
 
@@ -65,6 +61,15 @@ class StoreLessonHourRequest extends ApiRequest
                 'end' => $this->formatTime($this->end),
             ]);
         }
+
+        if ($this->has('is_lesson')) {
+            $isLesson = $this->is_lesson;
+            if (is_string($isLesson)) {
+                $this->merge([
+                    'is_lesson' => filter_var($isLesson, FILTER_VALIDATE_BOOLEAN),
+                ]);
+            }
+        }
     }
 
     private function formatTime($time): string
@@ -72,7 +77,7 @@ class StoreLessonHourRequest extends ApiRequest
         if (strpos($time, '.') !== false) {
             return str_replace('.', ':', $time);
         }
-        
+
         return $time;
     }
 }

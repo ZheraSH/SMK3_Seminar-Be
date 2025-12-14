@@ -1,8 +1,10 @@
 <?php
-namespace App\Contracts\Repositories;
+namespace App\Contracts\Repositories\Operator;
 
-use App\Contracts\Interfaces\LessonHourInterface;
+use App\Contracts\Interfaces\Operator\LessonHourInterface;
+use App\Contracts\Repositories\BaseRepository;
 use App\Models\LessonHour;
+use Illuminate\Support\Facades\DB;
 
 class LessonHourRepository extends BaseRepository implements LessonHourInterface
 {
@@ -14,19 +16,19 @@ class LessonHourRepository extends BaseRepository implements LessonHourInterface
     public function get(): mixed
     {
         return $this->model->query()
-            ->orderBy('day')
+            ->orderByRaw("FIELD(day, 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday')")
             ->orderBy('start')
             ->get();
     }
     
     public function store(array $data): mixed
     {
-        return $this->model->query()->create($data);
+        return $this->model->create($data);
     }
 
     public function show(mixed $id): mixed
     {
-        return $this->model->query()->findOrFail($id);
+        return $this->model->findOrFail($id);
     }
 
     public function update(mixed $id, array $data): mixed
@@ -46,18 +48,16 @@ class LessonHourRepository extends BaseRepository implements LessonHourInterface
             ->orderBy('start')
             ->get();
     }
-    
-    public function checkNameExists(string $name, string $day, ?string $excludeId = null): bool
+
+    public function getLastOrderByDayAndType(string $day, bool $isLesson): int
     {
-        $query = $this->model->query()
-            ->where('name', $name)
-            ->where('day', $day);
+        $last = $this->model->query()
+            ->where('day', $day)
+            ->where('is_lesson', $isLesson)
+            ->orderBy('order', 'desc')
+            ->first();
 
-        if ($excludeId) {
-            $query->where('id', '!=', $excludeId);
-        }
-
-        return $query->exists();
+        return $last ? $last->order : 0;
     }
 
     public function checkTimeOverlap(string $day, string $start, string $end, ?string $excludeId = null): bool

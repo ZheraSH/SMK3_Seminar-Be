@@ -102,9 +102,9 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
     Route::apiResource('subjects', SubjectController::class);
     // Lesson Hours
     Route::prefix('lesson-hours')->controller(LessonHourController::class)->group(function () {
-        Route::get('day/{day}', 'getByDay'); // jam pelajaran khusus hari tertentu
+        Route::get('{day}', 'getByDay'); // jam pelajaran khusus hari tertentu
     });
-    Route::apiResource('lesson-hours', LessonHourController::class)->except(['update']);
+    Route::apiResource('lesson-hours', LessonHourController::class)->except(['index', 'show']);
     // Lesson Schedules
     Route::prefix('lesson-schedules')->controller(LessonSchedulesController::class)->group(function () {
         Route::get('{classroomId}/schedules/{day}', 'getByClassroomAndDay'); // jadwal kelas per hari

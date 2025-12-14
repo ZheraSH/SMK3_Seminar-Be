@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreLessonHourRequest;
-use App\Http\Resources\LessonHourResource;
-use App\Services\LessonHourService;
-use Illuminate\Http\Request;
+use App\Http\Requests\Operator\StoreLessonHourRequest;
+use App\Http\Requests\Operator\UpdateLessonHourRequest;
+use App\Http\Resources\Operator\LessonHourResource;
+use App\Services\Operator\LessonHourService;
 
 class LessonHourController extends Controller
 {
@@ -18,20 +18,6 @@ class LessonHourController extends Controller
         $this->lessonHourService = $lessonHourService;
     }
 
-    public function index(Request $request)
-    {
-        try {
-            $data = $this->lessonHourService->getAll($request);
-
-            return ResponseHelper::success(
-                LessonHourResource::collection($data),
-                'Daftar jam pelajaran berhasil diambil'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
-        }
-    }
-
     public function store(StoreLessonHourRequest $request)
     {
         try {
@@ -39,7 +25,7 @@ class LessonHourController extends Controller
 
             return ResponseHelper::success(
                 new LessonHourResource($data),
-                'Jam pelajaran berhasil dibuat',
+                'Data jam pelajaran berhasil dibuat',
                 201
             );
         } catch (\Throwable $th) {
@@ -47,17 +33,17 @@ class LessonHourController extends Controller
         }
     }
 
-    public function show(string $id)
+    public function update(UpdateLessonHourRequest $request, string $id)
     {
         try {
-            $data = $this->lessonHourService->show($id);
+            $data = $this->lessonHourService->update($id, $request);
 
             return ResponseHelper::success(
                 new LessonHourResource($data),
-                'Detail jam pelajaran berhasil diambil'
+                'Data jam pelajaran berhasil diperbarui'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::notFound('Jam pelajaran tidak ditemukan');
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 
@@ -68,7 +54,7 @@ class LessonHourController extends Controller
 
             return ResponseHelper::success(
                 null,
-                'Jam pelajaran berhasil dihapus'
+                'Data jam pelajaran berhasil dihapus'
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
@@ -82,24 +68,10 @@ class LessonHourController extends Controller
 
             return ResponseHelper::success(
                 LessonHourResource::collection($data),
-                'Jam pelajaran untuk hari ' . $day . ' berhasil diambil'
+                'Data jam pelajaran untuk hari ' . $day . ' berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
-        }
-    }
-
-    public function getAllGroupedByDay()
-    {
-        try {
-            $data = $this->lessonHourService->getAllGroupedByDay();
-
-            return ResponseHelper::success(
-                $data,
-                'Data jam pelajaran dikelompokkan per hari berhasil diambil'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
+            return ResponseHelper::notFound('Detail data jam pelajaran tidak ditemukan');
         }
     }
 }

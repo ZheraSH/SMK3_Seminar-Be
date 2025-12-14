@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
-
 class LessonHour extends Model
 {
     use HasFactory, HasUuids, SoftDeletes;
@@ -22,10 +21,12 @@ class LessonHour extends Model
         'name',
         'start',
         'end',
-        'is_lesson'
+        'is_lesson',
+        'order'
     ];
 
     protected $casts = [
         'day' => DayEnum::class,
+        'is_lesson' => 'boolean',
     ];
 }
