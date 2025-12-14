@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Operator;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -12,9 +12,6 @@ class AvailableStudentResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->user->name,
-            'nisn' => $this->nisn,
-            'gender' => $this->gender?->label(),
-            'email' => $this->user->email,
         ];
     }
 }

@@ -2,21 +2,21 @@
 
 namespace App\Services;
 
-use App\Contracts\Interfaces\StudentInterface;
+use App\Contracts\Repositories\StudentRepository;
 use App\Models\Student;
 
 class StudentClassroomService
 {
-    private StudentInterface $student;
+    private StudentRepository $studentRepository;
 
-    public function __construct(StudentInterface $student)
+    public function __construct(StudentRepository $studentRepository)
     {
-        $this->student = $student;
+        $this->studentRepository = $studentRepository;
     }
 
     public function getClassroomInfo(string $studentId): array
     {
-        $student = $this->student->getClassroomInfo($studentId);
+        $student = $this->studentRepository->getClassroomInfo($studentId);
     
         if (!$student) {
             throw new \Exception("Student with ID {$studentId} does not exist", 404);

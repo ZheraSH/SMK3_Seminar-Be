@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Services\ClassroomStudentsService;
-use App\Http\Resources\ClassroomStudentsResource;
-use App\Http\Resources\AvailableStudentResource;
+use App\Services\Operator\ClassroomStudentsService;
+use App\Http\Resources\Operator\ClassroomStudentsResource;
+use App\Http\Resources\Operator\AvailableStudentResource;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\AddStudentToClassroomRequest;
+use App\Http\Requests\Operator\AddStudentToClassroomRequest;
 use Illuminate\Http\Request;
 
 class ClassroomStudentsController extends Controller
@@ -19,18 +19,18 @@ class ClassroomStudentsController extends Controller
         $this->classroomStudentsService = $classroomStudentsService;
     }
 
-    public function index(Request $request)
+    public function index(Request $request, string $classroomId)
     {
         try {
-            $data = $this->classroomStudentsService->search($request);
+            $data = $this->classroomStudentsService->getByClassroom($classroomId, $request);
 
             return ResponseHelper::pagination(
                 $data,
                 ClassroomStudentsResource::class,
-                'Data siswa kelas berhasil diambil'
+                'List data siswa kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 
@@ -41,20 +41,20 @@ class ClassroomStudentsController extends Controller
 
             return ResponseHelper::success(
                 AvailableStudentResource::collection($data),
-                'Data siswa yang tersedia berhasil diambil'
+                'Data siswa tersedia berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 
-    public function addStudents(AddStudentToClassroomRequest $request, string $classroomId)
+    public function store(AddStudentToClassroomRequest $request, string $classroomId)
     {
         try {
             $data = $this->classroomStudentsService->addStudents($classroomId, $request->student_ids);
 
             return ResponseHelper::success(
-                ClassroomStudentsResource::collection($data->classroomStudents),
+                ClassroomStudentsResource::collection($data),
                 'Siswa berhasil ditambahkan ke kelas'
             );
         } catch (\Throwable $th) {
@@ -62,31 +62,17 @@ class ClassroomStudentsController extends Controller
         }
     }
 
-    public function removeStudent(string $classroomId, string $studentId)
+    public function destroy(string $classroomId, string $studentId)
     {
         try {
             $data = $this->classroomStudentsService->removeStudent($classroomId, $studentId);
 
             return ResponseHelper::success(
-                ClassroomStudentsResource::collection($data->classroomStudents),
+                ClassroomStudentsResource::collection($data),
                 'Siswa berhasil dihapus dari kelas'
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
-        }
-    }
-
-    public function getActiveStudents(string $classroomId)
-    {
-        try {
-            $data = $this->classroomStudentsService->getActiveStudents($classroomId);
-
-            return ResponseHelper::success(
-                $data,
-                'Data siswa aktif berhasil diambil'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
         }
     }
 }

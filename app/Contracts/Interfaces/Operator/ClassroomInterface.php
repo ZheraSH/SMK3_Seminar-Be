@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Contracts\Interfaces;
+namespace App\Contracts\Interfaces\Operator;
         
 use App\Contracts\Interfaces\Eloquent\DeleteInterface; 
 use App\Contracts\Interfaces\Eloquent\GetInterface;
@@ -14,11 +14,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 interface ClassroomInterface extends GetInterface, StoreInterface, UpdateInterface, ShowInterface, DeleteInterface, SearchInterface, PaginateInterface
 {
-    public function addStudentsToClassroom(string $classroomId, array $studentIds): Classroom;
-    public function removeStudentFromClassroom(string $classroomId, string $studentId): Classroom;
-    public function getActiveStudents(string $classroomId): Collection;
-    public function getAvailableStudents(Classroom $classroom, string $search = null, int $limit = 10): Collection;
     public function graduateClass(string $classroomId): void;
-    public function getWithSchedules(): mixed;
-    public function getWithSchedulesById(string $id): mixed;
+    public function getWithSchedules(): Collection;
+    public function getWithSchedulesById(string $id): Classroom;
 }

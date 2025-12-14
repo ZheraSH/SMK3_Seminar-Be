@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 class ClassroomSeeder extends Seeder
 {
     private const CLASSES_PER_LEVEL = 3;
-    private const TOTAL_CLASSES = 9;
+    private const TOTAL_CLASSES = 9; // 3 level × 3 kelas
 
     public function run(): void
     {
@@ -21,26 +21,51 @@ class ClassroomSeeder extends Seeder
         $schoolYear = SchoolYear::where('active', true)->first();
         $levels = LevelClass::all();
         
+        // Ambil SEMUA wali kelas (yang punya role homeroom_teacher)
         $homeroomTeachers = Employee::whereHas('user.roles', function($q) {
             $q->where('name', 'homeroom_teacher');
         })->get();
 
-        if ($homeroomTeachers->count() < self::TOTAL_CLASSES) {
-            return;
+        // Filter: hanya ambil yang belum jadi wali kelas
+        $availableTeachers = [];
+        foreach ($homeroomTeachers as $teacher) {
+            $isAlreadyHomeroom = Classroom::where('homeroom_teacher_id', $teacher->id)->exists();
+            if (!$isAlreadyHomeroom) {
+                $availableTeachers[] = $teacher;
+            }
+        }
+
+        // Jika tidak cukup wali kelas, tambahkan guru biasa
+        if (count($availableTeachers) < self::TOTAL_CLASSES) {
+            $regularTeachers = Employee::whereHas('user.roles', function($q) {
+                $q->where('name', 'teacher');
+            })->whereDoesntHave('classroomsAsHomeroom')->get();
+            
+            $availableTeachers = array_merge(
+                $availableTeachers,
+                $regularTeachers->slice(0, self::TOTAL_CLASSES - count($availableTeachers))->all()
+            );
         }
 
         $teacherIndex = 0;
-        $usedTeachers = [];
 
         foreach ($levels as $level) {
             for ($i = 1; $i <= self::CLASSES_PER_LEVEL; $i++) {
                 $className = "{$level->name} PPLG {$i}";
                 
-                $teacher = $homeroomTeachers[$teacherIndex];
-                $teacherIndex++;
-
-                if (in_array($teacher->id, $usedTeachers)) {
-                    continue;
+                if ($teacherIndex >= count($availableTeachers)) {
+                    // Tidak ada guru lagi, buat kelas tanpa wali kelas
+                    $homeroomTeacherId = null;
+                } else {
+                    $teacher = $availableTeachers[$teacherIndex];
+                    $teacherIndex++;
+                    
+                    // Tambahkan role homeroom_teacher jika belum punya
+                    if (!$teacher->user->hasRole('homeroom_teacher')) {
+                        $teacher->user->assignRole('homeroom_teacher');
+                    }
+                    
+                    $homeroomTeacherId = $teacher->id;
                 }
 
                 Classroom::updateOrCreate(
@@ -51,11 +76,9 @@ class ClassroomSeeder extends Seeder
                         'major_id' => $major->id,
                         'level_class_id' => $level->id,
                         'school_year_id' => $schoolYear->id,
-                        'homeroom_teacher_id' => $teacher->id,
+                        'homeroom_teacher_id' => $homeroomTeacherId,
                     ]
                 );
-                
-                $usedTeachers[] = $teacher->id;
             }
         }
     }

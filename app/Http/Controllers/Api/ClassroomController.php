@@ -3,11 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreClassroomRequest;
-use App\Http\Requests\UpdateClassroomRequest;
-use App\Http\Resources\ClassroomResource;
-use App\Http\Resources\ClassroomDetailResource;
-use App\Services\ClassroomService;
+use App\Http\Requests\Operator\StoreClassroomRequest;
+use App\Http\Resources\Operator\ClassroomResource;
+use App\Services\Operator\ClassroomService;
 use App\Helpers\ResponseHelper;
 use Illuminate\Http\Request;
 
@@ -31,7 +29,7 @@ class ClassroomController extends Controller
                 'List data kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 
@@ -56,39 +54,11 @@ class ClassroomController extends Controller
             $data = $this->classroomService->show($id);
 
             return ResponseHelper::success(
-                new ClassroomDetailResource($data),
+                new ClassroomResource($data),
                 'Detail data kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 404);
-        }
-    }
-
-    public function update(UpdateClassroomRequest $request, string $id)
-    {
-        try {
-            $data = $this->classroomService->update($id, $request->validated());
-
-            return ResponseHelper::success(
-                new ClassroomResource($data),
-                'Data kelas berhasil diperbarui'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
-        }
-    }
-
-    public function destroy(string $id)
-    {
-        try {
-            $this->classroomService->delete($id);
-
-            return ResponseHelper::success(
-                null,
-                'Data kelas berhasil dihapus'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
+            return ResponseHelper::notFound('Detail data kelas tidak ditemukan');
         }
     }
 }

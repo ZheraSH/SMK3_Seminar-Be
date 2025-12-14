@@ -46,7 +46,7 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', 'logout');
         Route::post('change-password', 'changePassword');
-        
+
         // Operator-only routes
         Route::post('reset-password', 'resetPassword')
             ->middleware('role:school_operator');
@@ -88,13 +88,12 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
     // Classrooms
     Route::apiResource('classrooms', ClassroomController::class)->except(['update','destroy']);
     // Classroom Students
-    Route::prefix('classroom-students')->controller(ClassroomStudentsController::class)->group(function () {
-        Route::get('{classroomId}/available-students', 'getAvailableStudents'); // list siswa yg belum punya classroom
-        Route::post('{classroomId}/add-students', 'addStudents'); // add siswa ke classroom
-        Route::delete('{classroomId}/remove-student/{studentId}', 'removeStudent'); //remove siswa dari classroom
-        Route::get('{classroomId}/active-students', 'getActiveStudents'); //list siswa yang aktif di classroom
+    Route::prefix('classrooms/{classroomId}')->controller(ClassroomStudentsController::class)->group(function () {
+        Route::get('students', 'index'); // list siswa di classroom (paginate dengan search)
+        Route::get('students-available', 'getAvailableStudents'); // siswa belum/bisa pindah dengan search
+        Route::post('students-add', 'store'); // tambahkan siswa ke classroom
+        Route::delete('student-remove/{studentId}', 'destroy'); // hapus siswa dari classroom
     });
-    Route::apiResource('classroom-students', ClassroomStudentsController::class);
     // Semesters
     Route::prefix('semesters')->controller(SemesterController::class)->group(function () {
         Route::get('active', 'active'); // semester aktif
