@@ -19,37 +19,29 @@ class StudentRepository extends BaseRepository implements StudentInterface
         $this->model = $student;
     }
 
+    protected function baseQuery()
+    {
+        return $this->model->query()->with([
+            'user',
+            'religion',
+            'rfid',
+            'classroomStudents.classroom.major',
+            'classroomStudents.classroom.schoolYear',
+        ]);
+    }
     public function get(): Collection
     {
-        return $this->model->query()
-            ->with([
-                'user', 
-                'religion', 
-                'rfid',
-                'classroomStudents.classroom.major',
-                'classroomStudents.classroom.levelClass',
-                'classroomStudents.classroom.schoolYear'
-            ])
-            ->get();
+        return $this->baseQuery()->get();
     }
 
     public function store(array $data): Student
     {
-        return $this->model->query()->create($data);
+        return $this->model->create($data);
     }
 
     public function show(mixed $id): Student
     {
-        return $this->model->query()
-            ->with([
-                'user', 
-                'religion', 
-                'rfid',
-                'classroomStudents.classroom.major',
-                'classroomStudents.classroom.levelClass',
-                'classroomStudents.classroom.schoolYear'
-            ])
-            ->findOrFail($id);
+        return $this->baseQuery()->findOrFail($id);
     }
 
     public function update(mixed $id, array $data): bool
@@ -62,141 +54,85 @@ class StudentRepository extends BaseRepository implements StudentInterface
         return $this->show($id)->delete();
     }
 
-    public function paginate(): mixed
+    public function paginate(int $perPage = 15): mixed
     {
-        return $this->model->query()
-            ->with([
-                'user', 
-                'religion', 
-                'rfid',
-                'classroomStudents.classroom.major',
-                'classroomStudents.classroom.levelClass',
-                'classroomStudents.classroom.schoolYear'
-            ])
+        return $this->baseQuery()
             ->latest()
-            ->paginate(8);
+            ->paginate($perPage);
     }
 
-    public function search(Request $request, int $pagination = 8): mixed
+    public function search(Request $request, int $pagination = 15): mixed
     {
-        return $this->model->query()
-            ->with([
-                'user', 
-                'religion', 
-                'rfid',
-                'classroomStudents.classroom.major',
-                'classroomStudents.classroom.levelClass',
-                'classroomStudents.classroom.schoolYear'
-            ])
+        return $this->baseQuery()
             ->when($request->search, function ($query) use ($request) {
-                $query->where(function ($q) use ($request) {
-                    $q->whereHas('user', function ($sub) use ($request) {
-                        $sub->where('name', 'LIKE', '%' . $request->search . '%');
-                    })
-                    ->orWhere('nisn', 'LIKE', '%' . $request->search . '%')
-                    ->orWhereHas('classroomStudents.classroom', function ($sub) use ($request) {
-                        $sub->where('name', 'LIKE', '%' . $request->search . '%');
-                    });
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('user', fn ($u) =>
+                        $u->where('name', 'LIKE', "%{$search}%")
+                    )
+                    ->orWhere('nisn', 'LIKE', "%{$search}%")
+                    ->orWhereHas('classroomStudents.classroom', fn ($c) =>
+                        $c->where('name', 'LIKE', "%{$search}%")
+                    )
+                    ->orWhereHas('classroomStudents.classroom.major', fn ($m) =>
+                        $m->where('name', 'LIKE', "%{$search}%")
+                    )
+                    ->orWhereHas('classroomStudents.classroom.schoolYear', fn ($sy) =>
+                        $sy->where('name', 'LIKE', "%{$search}%")
+                    );
                 });
             })
-            ->when($request->gender, function ($query) use ($request) {
-                $genders = explode(',', $request->gender);
-                $query->whereIn('gender', $genders);
-            })
-            ->when($request->major, function ($query) use ($request) {
-                $majorNames = explode(',', $request->major);
-                $query->whereHas('classroomStudents.classroom.major', function ($q) use ($majorNames) {
-                    $q->whereIn('name', $majorNames);
-                });
-            })
-            ->when($request->level_class, function ($query) use ($request) {
-                $levelClassNames = explode(',', $request->level_class);
-                $query->whereHas('classroomStudents.classroom.levelClass', function ($q) use ($levelClassNames) {
-                    $q->whereIn('name', $levelClassNames);
-                });
-            })
-            ->when($request->status, function ($query) use ($request) {
-                $query->where('status', $request->status);
-            })
+            ->when($request->classroom, fn ($q) =>
+                $q->whereHas('classroomStudents.classroom', fn ($c) =>
+                    $c->whereIn('name', explode(',', $request->classroom))
+                )
+            )
+            ->when($request->major, fn ($q) =>
+                $q->whereHas('classroomStudents.classroom.major', fn ($m) =>
+                    $m->whereIn('name', explode(',', $request->major))
+                )
+            )
+            ->when($request->school_year, fn ($q) =>
+                $q->whereHas('classroomStudents.classroom.schoolYear', fn ($sy) =>
+                    $sy->whereIn('name', explode(',', $request->school_year))
+                )
+            )
             ->latest()
             ->paginate($pagination);
     }
 
-        public function count(): int
+    public function count(): int
     {
-        return $this->model->query()->count();
+        return $this->model->count();
     }
 
     public function countActiveStudents(): int
     {
-        return $this->model->query()
+        return $this->model
             ->where('status', StudentStatusEnum::ACTIVE->value)
             ->count();
-    }
-
-    public function showWithActiveClassroom(mixed $id): Student
-    {
-        return $this->model->query()
-            ->with([
-                'user', 
-                'religion',
-                'rfid',
-                'classroomStudents.classroom.major',
-                'classroomStudents.classroom.levelClass', 
-                'classroomStudents.classroom.schoolYear'
-            ])
-            ->findOrFail($id);
     }
 
     public function getWithActiveClassrooms(): Collection
     {
         return $this->model->query()
             ->with([
-                'user', 
+                'user',
                 'religion',
                 'rfid',
-                'classroomStudents' => function($query) {
-                    $query->where('status', StudentStatusEnum::ACTIVE->value)
-                          ->with(['classroom.major', 'classroom.levelClass', 'classroom.schoolYear']);
-                }
+                'classroomStudents' => fn ($q) =>
+                    $q->where('status', StudentStatusEnum::ACTIVE->value)
+                      ->with(['classroom.major', 'classroom.schoolYear']),
             ])
             ->get();
     }
 
-    public function getActiveStudents(): Collection
+    public function findWithClassroom(string $id): Student
     {
         return $this->model->query()
-            ->with(['user', 'religion', 'rfid'])
-            ->where('status', StudentStatusEnum::ACTIVE->value)
-            ->get();
-    }
-
-
-    public function getClassroomInfo(string $studentId): mixed
-    {
-        return $this->model
             ->with([
-                'user:id,name',
-                'classroomStudents' => function($query) {
-                    $query->where('status', 'active')
-                          ->with([
-                              'classroom:id,name,school_year_id,homeroom_teacher_id',
-                              'classroom.schoolYear:id,name',
-                              'classroom.teacher:id,user_id,image',
-                              'classroom.teacher.user:id,name'
-                          ]);
-                }
-            ])
-            ->find($studentId);
-    }
-
-    public function findWithClassroom(string $id): mixed
-    {
-        return $this->model
-            ->with([
-                'classroomStudents.classroom.levelClass', 
                 'classroomStudents.classroom.major',
-                'classroomStudents.classroom.teacher'
+                'classroomStudents.classroom.schoolYear',
             ])
             ->findOrFail($id);
     }

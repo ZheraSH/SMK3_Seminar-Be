@@ -18,23 +18,27 @@ class EmployeeRepository extends BaseRepository implements EmployeeInterface
         $this->model = $employee;
     }
 
+    protected function baseQuery()
+    {
+        return $this->model->query()->with([
+            'user.roles',
+            'religion',
+        ]);
+    }
+
     public function get(): Collection
     {
-        return $this->model->query()
-            ->with(['user.roles', 'religion'])
-            ->get();
+        return $this->baseQuery()->get();
     }
 
     public function store(array $data): Employee
     {
-        return $this->model->query()->create($data);
+        return $this->model->create($data);
     }
 
     public function show(mixed $id): Employee
     {
-        return $this->model->query()
-            ->with(['user.roles', 'religion'])
-            ->findOrFail($id);
+        return $this->baseQuery()->findOrFail($id);
     }
 
     public function update(mixed $id, array $data): bool
@@ -47,35 +51,30 @@ class EmployeeRepository extends BaseRepository implements EmployeeInterface
         return $this->show($id)->delete();
     }
 
-    public function paginate(): mixed
+    public function paginate(int $perPage = 15): mixed
     {
-        return $this->model->query()
-            ->with(['user.roles', 'religion'])
+        return $this->baseQuery()
             ->latest()
-            ->paginate(8);
+            ->paginate($perPage);
     }
 
-    public function search(Request $request, int $pagination = 8): mixed
+    public function search(Request $request, int $pagination = 15): mixed
     {
-        return $this->model->query()
-            ->with(['user.roles', 'religion'])
+        return $this->baseQuery()
             ->when($request->search, function ($query) use ($request) {
-                $query->where(function ($q) use ($request) {
-                    $q->whereHas('user', function ($sub) use ($request) {
-                        $sub->where('name', 'LIKE', '%' . $request->search . '%');
-                    })
-                    ->orWhere('nip', 'LIKE', '%' . $request->search . '%');
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('user', fn ($u) =>
+                        $u->where('name', 'LIKE', "%{$search}%")
+                    )
+                    ->orWhere('nip', 'LIKE', "%{$search}%");
                 });
             })
             ->when($request->role, function ($query) use ($request) {
                 $roles = explode(',', $request->role);
-                $query->whereHas('user.roles', function ($q) use ($roles) {
-                    $q->whereIn('name', $roles);
-                });
-            })
-            ->when($request->gender, function ($query) use ($request) {
-                $genders = explode(',', $request->gender);
-                $query->whereIn('gender', $genders);
+                $query->whereHas('user.roles', fn ($q) =>
+                    $q->whereIn('name', $roles)
+                );
             })
             ->latest()
             ->paginate($pagination);
@@ -83,15 +82,14 @@ class EmployeeRepository extends BaseRepository implements EmployeeInterface
 
     public function count(): int
     {
-        return $this->model->query()->count();
+        return $this->model->count();
     }
 
     public function countByRoles(array $roles): int
     {
-        return $this->model->query()
-            ->whereHas('user.roles', function ($q) use ($roles) {
-                $q->whereIn('name', $roles);
-            })
-            ->count();
+        return $this->model
+            ->whereHas('user.roles', fn ($q) =>
+                $q->whereIn('name', $roles)
+            )->count();
     }
 }

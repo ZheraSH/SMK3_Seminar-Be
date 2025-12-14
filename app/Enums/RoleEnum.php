@@ -29,4 +29,31 @@ enum RoleEnum: string
     {
         return array_column(self::cases(), 'value');
     }
+
+    public static function teacherRoles(): array
+    {
+        return [
+            self::TEACHER->value,
+            self::HOMEROOM_TEACHER->value,
+            self::COUNSELOR->value,
+        ];
+    }
+
+    public static function staffRoles(): array
+    {
+        return [
+            self::STAFF->value,
+            self::CURRICULUM_COORDINATOR->value,
+        ];
+    }
+
+    public static function isTeacherRole(string $role): bool
+    {
+        return in_array($role, self::teacherRoles());
+    }
+
+    public static function isStaffRole(string $role): bool
+    {
+        return in_array($role, self::staffRoles());
+    }
 }

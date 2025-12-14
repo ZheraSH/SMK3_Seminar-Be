@@ -22,8 +22,10 @@ class StudentResource extends JsonResource
             'email' => $user?->email,
             'image' => $this->resolveImageUrl($this->image),
             'nisn' => $this->nisn,
-            'gender_value' => $this->getEnumValue($this->gender),
-            'gender_label' => $this->getEnumLabel($this->gender),
+            'gender' => [
+                'value' => $this->getEnumValue($this->gender),
+                'label' => $this->getEnumLabel($this->gender),
+            ],
             'religion' => $this->religion?->name,
             'birth_date' => $this->birth_date,
             'birth_place' => $this->birth_place,
@@ -52,6 +54,7 @@ class StudentResource extends JsonResource
         return [
             'id' => $activeClassroom->id,
             'name' => $activeClassroom->name,
+            'schoolYear' => $activeClassroom->schoolYear?->name,
         ];
     }
 
@@ -63,7 +66,6 @@ class StudentResource extends JsonResource
                 'rfid' => $this->rfid->rfid,
             ];
         }
-
         return ['message' => 'Siswa belum memiliki kartu RFID'];
     }
 }

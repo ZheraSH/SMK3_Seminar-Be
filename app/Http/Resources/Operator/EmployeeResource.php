@@ -20,8 +20,10 @@ class EmployeeResource extends JsonResource
             'name' => $user?->name,
             'email' => $user?->email,
             'image' => $this->resolveImageUrl($this->image),
-            'gender_value' => $this->getEnumValue($this->gender),
-            'gender_label' => $this->getEnumLabel($this->gender),
+            'gender' => [
+                'value' => $this->getEnumValue($this->gender),
+                'label' => $this->getEnumLabel($this->gender),
+            ],
             'phone_number' => $this->phone_number,
             'religion' => $this->religion?->name,
             'nip' => $this->nip,
