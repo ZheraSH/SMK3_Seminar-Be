@@ -1,10 +1,10 @@
 <?php
 
+use App\Enums\AttendanceStatusEnum;
+use App\Enums\AttendanceProofEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\AttendanceStatusEnum;
-use App\Enums\AttendanceProofEnum;
 
 return new class extends Migration
 {
@@ -26,18 +26,8 @@ return new class extends Migration
             $table->time('checkout_time')->nullable();
             $table->integer('lesson_order')->default(1);
             $table->enum('attendance_type', ['rfid', 'cross_check'])->default('rfid');
-            $table->enum('status', [
-                AttendanceStatusEnum::PRESENT->value,
-                AttendanceStatusEnum::LATE->value,
-                AttendanceStatusEnum::ALPHA->value,
-                AttendanceStatusEnum::LEAVE->value,
-                AttendanceStatusEnum::SICK->value
-            ])->default(AttendanceStatusEnum::ALPHA->value);
-            $table->enum('proof', [
-                AttendanceProofEnum::RFID->value,
-                AttendanceProofEnum::MANUAL->value,
-                AttendanceProofEnum::CLASSROOM->value
-            ])->default(AttendanceProofEnum::MANUAL->value);
+            $table->enum('status', AttendanceStatusEnum::values())->default(AttendanceStatusEnum::ALPHA->value);
+            $table->enum('proof', AttendanceProofEnum::values())->default(AttendanceProofEnum::MANUAL->value);
             $table->softDeletes();
             $table->timestamps();
 

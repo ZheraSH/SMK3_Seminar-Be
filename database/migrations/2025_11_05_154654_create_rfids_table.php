@@ -16,7 +16,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('rfid')->unique();
             $table->foreignUuid('student_id')->nullable()->constrained('students')->nullOnDelete();
-            $table->enum('status', [RfidStatusEnum::ACTIVE->value, RfidStatusEnum::INACTIVE->value])->default(RfidStatusEnum::INACTIVE->value);
+            $table->enum('status', RfidStatusEnum::values())->default(RfidStatusEnum::INACTIVE->value);
             $table->softDeletes();
             $table->timestamps();
         });
