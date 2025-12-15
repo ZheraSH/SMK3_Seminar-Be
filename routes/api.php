@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\APi\SchoolController;
 use App\Http\Controllers\Api\ReligionController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\StudentController;
@@ -66,6 +67,11 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
         Route::get('counters', 'getMaster'); // total siswa/guru/kelas/attendance
         Route::get('activities', 'getRfidTap'); //kegiatan tap RFID terbaru
         Route::get('stats', 'getStatistics'); //statistik absen mingguan
+    });
+    //school Informations
+    Route::apiResource('school-information', SchoolController::class)->only('index');
+    Route::prefix('school-information')->controller(SchoolController::class)->group(function () {
+        Route::post('update', 'update'); //update pake methode post
     });
     // Roles
     Route::apiResource('roles', RoleController::class)->only('index');

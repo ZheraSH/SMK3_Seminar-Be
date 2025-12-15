@@ -17,13 +17,14 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             UserSeeder::class,
             //Data Master
+            SchoolSeeder::class,
             ReligionSeeder::class,
             MajorSeeder::class,
             LevelClassSeeder::class,
             SubjectSeeder::class,
             //Data Dummy
-            StudentSeeder::class, //Data dummy
             EmployeeSeeder::class, //Data dummy
+            StudentSeeder::class, //Data dummy
             SchoolYearSeeder::class, //Data dummy
             ClassroomSeeder::class, //Data dummy
             ClassroomStudentSeeder::class, //Data dummy

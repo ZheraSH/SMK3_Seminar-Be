@@ -1,0 +1,51 @@
+<?php
+
+namespace App\Services\Operator;
+
+use App\Contracts\Repositories\Operator\SchoolRepository;
+use App\Traits\UploadTrait;
+use App\Enums\UploadDiskEnum;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Arr;
+
+class SchoolService
+{
+    use UploadTrait;
+
+    private SchoolRepository $schoolRepository;
+
+    public function __construct(SchoolRepository $schoolRepository)
+    {
+        $this->schoolRepository = $schoolRepository;
+    }
+
+    public function get(): mixed
+    {
+        return $this->schoolRepository->get();
+    }
+
+    public function update(int|string $id, array $data): mixed
+    {
+        $school = $this->schoolRepository->show($id);
+
+        if (isset($data['logo']) && $data['logo'] instanceof UploadedFile) {
+
+            if (!empty($school->logo) && $this->exist($school->logo)) {
+                $this->remove($school->logo);
+            }
+
+            $path = $this->upload(
+                UploadDiskEnum::LOGO->value,
+                $data['logo']
+            );
+
+            $data['logo'] = $path;
+        } else {
+            $data = Arr::except($data, ['logo']);
+        }
+
+        $this->schoolRepository->update($id, $data);
+
+        return $this->schoolRepository->show($id);
+    }
+}
