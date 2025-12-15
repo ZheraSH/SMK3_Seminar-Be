@@ -9,7 +9,7 @@ enum GenderEnum: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::MALE => 'Laki-laki',
             self::FEMALE => 'Perempuan',
         };
@@ -22,9 +22,11 @@ enum GenderEnum: string
 
     public static function toArray(): array
     {
-        return [
-            self::MALE->value => 'Laki-laki',
-            self::FEMALE->value => 'Perempuan',
-        ];
+        $data = [];
+        foreach (self::cases() as $case) {
+            $data[$case->value] = $case->label();
+        }
+
+        return $data;
     }
 }

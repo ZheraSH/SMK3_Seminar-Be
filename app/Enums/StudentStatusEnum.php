@@ -10,7 +10,7 @@ enum StudentStatusEnum: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::ACTIVE => 'Aktif',
             self::INACTIVE => 'Tidak Aktif',
             self::GRADUATED => 'Lulus',
@@ -24,11 +24,12 @@ enum StudentStatusEnum: string
 
     public static function toArray(): array
     {
-        $array = [];
+        $data = [];
         foreach (self::cases() as $case) {
-            $array[$case->value] = $case->label();
+            $data[$case->value] = $case->label();
         }
-        return $array;
+
+        return $data;
     }
 
     public static function isActive($status): bool
@@ -36,7 +37,7 @@ enum StudentStatusEnum: string
         if ($status instanceof self) {
             return $status === self::ACTIVE;
         }
-        
-        return strtolower((string)$status) === strtolower(self::ACTIVE->value);
+
+        return strtolower((string) $status) === self::ACTIVE->value;
     }
 }

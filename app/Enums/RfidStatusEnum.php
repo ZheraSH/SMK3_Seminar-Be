@@ -9,12 +9,12 @@ enum RfidStatusEnum: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::ACTIVE => 'Aktif',
             self::INACTIVE => 'Tidak Aktif',
         };
     }
-    
+
     public static function values(): array
     {
         return array_column(self::cases(), 'value');
@@ -26,6 +26,7 @@ enum RfidStatusEnum: string
         foreach (self::cases() as $case) {
             $array[$case->value] = $case->label();
         }
+
         return $array;
     }
 

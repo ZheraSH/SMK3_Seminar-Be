@@ -11,14 +11,24 @@ enum PermissionTypeEnum: string
     public function label(): string
     {
         return match ($this) {
-            self::SICK => 'sakit',
-            self::PERMISSION => 'izin',
-            self::DISPENSATION => 'dispensasi',
+            self::SICK => 'Sakit',
+            self::PERMISSION => 'Izin',
+            self::DISPENSATION => 'Dispensasi',
         };
     }
 
     public static function values(): array
     {
         return array_column(self::cases(), 'value');
+    }
+
+    public static function toArray(): array
+    {
+        $data = [];
+        foreach (self::cases() as $case) {
+            $data[$case->value] = $case->label();
+        }
+
+        return $data;
     }
 }
