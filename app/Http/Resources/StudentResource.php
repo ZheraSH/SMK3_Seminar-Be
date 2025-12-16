@@ -13,58 +13,59 @@ class StudentResource extends JsonResource
 
     public function toArray(Request $request): array
     {
-        $user = $this->user;
-
         return [
             'id' => $this->id,
-            'name' => $user?->name,
-            'email' => $user?->email,
+            'name' => $this->user?->name,
+            'email' => $this->user?->email,
             'image' => $this->resolveImageUrl($this->image),
+            'address' => $this->address,
             'nisn' => $this->nisn,
-            'gender' => $this->gender?->label(),
-            'religion' => $this->religion?->name,
-            'birth_date' => $this->birth_date,
-            'birth_place' => $this->birth_place,
             'number_kk' => $this->number_kk,
             'number_akta' => $this->number_akta,
+            'gender' => $this->gender ? [
+                'value' => $this->gender->value,
+                'label' => $this->gender->label(),
+            ] : null,
+            'religion' => $this->religion ? [
+                'id' => $this->religion->id,
+                'name' => $this->religion->name,
+            ] : null,
+            'birth_place' => $this->birth_place,
+            'birth_date' => $this->birth_date,
             'order_child' => $this->order_child,
             'count_siblings' => $this->count_siblings,
-            'address' => $this->address,
-            'classroom' => $this->getActiveClassroomData(),
-            'rfid' => $this->getRfidData(),
+            'classroom' => $this->activeClassroom(),
+            'rfid' => $this->rfidData(),
         ];
     }
 
-    private function getActiveClassroomData()
+    private function activeClassroom(): ?array
     {
-        $activeClassroomStudent = $this->classroomStudents
-            ->where('status', StudentStatusEnum::ACTIVE->value)
-            ->first();
+        $active = $this->classroomStudents
+            ->firstWhere('status', StudentStatusEnum::ACTIVE->value);
 
-        if (!$activeClassroomStudent) {
-            return ['message' => 'Siswa belum memiliki kelas aktif'];
+        if (!$active || !$active->classroom) {
+            return null;
         }
 
-        $activeClassroom = $activeClassroomStudent->classroom;
+        $classroom = $active->classroom;
 
         return [
-            'id' => $activeClassroom->id,
-            'name' => $activeClassroom->name,
-            'major' => $activeClassroom->major?->code,
-            'level_class' => $activeClassroom->levelClass?->name,
-            'schoolyear' => $activeClassroom->schoolyear?->name,
+            'id' => $classroom->id,
+            'name' => $classroom->name,
+            'school_year' => $classroom->schoolYear?->name,
         ];
     }
 
-    private function getRfidData()
+    private function rfidData(): ?array
     {
-        if ($this->relationLoaded('rfid') && $this->rfid) {
-            return [
-                'id' => $this->rfid->id,
-                'rfid' => $this->rfid->rfid,
-            ];
+        if (!$this->relationLoaded('rfid') || !$this->rfid) {
+            return null;
         }
 
-        return ['message' => 'Siswa belum memiliki kartu RFID'];
+        return [
+            'id' => $this->rfid->id,
+            'code' => $this->rfid->rfid,
+        ];
     }
 }

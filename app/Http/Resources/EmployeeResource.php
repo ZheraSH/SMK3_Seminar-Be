@@ -12,27 +12,34 @@ class EmployeeResource extends JsonResource
 
     public function toArray($request): array
     {
-        $user = $this->user;
-
         return [
             'id' => $this->id,
-            'name' => $user?->name,
-            'email' => $user?->email,
+            'name' => $this->user?->name,
+            'email' => $this->user?->email,
             'image' => $this->resolveImageUrl($this->image),
-            'gender_value' => $this->gender?->value,
-            'gender_label' => $this->gender?->label(),
             'phone_number' => $this->phone_number,
-            'religion' => $this->religion?->name,
-            'NIP' => $this->NIP,
-            'NIK' => $this->NIK,
-            'birth_place' => $this->birth_place,
-            'birth_date' => $this->birth_date,
             'address' => $this->address,
-            'roles' => $user?->roles?->map(fn ($role) => [
+            'nip' => $this->NIP,
+            'nik' => $this->NIK,
+            'gender' => $this->gender ? [
+                'value' => $this->gender->value,
+                'label' => $this->gender->label(),
+            ] : null,
+            'religion' => $this->religion ? [
+                'id' => $this->religion->id,
+                'name' => $this->religion->name,
+            ] : null,
+            'birth' => [
+                'place' => $this->birth_place,
+                'date' => $this->birth_date,
+            ],
+            'roles' => $this->user?->roles?->map(fn ($role) => [
                 'value' => $role->name,
                 'label' => RoleEnum::tryFrom($role->name)?->label() ?? $role->name,
-            ]),
-            'subjects' => SubjectResource::collection($this->whenLoaded('subjects')),
+            ])->values(),
+            'subjects' => SubjectResource::collection(
+                $this->whenLoaded('subjects')
+            ),
         ];
     }
 }
