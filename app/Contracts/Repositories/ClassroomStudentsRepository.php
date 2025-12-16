@@ -58,10 +58,10 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
                 'classroom.teacher.user'
             ])
             ->latest()
-            ->paginate(12);
+            ->paginate(8);
     }
 
-    public function search(Request $request, int $pagination = 12): LengthAwarePaginator
+    public function search(Request $request, int $pagination = 8): LengthAwarePaginator
     {
         $query = $this->model->query()
             ->with([
@@ -130,7 +130,7 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             ->where('classroom_id', $classroomId)
             ->where('status', StudentStatusEnum::ACTIVE->value);
 
-        return $query->latest()->paginate($request->limit ?? 12);
+        return $query->latest()->paginate($request->limit ?? 8);
     }
 
     public function getByClassroomForAttendance(string $classroomId, Request $request = null): LengthAwarePaginator
@@ -157,7 +157,7 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             });
         }
 
-        return $query->latest()->paginate(12);
+        return $query->latest()->paginate(10);
     }
     public function getByClassroomPaginated(string $classroomId, Request $request = null): LengthAwarePaginator
     {
@@ -187,7 +187,7 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             });
         }
 
-        return $query->latest()->paginate(12);
+        return $query->latest()->paginate(8);
     }
 
     public function getByStudentAndClassroom(string $studentId, string $classroomId): mixed
@@ -207,7 +207,6 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             ->where('status', StudentStatusEnum::ACTIVE->value)
             ->count();
     }
-
     public function getLatestByStudent(string $studentId)
     {
         return $this->model->where('student_id', $studentId)
@@ -216,12 +215,4 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             ->with(['classroom.levelClass', 'classroom.major'])
             ->first();
     }
-    
-    // public function getTeacherInfo(string $teacherId)
-    // {
-    //     return \App\Models\Classroom::where('teacher_id', $teacherId)
-    //         ->with(['major','levelClass','schoolYear','teacher.user'])
-    //         ->first();
-    // }
-
 }
