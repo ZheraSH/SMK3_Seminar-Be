@@ -112,7 +112,7 @@ class TeacherAttendanceService
             'sick' => $summary['sick'],
             'has_submitted' => $hasSubmitted,
             'submitted_at' => $submittedAt,
-            'can_resubmit' => true,
+            'can_resubmit' => $this->canResubmitData($date),
         ];
     }
 
@@ -147,11 +147,16 @@ class TeacherAttendanceService
             $hasExistingSubmission = $existingCrossCheck['has_submitted'];
 
             $currentTime = Carbon::now('Asia/Jakarta');
+            if (!$this->canResubmitData($data['date'])) {
+                if (Carbon::parse($data['date'])->isFuture()) {
+                    throw new \Exception('Periode cross-check belum dibuka.');
+                }
+                throw new \Exception('Data sudah terkunci dan tidak dapat diubah.'); 
+            }
             $this->validateSubmissionTime($schedule, $hasExistingSubmission, $currentTime);
 
             if ($hasExistingSubmission) {
-                $data['date'] = $currentTime->format('Y-m-d');
-                $day = $this->getDayFromDate($data['date']);
+                $day = $this->getDayFromDate($data['date']); 
                 $this->validateTeacherSchedule($teacherId, $data['classroom_id'], $day, $data['lesson_order']);
             }
 
@@ -322,5 +327,23 @@ class TeacherAttendanceService
             'has_submitted' => $hasSubmitted,
             'submitted_at' => $submittedAt,
         ];
+    }
+    private function canResubmitData(string $dataDate): bool
+    {
+        $currentTime = Carbon::now('Asia/Jakarta');
+        $targetDate = Carbon::parse($dataDate, 'Asia/Jakarta')->startOfDay();
+        $today = $currentTime->startOfDay();
+
+        if ($targetDate->greaterThan($today)) {
+            return false;
+        }
+
+        if ($targetDate->equalTo($today)) {
+            return true; 
+        }
+
+        $deadline = $targetDate->endOfDay();
+
+        return $currentTime->lessThanOrEqualTo($deadline);
     }
 }
