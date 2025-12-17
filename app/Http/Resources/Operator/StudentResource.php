@@ -14,19 +14,20 @@ class StudentResource extends JsonResource
 
     public function toArray(Request $request): array
     {
-        $user = $this->user;
-
         return [
             'id' => $this->id,
-            'name' => $user?->name,
-            'email' => $user?->email,
+            'name' => $this->user?->name,
+            'email' => $this->user?->email,
             'image' => $this->resolveImageUrl($this->image),
             'nisn' => $this->nisn,
             'gender' => [
                 'value' => $this->getEnumValue($this->gender),
                 'label' => $this->getEnumLabel($this->gender),
             ],
-            'religion' => $this->religion?->name,
+            'religion' => [
+                'id' => $this->religion?->id,
+                'name' => $this->religion?->name,
+            ],
             'birth_date' => $this->birth_date,
             'birth_place' => $this->birth_place,
             'number_kk' => $this->number_kk,

@@ -13,25 +13,26 @@ class EmployeeResource extends JsonResource
 
     public function toArray($request): array
     {
-        $user = $this->user;
-
         return [
             'id' => $this->id,
-            'name' => $user?->name,
-            'email' => $user?->email,
+            'name' => $this->user?->name,
+            'email' => $this->user?->email,
             'image' => $this->resolveImageUrl($this->image),
             'gender' => [
                 'value' => $this->getEnumValue($this->gender),
                 'label' => $this->getEnumLabel($this->gender),
             ],
             'phone_number' => $this->phone_number,
-            'religion' => $this->religion?->name,
+            'religion' => [
+                'id' => $this->religion?->id,
+                'name' => $this->religion?->name,
+            ],
             'nip' => $this->nip,
             'nik' => $this->nik,
             'birth_place' => $this->birth_place,
             'birth_date' => $this->birth_date,
             'address' => $this->address,
-            'roles' => $user?->roles?->map(fn ($role) => [
+            'roles' => $this->user?->roles?->map(fn ($role) => [
                 'value' => $role->name,
                 'label' => RoleEnum::tryFrom($role->name)?->label() ?? $role->name,
             ]),
