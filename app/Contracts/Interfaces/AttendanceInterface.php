@@ -26,5 +26,8 @@ interface AttendanceInterface extends GetInterface, StoreInterface, UpdateInterf
     public function getTopAlphaStudents(string $date, array $filters = [], int $limit = 5);
     public function countByStatusOnDate(string $date, array $filters = []): array;
     public function totalStudents(array $filters = []): int;
+    public function getTodayAttendanceByTeacher(string $teacherId, $date);
+    public function getAttendanceByTeacherRange(string $teacherId, $start, $end);
+    public function getSummaryByTeacher(string $teacherId): array;
 
 }

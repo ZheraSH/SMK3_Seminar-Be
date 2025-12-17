@@ -269,4 +269,52 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
             'alpha'   => (clone $query)->where('status', AttendanceStatusEnum::ALPHA->value)->count(),
         ];
     }
+
+    public function getTodayAttendanceByTeacher(string $teacherId, $date)
+    {
+        return $this->model->query()
+            ->with(['student.user'])
+            ->whereDate('date', $date)
+            ->whereHas('student.classroomStudents.classroom', function ($q) use ($teacherId) {
+                $q->where('teacher_id', $teacherId);
+            })
+            ->orderBy('lesson_order')
+            ->get();
+    }
+
+    public function getAttendanceByTeacherRange(string $teacherId, $start, $end)
+    {
+        $att = $this->model->query()
+            ->whereBetween('created_at', [$start, $end])
+            ->whereHas('student.classroomStudents.classroom', function ($q) use ($teacherId) {
+                $q->where('teacher_id', $teacherId);
+            });
+
+        return [
+            'total'   => $att->count(),
+            'present' => $att->where('status', 'hadir')->count(),
+            'sick'    => $att->where('status', 'sakit')->count(),
+            'leave'   => $att->where('status', 'izin')->count(),
+            'alpha'   => $att->where('status', 'alpha')->count(),
+        ];
+    }
+    
+   public function getSummaryByTeacher(string $teacherId): array
+{
+    $base = $this->model
+        ->join('students', 'attendances.student_id', '=', 'students.id')
+        ->join('classroom_students', 'students.id', '=', 'classroom_students.student_id')
+        ->join('classrooms', 'classroom_students.classroom_id', '=', 'classrooms.id')
+        ->where('classrooms.teacher_id', $teacherId);
+
+    return [
+        'present' => (clone $base)->where('attendances.status', AttendanceStatusEnum::PRESENT->value)->count(),
+        'sick'    => (clone $base)->where('attendances.status', AttendanceStatusEnum::SICK->value)->count(),
+        'izin'    => (clone $base)->where('attendances.status', AttendanceStatusEnum::LEAVE->value)->count(),
+        'alpha'   => (clone $base)->where('attendances.status', AttendanceStatusEnum::ALPHA->value)->count(),
+    ];
+}
+
+
+
 }

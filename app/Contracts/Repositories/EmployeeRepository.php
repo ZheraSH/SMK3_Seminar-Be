@@ -99,4 +99,11 @@ class EmployeeRepository extends BaseRepository implements EmployeeInterface
             })
             ->count();
     }
+
+    public function getByUserId(string $userId): ?Employee
+        {
+            return $this->model
+                ->where('user_id', $userId)
+                ->first();
+        }
 }

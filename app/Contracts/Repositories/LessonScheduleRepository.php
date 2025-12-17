@@ -183,4 +183,40 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
             ->get();
     }
 
+    public function getTodayTeacherSchedule(string $teacherId, string $day)
+    {
+        return $this->model->query()
+            ->with(['classroom.major','classroom.levelClass','lessonHour','subject'])
+            ->where('employee_id', $teacherId)
+            ->where('lesson_schedules.day', $day)
+            ->join('lesson_hours', 'lesson_schedules.lesson_hour_id', '=', 'lesson_hours.id')
+            ->where('lesson_hours.is_lesson', true)
+            ->orderBy('lesson_hours.start')
+            ->select('lesson_schedules.*')
+            ->get();
+    }
+
+    public function getTodayByTeacher(string $teacherId, string $day): Collection
+    {
+        return $this->model->query()
+            ->with([
+                'subject',
+                'classroom.major',
+                'classroom.levelClass',
+                'lessonHour'
+            ])
+            ->where('employee_id', $teacherId)
+            ->where('lesson_schedules.day', $day)
+            ->join(
+                'lesson_hours',
+                'lesson_schedules.lesson_hour_id',
+                '=',
+                'lesson_hours.id'
+            )
+            ->where('lesson_hours.is_lesson', true)
+            ->orderBy('lesson_hours.start')
+            ->select('lesson_schedules.*')
+            ->get();
+    }
+
 }

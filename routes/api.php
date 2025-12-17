@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Counselor\CounselorAttendancePermissionController;
 use App\Http\Controllers\Api\Counselor\CounselorDashboardController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\Homeroom_teacher\HomeroomTeacherSummaryClassController;
+use App\Http\Controllers\Api\Homeroom_teacher\HomeroomTeacherDashboardController;
 use App\Http\Controllers\Api\LessonHourController;
 use App\Http\Controllers\Api\LessonSchedulesController;
 use App\Http\Controllers\Api\LevelClassController;
@@ -211,7 +212,9 @@ Route::middleware(['auth:sanctum', 'role:homeroom_teacher'])->prefix('homeroom-t
         Route::get('weekly-attendance', 'getWeeklyAttendanceStatistics'); // weekly attendance
         Route::get('daily-attendance', 'getDailyStudentAttendance'); // daily attendance
     });
-});
+    Route::get('/dashboard', [HomeroomTeacherDashboardController::class, 'index']);   // detail harian
+    
+});         
 
 // Route::middleware(['auth:sanctum', 'role:curriculum_coordinator'])->group(function () {
     // Tambahkan routes untuk curriculum coordinator di sini

@@ -9,8 +9,11 @@ use App\Contracts\Interfaces\Eloquent\SearchInterface;
 use App\Contracts\Interfaces\Eloquent\ShowInterface;
 use App\Contracts\Interfaces\Eloquent\StoreInterface;
 use App\Contracts\Interfaces\Eloquent\UpdateInterface;
+use App\Models\Employee;
 
 interface EmployeeInterface extends GetInterface, StoreInterface, UpdateInterface, ShowInterface, DeleteInterface, PaginateInterface, SearchInterface
 {
     public function countByRoles(array $roles): int;
+    public function getByUserId(string $userId): ?Employee;
+
 }
