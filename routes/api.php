@@ -212,6 +212,7 @@ Route::middleware(['auth:sanctum', 'role:homeroom_teacher'])->prefix('homeroom-t
         Route::get('weekly-attendance', 'getWeeklyAttendanceStatistics'); // weekly attendance
         Route::get('daily-attendance', 'getDailyStudentAttendance'); // daily attendance
     });
+    // Dashboard wali kelas
     Route::get('/dashboard', [HomeroomTeacherDashboardController::class, 'index']);   // detail harian
     
 });         
