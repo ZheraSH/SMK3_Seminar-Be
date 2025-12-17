@@ -1,7 +1,7 @@
 <?php
-        
+
 namespace App\Contracts\Interfaces\Operator;
-        
+
 use App\Contracts\Interfaces\Eloquent\DeleteInterface;
 use App\Contracts\Interfaces\Eloquent\GetInterface;
 use App\Contracts\Interfaces\Eloquent\PaginateInterface;
@@ -11,8 +11,5 @@ use App\Contracts\Interfaces\Eloquent\UpdateInterface;
 
 interface SchoolYearInterface extends GetInterface, StoreInterface, UpdateInterface, ShowInterface, DeleteInterface, PaginateInterface
 {
-    public function active(): mixed;
-    public function latest(): mixed;
-    public function setActive($id): mixed;
-    public function unsetAll(): mixed;
+    // Define your methods here
 }

@@ -9,11 +9,9 @@ use App\Contracts\Interfaces\Eloquent\SearchInterface;
 use App\Contracts\Interfaces\Eloquent\ShowInterface;
 use App\Contracts\Interfaces\Eloquent\StoreInterface;
 use App\Contracts\Interfaces\Eloquent\UpdateInterface;
-use App\Contracts\Interfaces\Eloquent\GetActiveInterface;
 use App\Contracts\Interfaces\Eloquent\CountInterface;
 
-
-interface StudentInterface extends GetInterface, StoreInterface, UpdateInterface, ShowInterface, DeleteInterface, PaginateInterface, SearchInterface, GetActiveInterface, CountInterface
+interface StudentInterface extends GetInterface, StoreInterface, UpdateInterface, ShowInterface, DeleteInterface, PaginateInterface, SearchInterface, CountInterface
 {
     // Define your methods here
 }

@@ -105,35 +105,4 @@ class StudentRepository extends BaseRepository implements StudentInterface
     {
         return $this->model->count();
     }
-
-    public function countActiveStudents(): int
-    {
-        return $this->model
-            ->where('status', StudentStatusEnum::ACTIVE->value)
-            ->count();
-    }
-
-    public function getWithActiveClassrooms(): Collection
-    {
-        return $this->model->query()
-            ->with([
-                'user',
-                'religion',
-                'rfid',
-                'classroomStudents' => fn ($q) =>
-                    $q->where('status', StudentStatusEnum::ACTIVE->value)
-                      ->with(['classroom.major', 'classroom.schoolYear']),
-            ])
-            ->get();
-    }
-
-    public function findWithClassroom(string $id): Student
-    {
-        return $this->model->query()
-            ->with([
-                'classroomStudents.classroom.major',
-                'classroomStudents.classroom.schoolYear',
-            ])
-            ->findOrFail($id);
-    }
 }

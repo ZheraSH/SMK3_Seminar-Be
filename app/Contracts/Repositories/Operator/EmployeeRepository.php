@@ -84,12 +84,4 @@ class EmployeeRepository extends BaseRepository implements EmployeeInterface
     {
         return $this->model->count();
     }
-
-    public function countByRoles(array $roles): int
-    {
-        return $this->model
-            ->whereHas('user.roles', fn ($q) =>
-                $q->whereIn('name', $roles)
-            )->count();
-    }
 }

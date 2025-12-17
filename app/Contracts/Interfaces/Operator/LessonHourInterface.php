@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Contracts\Interfaces\Operator;
 
 use App\Contracts\Interfaces\Eloquent\DeleteInterface;
