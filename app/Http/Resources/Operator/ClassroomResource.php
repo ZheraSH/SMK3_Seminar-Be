@@ -23,7 +23,7 @@ class ClassroomResource extends JsonResource
                 'code' => $this->major->code,
             ] : null,
             'school_year' => $this->schoolYear?->name,
-            'homeroom_teacher' => $this->teacher?->user?->name,
+            'homeroom_teacher' => $this->homeroomTeacher?->user?->name,
             'total_students' => $this->whenLoaded(
                 'classroomStudents',
                 fn () => $this->activeStudentCount(),

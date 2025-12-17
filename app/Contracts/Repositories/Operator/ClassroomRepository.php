@@ -25,7 +25,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
             'major:id,name,code',
             'levelClass:id,name',
             'schoolYear:id,name',
-            'teacher.user:id,name',
+            'homeroomTeacher.user:id,name',
             'classroomStudents' => function($q) {
                 $q->where('status', StudentStatusEnum::ACTIVE->value)
                   ->with('student.user:id,name');
@@ -76,7 +76,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
                       ->orWhereHas('levelClass', fn ($l) =>
                           $l->where('name', 'like', "%{$request->search}%")
                       )
-                      ->orWhereHas('teacher.user', fn ($t) =>
+                      ->orWhereHas('homeroomTeacher.user', fn ($t) =>
                           $t->where('name', 'like', "%{$request->search}%")
                       );
                 });
@@ -115,7 +115,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
             ->with([
                 'lessonSchedules.lessonHour',
                 'lessonSchedules.subject',
-                'lessonSchedules.employee.user',
+                'lessonSchedules.teacher.user',
             ])
             ->get();
     }
@@ -126,7 +126,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
             ->with([
                 'lessonSchedules.lessonHour',
                 'lessonSchedules.subject',
-                'lessonSchedules.employee.user',
+                'lessonSchedules.teacher.user',
             ])
             ->findOrFail($id);
     }

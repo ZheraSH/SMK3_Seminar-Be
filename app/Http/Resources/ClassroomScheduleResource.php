@@ -3,7 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Enums\DayEnum;
-use App\Traits\FormatsTimeTrait;
+use App\Traits\Resources\FormatsTimeTrait;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ClassroomScheduleResource extends JsonResource
@@ -22,7 +22,7 @@ class ClassroomScheduleResource extends JsonResource
             'classroom' => [
                 'id' => $classroom->id,
                 'name' => $classroom->name,
-                'homeroom_teacher' => $classroom->employee?->user?->name,
+                'homeroom_teacher' => $classroom->homeroomTeacher?->user?->name,
                 'total_students' => $classroom->classroomStudents
                     ?->where('status', \App\Enums\StudentStatusEnum::ACTIVE)
                     ->count() ?? 0,
