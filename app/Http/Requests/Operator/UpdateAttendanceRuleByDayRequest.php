@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Operator;
 
-use App\Enums\DayEnum;
+use App\Http\Requests\ApiRequest;
 
 class UpdateAttendanceRuleByDayRequest extends ApiRequest
 {

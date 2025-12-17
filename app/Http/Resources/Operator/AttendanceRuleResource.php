@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Operator;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Helpers\TapHelper;
 
@@ -12,8 +11,10 @@ class AttendanceRuleResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'day' => $this->day,
-            'day_label' => $this->day?->label(),
+            'day' => [
+                'value'=> $this->day,
+                'label' => $this->day?->label(),
+            ],
             'checkin_start' => TapHelper::parseRuleTimeToCarbon($this->checkin_start)?->format('H:i:s'),
             'checkin_end' => TapHelper::parseRuleTimeToCarbon($this->checkin_end)?->format('H:i:s'),
             'checkout_start' => TapHelper::parseRuleTimeToCarbon($this->checkout_start)?->format('H:i:s'),

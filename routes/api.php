@@ -118,7 +118,7 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
         Route::post('day/{day}', 'updateByDay'); // update aturan absensi per hari
         Route::get('day/{day}', 'getByDay'); // aturan absensi hari tertentu
     });
-    Route::apiResource('attendance-rules', AttendanceRuleController::class)->only(['index','store']);
+    Route::apiResource('attendance-rules', AttendanceRuleController::class)->only(['store']);
     // RFID Management
     Route::prefix('rfids')->controller(RfidController::class)->group(function () {
         Route::get('available-students', 'availableStudents'); // list siswa yg belum punya kartu RFID

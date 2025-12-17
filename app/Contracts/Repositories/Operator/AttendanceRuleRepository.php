@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Contracts\Repositories;
+namespace App\Contracts\Repositories\Operator;
 
-use App\Contracts\Interfaces\AttendanceRuleInterface;
+use App\Contracts\Interfaces\Operator\AttendanceRuleInterface;
+use App\Contracts\Repositories\BaseRepository;
 use App\Models\AttendanceRule;
 
 class AttendanceRuleRepository extends BaseRepository implements AttendanceRuleInterface
