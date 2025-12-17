@@ -28,18 +28,14 @@ class SchoolService
     {
         $school = $this->schoolRepository->show($id);
 
-        if (isset($data['logo']) && $data['logo'] instanceof UploadedFile) {
-
-            if (!empty($school->logo) && $this->exist($school->logo)) {
-                $this->remove($school->logo);
-            }
-
-            $path = $this->upload(
+        if (
+            isset($data['logo']) &&
+            $data['logo'] instanceof UploadedFile
+        ) {
+            $data['logo'] = $this->upload(
                 UploadDiskEnum::LOGO->value,
                 $data['logo']
             );
-
-            $data['logo'] = $path;
         } else {
             $data = Arr::except($data, ['logo']);
         }

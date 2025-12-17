@@ -109,11 +109,6 @@ class StudentService
         return $this->studentRepository->search($request);
     }
 
-    public function countActiveStudents(): int
-    {
-        return $this->studentRepository->countActiveStudents();
-    }
-
     private function handleUpload(?string $oldFile, object $file): string
     {
         if ($oldFile) {
