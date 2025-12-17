@@ -15,15 +15,15 @@ class LessonScheduleSeeder extends Seeder
 {
     private const MAX_SUBJECTS_PER_TEACHER = 3;
     private const MAX_HOURS_PER_DAY = 6;
+    private const MIN_HOURS_PER_DAY = 2;
     private const FILL_RATE = 0.85;
-
-    private $teacherStats = [];
+    private const MAX_SAME_SUBJECT_PER_DAY = 2;
 
     public function run(): void
     {
         $classrooms = Classroom::with('levelClass')->get();
         $subjects = Subject::all();
-        
+
         $teachers = Employee::whereHas('user.roles', function($q) {
             $q->where('name', 'teacher');
         })->with('user')->get();
@@ -40,17 +40,17 @@ class LessonScheduleSeeder extends Seeder
             DayEnum::FRIDAY->value,
         ];
 
+        $teacherStats = [];
         foreach ($teachers as $teacher) {
-            $this->teacherStats[$teacher->id] = [
+            $teacherStats[$teacher->id] = [
                 'subjects' => [],
+                'daily_subjects' => [],
                 'daily_hours' => [],
                 'total_hours' => 0,
             ];
         }
 
         $schedulesCreated = 0;
-        $attempts = 0;
-        $maxAttempts = 10000;
 
         foreach ($classrooms as $classroom) {
             foreach ($days as $day) {
@@ -60,9 +60,6 @@ class LessonScheduleSeeder extends Seeder
                     ->get();
 
                 foreach ($lessonHours as $lessonHour) {
-                    $attempts++;
-                    if ($attempts > $maxAttempts) break 3;
-
                     if (rand(1, 100) > (self::FILL_RATE * 100)) {
                         continue;
                     }
@@ -72,6 +69,7 @@ class LessonScheduleSeeder extends Seeder
 
                     $teacher = $this->findAvailableTeacher(
                         $teachers, 
+                        $teacherStats,
                         $subject->id, 
                         $classroom->id, 
                         $day, 
@@ -90,11 +88,11 @@ class LessonScheduleSeeder extends Seeder
                             [
                                 'id' => Str::uuid(),
                                 'subject_id' => $subject->id,
-                                'teacher_id' => $teacher->id,
+                                'teacher_id' => $teacher->id, // Pastikan menggunakan teacher_id
                             ]
                         );
 
-                        $this->updateTeacherStats($teacher->id, $subject->id, $day);
+                        $this->updateTeacherStats($teacherStats, $teacher->id, $subject->id, $day);
                         $schedulesCreated++;
 
                     } catch (\Exception $e) {
@@ -108,7 +106,7 @@ class LessonScheduleSeeder extends Seeder
     private function selectSubjectForClassroom($subjects, $classroom)
     {
         $level = $classroom->levelClass->name;
-        
+
         $priorityMap = [
             'X' => ['Matematika', 'Bahasa Indonesia', 'Bahasa Inggris', 'Pend. Pancasila'],
             'XI' => ['Produktif PPLG', 'Matematika', 'Bahasa Inggris', 'PKK'],
@@ -116,74 +114,124 @@ class LessonScheduleSeeder extends Seeder
         ];
 
         $priorities = $priorityMap[$level] ?? [];
-        
+
         foreach ($priorities as $subjectName) {
             $subject = $subjects->firstWhere('name', $subjectName);
             if ($subject) return $subject;
         }
-        
+
         return $subjects->random();
     }
 
-    private function findAvailableTeacher($teachers, $subjectId, $classroomId, $day, $lessonHourId)
+    private function findAvailableTeacher($teachers, &$teacherStats, $subjectId, $classroomId, $day, $lessonHourId)
     {
         $availableTeachers = [];
         
         foreach ($teachers as $teacher) {
             $teacherId = $teacher->id;
-            $stats = $this->teacherStats[$teacherId];
-            
-            $hasConflict = LessonSchedule::where('teacher_id', $teacherId)
+            $stats = $teacherStats[$teacherId];
+
+            // Perbaiki query untuk menggunakan teacher_id
+            $hasTimeConflict = LessonSchedule::where('teacher_id', $teacherId)
                 ->where('day', $day)
                 ->where('lesson_hour_id', $lessonHourId)
                 ->exists();
-            
-            if ($hasConflict) continue;
-            
-            $hasSameClass = LessonSchedule::where('teacher_id', $teacherId)
+
+            if ($hasTimeConflict) {
+                continue;
+            }
+
+            // Perbaiki query untuk menggunakan teacher_id
+            $hasClassConflict = LessonSchedule::where('teacher_id', $teacherId)
                 ->where('classroom_id', $classroomId)
                 ->where('day', $day)
+                ->where('lesson_hour_id', $lessonHourId)
                 ->exists();
-            
-            if ($hasSameClass) continue;
-            
-            $subjectCount = count($stats['subjects']);
-            if ($subjectCount >= self::MAX_SUBJECTS_PER_TEACHER) {
-                if (!in_array($subjectId, $stats['subjects'])) continue;
+
+            if ($hasClassConflict) {
+                continue;
             }
-            
+
+            $differentSubjectCount = count($stats['subjects']);
+            if ($differentSubjectCount >= self::MAX_SUBJECTS_PER_TEACHER) {
+                if (!in_array($subjectId, $stats['subjects'])) {
+                    continue;
+                }
+            }
+
             $dailyHours = $stats['daily_hours'][$day] ?? 0;
-            if ($dailyHours >= self::MAX_HOURS_PER_DAY) continue;
-            
+            if ($dailyHours >= self::MAX_HOURS_PER_DAY) {
+                continue;
+            }
+
+            $sameSubjectTodayCount = 0;
+            if (isset($stats['daily_subjects'][$day])) {
+                foreach ($stats['daily_subjects'][$day] as $dailySubject) {
+                    if ($dailySubject === $subjectId) {
+                        $sameSubjectTodayCount++;
+                    }
+                }
+            }
+
+            if ($sameSubjectTodayCount >= self::MAX_SAME_SUBJECT_PER_DAY) {
+                continue;
+            }
+
             $priority = 0;
-            if (in_array($subjectId, $stats['subjects'])) $priority += 10;
-            if ($subjectCount < 2) $priority += 5;
-            if ($dailyHours < 3) $priority += 3;
-            
+
+            if (in_array($subjectId, $stats['subjects'])) {
+                $priority += 10;
+            }
+
+            if ($differentSubjectCount < 2) {
+                $priority += 5;
+            }
+
+            if ($dailyHours < 3) {
+                $priority += 3;
+            }
+
+            if ($sameSubjectTodayCount === 1) {
+                $priority += 2;
+            }
+
             $availableTeachers[$teacherId] = [
                 'teacher' => $teacher,
                 'priority' => $priority,
+                'subject_count' => $differentSubjectCount,
+                'daily_hours' => $dailyHours,
+                'same_subject_today' => $sameSubjectTodayCount,
             ];
         }
-        
-        if (empty($availableTeachers)) return null;
-        
+
+        if (empty($availableTeachers)) {
+            return null;
+        }
+
         uasort($availableTeachers, function($a, $b) {
+            if ($a['priority'] === $b['priority']) {
+                return $a['daily_hours'] <=> $b['daily_hours'];
+            }
             return $b['priority'] <=> $a['priority'];
         });
-        
+
         return reset($availableTeachers)['teacher'];
     }
 
-    private function updateTeacherStats($teacherId, $subjectId, $day)
+    private function updateTeacherStats(&$teacherStats, $teacherId, $subjectId, $day)
     {
-        if (!in_array($subjectId, $this->teacherStats[$teacherId]['subjects'])) {
-            $this->teacherStats[$teacherId]['subjects'][] = $subjectId;
+        if (!in_array($subjectId, $teacherStats[$teacherId]['subjects'])) {
+            $teacherStats[$teacherId]['subjects'][] = $subjectId;
         }
-        
-        $this->teacherStats[$teacherId]['daily_hours'][$day] = 
-            ($this->teacherStats[$teacherId]['daily_hours'][$day] ?? 0) + 1;
-        
-        $this->teacherStats[$teacherId]['total_hours']++;
+
+        if (!isset($teacherStats[$teacherId]['daily_subjects'][$day])) {
+            $teacherStats[$teacherId]['daily_subjects'][$day] = [];
+        }
+        $teacherStats[$teacherId]['daily_subjects'][$day][] = $subjectId;
+
+        $teacherStats[$teacherId]['daily_hours'][$day] = 
+            ($teacherStats[$teacherId]['daily_hours'][$day] ?? 0) + 1;
+
+        $teacherStats[$teacherId]['total_hours']++;
     }
 }
