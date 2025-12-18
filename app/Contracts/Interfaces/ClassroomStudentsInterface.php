@@ -20,6 +20,4 @@ interface ClassroomStudentsInterface extends GetInterface, StoreInterface, Updat
     public function countActiveByClassroom(string $classroomId): int;
     public function getLatestByStudent(string $studentId);
     public function count(): int;
-    public function getTeacherInfo(string $teacherId);
-
 }   
