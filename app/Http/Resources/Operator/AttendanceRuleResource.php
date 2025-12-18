@@ -2,18 +2,20 @@
 
 namespace App\Http\Resources\Operator;
 
+use App\Traits\Resources\HasEnumLabelsTrait;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Helpers\TapHelper;
 
 class AttendanceRuleResource extends JsonResource
 {
+    use HasEnumLabelsTrait;
     public function toArray($request): array
     {
         return [
             'id' => $this->id,
             'day' => [
-                'value'=> $this->day,
-                'label' => $this->day?->label(),
+                'value' => $this->getEnumValue($this->day),
+                'label' => $this->getEnumLabel($this->day),
             ],
             'checkin_start' => TapHelper::parseRuleTimeToCarbon($this->checkin_start)?->format('H:i:s'),
             'checkin_end' => TapHelper::parseRuleTimeToCarbon($this->checkin_end)?->format('H:i:s'),

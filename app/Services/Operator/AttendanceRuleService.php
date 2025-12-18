@@ -37,25 +37,33 @@ class AttendanceRuleService
         });
     }
 
-    public function updateOrCreateByDay(UpdateAttendanceRuleByDayRequest $request, string $day): AttendanceRule
+    public function updateByDay(UpdateAttendanceRuleByDayRequest $request, string $day): AttendanceRule
     {
         return DB::transaction(function () use ($request, $day) {
-
             $data = $request->validated();
-
-            if (!($data['is_holiday'] ?? false)) {
-                $this->validateTimeRanges($data);
-            }
-
             $existing = $this->attendanceRuleRepository->getByDay($day);
 
-            if ($existing) {
-                $this->attendanceRuleRepository->update($existing->id, $data);
-                return $existing->fresh();
+            if (!$existing) {
+                throw new Exception('Aturan kehadiran untuk hari tersebut tidak ditemukan');
             }
 
-            $data['day'] = $day;
-            return $this->attendanceRuleRepository->store($data);
+            if ($data['is_holiday'] ?? false) {
+                $data['checkin_start'] = null;
+                $data['checkin_end'] = null;
+                $data['checkout_start'] = null;
+                $data['checkout_end'] = null;
+            } else {
+
+                $this->validateTimeRanges($data);
+
+                if (empty($data['checkin_start']) || empty($data['checkin_end']) || 
+                    empty($data['checkout_start']) || empty($data['checkout_end'])) {
+                    throw new Exception('Semua field waktu harus diisi ketika bukan hari libur');
+                }
+            }
+
+            $this->attendanceRuleRepository->update($existing->id, $data);
+            return $existing->fresh();
         });
     }
 

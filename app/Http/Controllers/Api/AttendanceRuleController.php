@@ -37,8 +37,8 @@ class AttendanceRuleController extends Controller
     public function updateByDay(UpdateAttendanceRuleByDayRequest $request, string $day)
     {
         try {
-            $data = $this->attendanceRuleService->updateOrCreateByDay($request->validated(), $day);
-    
+            $data = $this->attendanceRuleService->updateByDay($request, $day);
+
             return ResponseHelper::success(
                 new AttendanceRuleResource($data),
                 'Data aturan kehadiran berhasil diperbarui'
@@ -47,7 +47,6 @@ class AttendanceRuleController extends Controller
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
-    
 
     public function getByDay(string $day)
     {
