@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\Operator;
 
 use App\Services\Operator\ClassroomStudentsService;
 use App\Http\Resources\Operator\ClassroomStudentsResource;

@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\Operator;
 
-use App\Enums\DayEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Operator\StoreAttendanceRuleRequest;
 use App\Http\Requests\Operator\UpdateAttendanceRuleByDayRequest;
