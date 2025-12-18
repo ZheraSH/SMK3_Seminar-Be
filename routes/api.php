@@ -107,7 +107,7 @@ Route::controller(LoginController::class)->group(function () {
     Route::apiResource('lesson-schedules', LessonSchedulesController::class)->except(['index','show']);
     // Attendance Rules
     Route::prefix('attendance-rules')->controller(AttendanceRuleController::class)->group(function () {
-        Route::post('day/{day}', 'updateByDay'); // update aturan absensi per hari
+        Route::put('day/{day}', 'updateByDay'); // update aturan absensi per hari
         Route::get('day/{day}', 'getByDay'); // aturan absensi hari tertentu
     });
     Route::apiResource('attendance-rules', AttendanceRuleController::class)->only(['index','store']);

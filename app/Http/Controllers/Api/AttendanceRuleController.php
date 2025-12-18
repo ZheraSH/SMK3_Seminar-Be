@@ -67,22 +67,14 @@ class AttendanceRuleController extends Controller
     public function updateByDay(UpdateAttendanceRuleByDayRequest $request, string $day)
     {
         try {
-            $validated = $request->validated();
-            $rule = $this->attendanceRuleService->updateOrCreateByDay($validated, $day);
-
-            $dayLabel = collect(DayEnum::cases())->firstWhere('value', $day)?->label() ?? $day;
-            $exists = $this->attendanceRuleService->getByDay($day);
-
-            $message = $exists
-                ? "Aturan kehadiran hari {$dayLabel} berhasil diperbarui"
-                : "Aturan kehadiran hari {$dayLabel} berhasil dibuat";
+            $data = $this->attendanceRuleService->updateByDay($request, $day);
 
             return ResponseHelper::success(
-                new AttendanceRuleResource($rule),
-                $message
+                new AttendanceRuleResource($data),
+                'Data aturan kehadiran berhasil diperbarui'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage() ?: 'Internal Server Error',$th->getCode() >= 400 ? $th->getCode() : 500);
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 }
