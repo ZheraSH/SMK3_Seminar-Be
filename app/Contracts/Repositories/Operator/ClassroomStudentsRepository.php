@@ -103,7 +103,7 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
                 $q->where('classroom_id', $classroomId)
                   ->where('status', StudentStatusEnum::ACTIVE->value);
             })
-            ->with('user:id,name,email');
+            ->with('user:id,name');
 
         if ($search) {
             $query->where(function ($q) use ($search) {

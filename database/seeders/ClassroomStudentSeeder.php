@@ -30,7 +30,7 @@ class ClassroomStudentSeeder extends Seeder
                 if ($studentIndex >= $students->count()) break;
 
                 $student = $students[$studentIndex];
-                
+
                 $classroomStudentData[] = [
                     'id' => Str::uuid(),
                     'classroom_id' => $classroom->id,
@@ -38,12 +38,9 @@ class ClassroomStudentSeeder extends Seeder
                     'status' => StudentStatusEnum::ACTIVE->value,
 
                 ];
-
                 $studentIndex++;
             }
         }
-
         ClassroomStudents::insert($classroomStudentData);
-        $this->command->info("Assigned {$studentIndex} students to classrooms");
     }
 }

@@ -11,7 +11,6 @@ use Carbon\Carbon;
 
 class AttendancePermissionSeeder extends Seeder
 {
-    // Konfigurasi jumlah izin per siswa - MUDAH DIUBAH!
     private const MIN_PERMISSIONS_PER_STUDENT = 1;
     private const MAX_PERMISSIONS_PER_STUDENT = 3;
 
@@ -52,8 +51,6 @@ class AttendancePermissionSeeder extends Seeder
                 $permissionsCreated++;
             }
         }
-
-        $this->command->info("Created {$permissionsCreated} attendance permissions");
     }
 
     private function randomStatus(): string

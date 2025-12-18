@@ -13,20 +13,18 @@ use Illuminate\Support\Str;
 class ClassroomSeeder extends Seeder
 {
     private const CLASSES_PER_LEVEL = 3;
-    private const TOTAL_CLASSES = 9; // 3 level × 3 kelas
+    private const TOTAL_CLASSES = 9;
 
     public function run(): void
     {
         $major = Major::where('code', 'PPLG')->first();
         $schoolYear = SchoolYear::where('active', true)->first();
         $levels = LevelClass::all();
-        
-        // Ambil SEMUA wali kelas (yang punya role homeroom_teacher)
+
         $homeroomTeachers = Employee::whereHas('user.roles', function($q) {
             $q->where('name', 'homeroom_teacher');
         })->get();
 
-        // Filter: hanya ambil yang belum jadi wali kelas
         $availableTeachers = [];
         foreach ($homeroomTeachers as $teacher) {
             $isAlreadyHomeroom = Classroom::where('homeroom_teacher_id', $teacher->id)->exists();
@@ -35,12 +33,11 @@ class ClassroomSeeder extends Seeder
             }
         }
 
-        // Jika tidak cukup wali kelas, tambahkan guru biasa
         if (count($availableTeachers) < self::TOTAL_CLASSES) {
             $regularTeachers = Employee::whereHas('user.roles', function($q) {
                 $q->where('name', 'teacher');
             })->whereDoesntHave('classroomsAsHomeroom')->get();
-            
+
             $availableTeachers = array_merge(
                 $availableTeachers,
                 $regularTeachers->slice(0, self::TOTAL_CLASSES - count($availableTeachers))->all()
@@ -52,19 +49,17 @@ class ClassroomSeeder extends Seeder
         foreach ($levels as $level) {
             for ($i = 1; $i <= self::CLASSES_PER_LEVEL; $i++) {
                 $className = "{$level->name} PPLG {$i}";
-                
+
                 if ($teacherIndex >= count($availableTeachers)) {
-                    // Tidak ada guru lagi, buat kelas tanpa wali kelas
                     $homeroomTeacherId = null;
                 } else {
                     $teacher = $availableTeachers[$teacherIndex];
                     $teacherIndex++;
-                    
-                    // Tambahkan role homeroom_teacher jika belum punya
+
                     if (!$teacher->user->hasRole('homeroom_teacher')) {
                         $teacher->user->assignRole('homeroom_teacher');
                     }
-                    
+
                     $homeroomTeacherId = $teacher->id;
                 }
 
