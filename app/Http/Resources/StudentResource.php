@@ -53,6 +53,8 @@ class StudentResource extends JsonResource
         return [
             'id' => $classroom->id,
             'name' => $classroom->name,
+            'major' => $classroom->major?->code,
+            'level_class' => $classroom->levelClass?->name,
             'school_year' => $classroom->schoolYear?->name,
         ];
     }
