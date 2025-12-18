@@ -2,109 +2,57 @@
 
 namespace App\Services\Auth;
 
-use App\Helpers\ResponseHelper;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Http\Resources\UserResource;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 
 class LoginService
 {
-    public function login(LoginRequest $request)
+    public function execute(LoginRequest $request): array
     {
         $credentials = $request->validated();
 
-        try {
-            $this->throttle($credentials['email']);
-            $user = $this->validateLocalCredentials($credentials);
+        $this->throttle($credentials['email']);
 
-            if (!$user) {
-                return ResponseHelper::error('Email atau password salah', 401);
-            }
+        $user = User::where('email', $credentials['email'])->first();
 
-            $token = $this->generateToken($user);
-
-            return ResponseHelper::success([
-                'user'  => new UserResource($user),
-                'role'  => optional($user->roles->first())->name,
-                'token' => $token,
-            ], 'Login berhasil');
-
-        } catch (\Exception $e) {
-
-            if ($e->getCode() == 429) {
-                return ResponseHelper::error($e->getMessage(), 429);
-            }
-
-            return ResponseHelper::error('Terjadi kesalahan saat login.', 500);
-        }
-    }
-
-    public function logout()
-    {
-        $user = Auth::user();
-
-        if (!$user) {
-            return ResponseHelper::error('User tidak terautentikasi', 401);
+        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+            throw new \Exception('Email atau password salah', 422);
         }
 
-        $user->currentAccessToken()->delete();
+        $user->load([
+            'roles:id,name',
+            'student:id,user_id,image',
+            'employee:id,user_id,image',
+        ]);
 
-        return ResponseHelper::success(null, 'Logout berhasil');
+        if ($user->roles->isEmpty()) {
+            throw new \Exception('Role user tidak ditemukan', 403);
+        }
+
+        $token = $this->generateToken($user);
+
+        return [
+            'user'  => $user,
+            'role'  => $user->roles->first()->name,
+            'token' => $token,
+        ];
     }
 
     private function throttle(string $email): void
     {
         $key = 'login_attempt:' . md5($email);
 
-        $attempts = Cache::get($key, 0);
+        Cache::add($key, 0, 30);
+        $attempts = Cache::increment($key);
 
-        if ($attempts >= 5) {
-            throw new \Exception('Terlalu banyak percobaan login. Coba lagi dalam 30 detik.', 429);
+        if ($attempts > 5) {
+            throw new \Exception(
+                'Terlalu banyak percobaan login. Coba lagi dalam 30 detik.',
+                429
+            );
         }
-
-        Cache::put($key, $attempts + 1, 30);
-    }
-
-    private function validateLocalCredentials(array $credentials): ?User
-    {
-        $user = $this->getUserByEmail($credentials['email']);
-
-        if (!$user) {
-            return null;
-        }
-
-        if (!$this->checkPassword($user, $credentials['password'])) {
-            return null;
-        }
-
-        $this->loadUserRelations($user);
-
-        if ($user->roles->isEmpty()) {
-            return null;
-        }
-
-        return $user;
-    }
-
-    private function getUserByEmail(string $email): ?User
-    {
-        return User::where('email', $email)->first();
-    }
-
-    private function checkPassword(User $user, string $password): bool
-    {
-        return password_verify($password, $user->password);
-    }
-
-    private function loadUserRelations(User $user): void
-    {
-        $user->load([
-            'roles:id,name',
-            'student:id,user_id,image,nisn',
-            'employee:id,user_id,image,nip'
-        ]);
     }
 
     private function generateToken(User $user): string

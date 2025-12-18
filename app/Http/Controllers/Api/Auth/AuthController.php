@@ -7,11 +7,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Http\Resources\Auth\LoginResource;
 use App\Services\Auth\LoginService;
 use App\Services\Auth\LogoutService;
 use App\Services\Auth\ChangePasswordService;
 use App\Services\Auth\ResetPasswordService;
-use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -19,7 +19,6 @@ class AuthController extends Controller
     private LogoutService $logoutService;
     private ChangePasswordService $changePasswordService;
     private ResetPasswordService $resetPasswordService;
-
     public function __construct(LoginService $loginService, LogoutService $logoutService, ChangePasswordService $changePasswordService, ResetPasswordService $resetPasswordService)
     {
         $this->loginService = $loginService;
@@ -31,36 +30,44 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
         try {
-            return $this->loginService->login($request);
-        } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
+            $result = $this->loginService->execute($request);
+    
+            return ResponseHelper::success(new LoginResource($result), 'Login berhasil');
+        } catch (\Throwable $e) {
+            return ResponseHelper::error($e->getMessage(), $e->getCode() ?: 400);
         }
-    }
+    }    
 
-    public function logout(Request $request)
+    public function logout()
     {
         try {
-            return $this->logoutService->logout();
-        } catch (\Throwable $th) {
-            return ResponseHelper::error('Logout gagal: ' . $th->getMessage(), 500);
+            $this->logoutService->execute();
+
+            return ResponseHelper::success(null, 'Logout berhasil');
+        } catch (\Throwable $e) {
+            return ResponseHelper::error($e->getMessage(), $e->getCode() ?: 400);
         }
     }
 
     public function changePassword(ChangePasswordRequest $request)
     {
         try {
-            return $this->changePasswordService->changePassword($request);
-        } catch (\Throwable $th) {
-            return ResponseHelper::error('Gagal mengubah password: ' . $th->getMessage(), 500);
+            $this->changePasswordService->execute($request);
+
+            return ResponseHelper::success(null, 'Password berhasil diubah');
+        } catch (\Throwable $e) {
+            return ResponseHelper::error($e->getMessage(), $e->getCode() ?: 400);
         }
     }
 
     public function resetPassword(ResetPasswordRequest $request)
     {
         try {
-            return $this->resetPasswordService->resetPassword($request);
-        } catch (\Throwable $th) {
-            return ResponseHelper::error('Gagal mereset password: ' . $th->getMessage(), 500);
+            $this->resetPasswordService->execute($request);
+
+            return ResponseHelper::success(null, 'Password berhasil direset');
+        } catch (\Throwable $e) {
+            return ResponseHelper::error($e->getMessage(), $e->getCode() ?: 400);
         }
     }
 }

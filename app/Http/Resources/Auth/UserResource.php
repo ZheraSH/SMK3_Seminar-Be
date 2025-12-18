@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Auth;
 
 use App\Enums\RoleEnum;
-use App\Traits\ResolvesImageUrlTrait;
+use App\Traits\Resources\ResolvesImageUrlTrait;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
