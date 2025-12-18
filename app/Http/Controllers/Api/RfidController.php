@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreRfidRequest;
-use App\Http\Requests\UpdateRfidRequest;
-use App\Http\Resources\RfidResource;
+use App\Http\Requests\Operator\StoreRfidRequest;
+use App\Http\Requests\Operator\UpdateRfidRequest;
+use App\Http\Resources\Operator\RfidResource;
+use App\Http\Resources\Operator\AvailableStudentResource;
+use App\Services\Operator\RfidService;
 use App\Models\Rfid;
-use App\Services\RfidService;
 use App\Helpers\ResponseHelper;
-use App\Http\Resources\AvailableStudentResource;
 use Illuminate\Http\Request;
 
 class RfidController extends Controller
@@ -29,10 +29,10 @@ class RfidController extends Controller
             return ResponseHelper::pagination(
                 $data, 
                 RfidResource::class, 
-                'Data RFID berhasil diambil'
+                'List data RFID berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
+            return ResponseHelper::notFound('List data RFID gagal diambil');
         }
     }
 
@@ -43,25 +43,11 @@ class RfidController extends Controller
 
             return ResponseHelper::success(
                 new RfidResource($data),
-                'RFID berhasil ditambahkan',
+                'Data RFID berhasil ditambahkan',
                 201
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
-        }
-    }
-
-    public function show(string $id)
-    {
-        try {
-            $data = $this->rfidService->show($id);
-
-            return ResponseHelper::success(
-                new RfidResource($data),
-                'Detail RFID berhasil diambil'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::error('Data RFID tidak ditemukan', 404);
         }
     }
 
@@ -72,7 +58,7 @@ class RfidController extends Controller
 
             return ResponseHelper::success(
                 new RfidResource($data),
-                'RFID berhasil diperbarui'
+                'Data RFID berhasil diperbarui'
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
@@ -86,14 +72,14 @@ class RfidController extends Controller
 
             return ResponseHelper::success(
                 null,
-                'RFID berhasil dihapus'
+                'Data RFID berhasil dihapus'
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 
-    public function availableStudents(Request $request)
+    public function getAvailableStudents(Request $request)
     {
         try {
             $data = $this->rfidService->getAvailableStudents($request);
@@ -103,35 +89,7 @@ class RfidController extends Controller
                 'Data siswa yang tersedia berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
-        }
-    }
-
-    public function used()
-    {
-        try {
-            $data = $this->rfidService->getUsedRfids();
-
-            return ResponseHelper::success(
-                RfidResource::collection($data),
-                'Data RFID terpakai berhasil diambil'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
-        }
-    }
-
-    public function notUsed()
-    {
-        try {
-            $data = $this->rfidService->getNotUsedRfids();
-
-            return ResponseHelper::success(
-                RfidResource::collection($data),
-                'Data RFID tidak terpakai berhasil diambil'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
+            return ResponseHelper::notFound('Data siswa yang tersedia berhasil diambil');
         }
     }
 }

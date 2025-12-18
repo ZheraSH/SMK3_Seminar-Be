@@ -10,41 +10,45 @@ use Illuminate\Support\Str;
 
 class RfidSeeder extends Seeder
 {
-    // Persentase siswa yang punya RFID - MUDAH DIUBAH!
-    private const RFID_PERCENTAGE = 50; // 50%
+    private const RFID_PERCENTAGE = 50;
 
     public function run(): void
     {
-        $students = Student::all();
+        $studentsQuery = Student::query()
+            ->whereDoesntHave('rfid');
 
-        if ($students->isEmpty()) {
-            $this->command->error('Students not found');
+        $totalStudents = $studentsQuery->count();
+
+        if ($totalStudents === 0) {
+            $this->command->warn('Tidak ada student tanpa RFID');
             return;
         }
 
-        $rfidCount = ceil(($students->count() * self::RFID_PERCENTAGE) / 100);
-        $selectedStudents = $students->random(min($rfidCount, $students->count()));
+        $rfidCount = (int) ceil($totalStudents * self::RFID_PERCENTAGE / 100);
 
-        foreach ($selectedStudents as $student) {
-            Rfid::firstOrCreate(
-                ['student_id' => $student->id],
-                [
-                    'id' => Str::uuid(),
-                    'rfid' => $this->generateUniqueRfid(),
-                    'status' => RfidStatusEnum::ACTIVE->value,
-                ]
-            );
+        $students = $studentsQuery
+            ->inRandomOrder()
+            ->limit($rfidCount)
+            ->get();
+
+        foreach ($students as $student) {
+            Rfid::create([
+                'id'         => (string) Str::uuid(),
+                'student_id' => $student->id,
+                'rfid'       => $this->generateUniqueRfid(),
+                'status'     => RfidStatusEnum::ACTIVE->value,
+            ]);
         }
-
-        $this->command->info("Created {$selectedStudents->count()} RFID cards");
     }
 
     private function generateUniqueRfid(): string
     {
         do {
-            $rfidNumber = mt_rand(1000000000, 9999999999);
-        } while (Rfid::where('rfid', $rfidNumber)->exists());
+            $rfidNumber = 'RF' . random_int(100000000, 999999999);
+        } while (
+            Rfid::where('rfid', $rfidNumber)->exists()
+        );
 
-        return (string) $rfidNumber;
+        return $rfidNumber;
     }
 }

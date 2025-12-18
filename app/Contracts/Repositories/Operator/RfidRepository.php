@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Contracts\Repositories;
+namespace App\Contracts\Repositories\Operator;
 
-use App\Contracts\Interfaces\RfidInterface;
+use App\Contracts\Interfaces\Operator\RfidInterface;
+use App\Contracts\Repositories\BaseRepository;
 use App\Enums\RfidStatusEnum;
-use App\Enums\StudentStatusEnum;
 use App\Models\Rfid;
 use App\Models\Student;
 use Illuminate\Http\Request;
@@ -49,10 +49,7 @@ class RfidRepository extends BaseRepository implements RfidInterface
 
     public function paginate(): LengthAwarePaginator
     {
-        return $this->model->query()
-            ->with(['student.user'])
-            ->latest()
-            ->paginate(10);
+        return $this->model->query()->with(['student.user'])->latest()->paginate(10);
     }
 
     public function search(Request $request, int $pagination = 10): LengthAwarePaginator
@@ -69,28 +66,31 @@ class RfidRepository extends BaseRepository implements RfidInterface
             ->paginate($pagination);
     }
 
-    public function getAvailableStudents(Request $request): Collection
+    public function count(): int
     {
-        $search = $request->query('search');
-        $limit = $request->query('limit', 10);
+        return $this->model->query()->count();
+    }
 
-        $query = Student::where('status', StudentStatusEnum::ACTIVE->value)
-            ->whereDoesntHave('rfid', function($q) {
-                $q->where('status', RfidStatusEnum::ACTIVE->value);
+    public function getAvailableStudents(string $search = null, int $limit = 10): Collection
+    {
+        return Student::query()
+            ->whereDoesntHave('rfid')
+            ->when($search, function ($query) use ($search) {
+                $query->whereHas('user', function ($u) use ($search) {
+                    $u->where('name', 'like', "%{$search}%");
+                });
             })
-            ->with(['user', 'classroomStudents.classroom.major', 'classroomStudents.classroom.levelClass']);
+            ->with('user')
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get();
+    }    
 
-        if ($search) {
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('nis', 'like', "%{$search}%")
-                  ->orWhere('nisn', 'like', "%{$search}%")
-                  ->orWhereHas('user', function($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%");
-                  });
-            });
-        }
-        return $query->limit($limit)->get();
+    public function getByRfidNumber(string $rfid): ?Rfid
+    {
+        return $this->model->query()
+            ->where('rfid', $rfid)
+            ->first();
     }
 
     public function getByStudentId(string $studentId): ?Rfid
@@ -100,36 +100,12 @@ class RfidRepository extends BaseRepository implements RfidInterface
             ->first();
     }
 
-    public function getByRfidNumber(string $rfid): ?Rfid
+    public function getActiveByRfidNumber(string $rfid): ?Rfid
     {
         return $this->model->query()
             ->with(['student.user'])
             ->where('rfid', $rfid)
-            ->first();
-    }
-
-    public function used(): Collection
-    {
-        return $this->model->query()
-            ->with(['student.user'])
             ->where('status', RfidStatusEnum::ACTIVE->value)
-            ->whereNotNull('student_id')
-            ->get();
-    }
-
-    public function notUsed(): Collection
-    {
-        return $this->model->query()
-            ->with(['student.user'])
-            ->where(function($query) {
-                $query->where('status', RfidStatusEnum::INACTIVE->value)
-                      ->orWhereNull('student_id');
-            })
-            ->get();
-    }
-
-    public function count(): int
-    {
-        return $this->model->query()->count();
-    }
+            ->first();
+    }    
 }

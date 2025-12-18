@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Operator;
 
 use Illuminate\Validation\Rule;
 use App\Enums\RfidStatusEnum;
+use App\Http\Requests\ApiRequest;
 
 class UpdateRfidRequest extends ApiRequest
 {
