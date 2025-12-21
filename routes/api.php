@@ -17,11 +17,9 @@ use App\Http\Controllers\Api\Operator\LessonHourController;
 use App\Http\Controllers\Api\Operator\LessonSchedulesController;
 use App\Http\Controllers\Api\Operator\AttendanceRuleController;
 use App\Http\Controllers\Api\Operator\RfidController;
-use App\Http\Controllers\Api\RfidTapController;
-use App\Http\Controllers\Api\OperatorDashboardController;
-use App\Http\Controllers\Api\Student\StudentClassroomController;
-use App\Http\Controllers\Api\Student\StudentAttendanceHistoryController;
-use App\Http\Controllers\Api\Student\StudentLessonScheduleController;
+use App\Http\Controllers\Api\Operator\RfidTapController;
+use App\Http\Controllers\Api\Operator\OperatorDashboardController;
+use App\Http\Controllers\Api\Student\StudentsController;
 use App\Http\Controllers\Api\Student\StudentAttendancePermissionController;
 use App\Http\Controllers\Api\Student\StudentDashboardController;
 use App\Http\Controllers\Api\Teacher\TeacherScheduleController;
@@ -61,9 +59,10 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
 
     //Dashboard
     Route::prefix('dashboard')->controller(OperatorDashboardController::class)->group(function () {
-        Route::get('counters', 'getMaster'); //total siswa/guru/kelas/attendance
-        Route::get('activities', 'getRfidTap'); //kegiatan tap RFID terbaru
-        Route::get('stats', 'getStatistics'); //statistik absen mingguan
+        Route::get('counters', 'getCounter'); //total siswa/guru/kelas/attendance
+        Route::get('tap-history', 'getRfidHistory'); //kegiatan tap RFID terbaru
+        Route::get('statistic-today', 'getStatisticsDay'); //statistik absen harian
+        Route::get('statistic-monthly', 'getStatisticsMonthly'); //statistik absen bulanan
     });
     //school Informations
     Route::apiResource('school-information', SchoolController::class)->only('index');
@@ -135,15 +134,11 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
 | Akses hanya untuk siswa
 */
 Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(function () {
-    // Student Dashboard
-    Route::get('dashboard', [StudentDashboardController::class, 'index']);
-    //classroom info
-    Route::get('classroom-info', [StudentClassroomController::class, 'getClassroomInfo']);
-    // Student Attendance History
-    Route::get('attendance-history', [StudentAttendanceHistoryController::class, 'index']);
-    // jadwal pelajaran siswa
-    Route::get('lesson-schedule', [StudentLessonScheduleController::class, 'getSchedule']);
-    // izin tidak masuk siswa
+    Route::get('dashboard', [StudentDashboardController::class, 'index']); // Dashboard Siswa
+    Route::get('classroom-info', [StudentsController::class, 'getStudentClassroom']); // Kelas Siswa
+    Route::get('attendance-history', [StudentsController::class, 'getStudentHistory']); // History Absensi Rfid Siswa
+    Route::get('lesson-schedule/{day}', [StudentsController::class, 'getStudentSchedule']);// Jadwal Pelajaran Siswa
+    // izin siswa
     Route::apiResource('attendance-permissions', StudentAttendancePermissionController::class)->except(['update']);
 });
 
