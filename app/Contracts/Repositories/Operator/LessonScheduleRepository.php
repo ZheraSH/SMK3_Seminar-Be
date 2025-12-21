@@ -16,9 +16,6 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
         $this->model = $lessonSchedule;
     }
 
-    /**
-     * Base query for lesson schedules
-     */
     protected function baseQuery(): Builder
     {
         return $this->model->query()

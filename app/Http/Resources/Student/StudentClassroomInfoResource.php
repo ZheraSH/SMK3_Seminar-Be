@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Student;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -14,24 +14,19 @@ class StudentClassroomInfoResource extends JsonResource
         $classmates = $this->resource['classmates'];
 
         return [
-            'student' => [
-                'id' => $student->id,
-                'name' => $student->user->name ?? null,
-                'image' => $student->image ? asset('storage/' . $student->image) : null,
-            ],
             'classroom' => [
                 'id' => $classroom->id,
                 'name' => $classroom->name,
                 'school_year' => $classroom->schoolYear->name ?? null,
-                'homeroom_teacher' => $classroom->teacher ? [
-                    'id' => $classroom->teacher->id,
-                    'name' => $classroom->teacher->user->name ?? null,
-                    'image' => $classroom->teacher->image ? asset('storage/' . $classroom->teacher->image) : null,
+                'homeroom_teacher' => $classroom->HomeroomTeacher ? [
+                    'id' => $classroom->HomeroomTeacher->id,
+                    'name' => $classroom->HomeroomTeacher->user->name ?? null,
+                    'image' => $classroom->HomeroomTeacher->image ? asset('storage/' . $classroom->HomeroomTeacher->image) : null,
                 ] : null,
                 'total_students' => $classroom->classroom_students_count ?? 0,
             ],
             'classmates' => [
-                'data' => $classmates->map(function ($classroomStudent) {
+                'Students' => $classmates->map(function ($classroomStudent) {
                     return [
                         'id' => $classroomStudent->student->id ?? null,
                         'name' => $classroomStudent->student->user->name ?? null,

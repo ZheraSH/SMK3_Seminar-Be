@@ -60,10 +60,13 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
         return $this->baseQuery()->paginate(10);
     }
 
-    public function count(): int
+    public function countByClassroom(string $classroomId): int
     {
-        return $this->model->count();
-    }
+        return $this->model
+            ->where('classroom_id', $classroomId)
+            ->where('status', StudentStatusEnum::ACTIVE->value)
+            ->count();
+    }    
 
     public function getByClassroom(string $classroomId, Request $request = null): mixed
     {

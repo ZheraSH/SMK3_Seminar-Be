@@ -52,6 +52,25 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
         return $this->model->where('name', 'LIKE', '%' . $request->search . '%')->get();
     }
 
+    //Student Attendance
+    public function getStudentHistory(string $studentId, int $perPage = 10): LengthAwarePaginator
+    {
+        return $this->model
+            ->where('student_id', $studentId)
+            ->where('attendance_type', 'rfid')
+            ->selectRaw('
+                date,
+                MIN(checkin_time) as checkin_time,
+                MAX(checkout_time) as checkout_time,
+                MIN(status) as status
+            ')
+            ->groupBy('date')
+            ->orderByDesc('date')
+            ->paginate($perPage);
+    }    
+
+    //Student close
+
     public function getByStudentAndDate(string $studentId, string $date): mixed
     {
         return $this->model
@@ -132,12 +151,6 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
             ->orderBy('date')
             ->orderBy('lesson_order')
             ->get();
-    }
-    public function getHistoryByStudentId($studentId, $perPage = 15)
-    {
-        return Attendance::where('student_id', $studentId)
-            ->orderBy('date', 'DESC')
-            ->paginate($perPage);
     }
 
     public function getSummary(string $studentId): array

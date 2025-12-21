@@ -4,7 +4,6 @@ namespace App\Contracts\Repositories\Operator;
 
 use App\Contracts\Interfaces\Operator\StudentInterface;
 use App\Contracts\Repositories\BaseRepository;
-use App\Enums\StudentStatusEnum;
 use App\Models\Student;
 use App\Traits\PaginationTrait;
 use Illuminate\Database\Eloquent\Collection;
@@ -105,4 +104,83 @@ class StudentRepository extends BaseRepository implements StudentInterface
     {
         return $this->model->count();
     }
+
+    //Student
+    public function getStudentActiveClassroom(string $studentId)
+    {
+        $classroomStudent = $this->model
+            ->where('id', $studentId)
+            ->whereHas('classroomStudents', function ($q) {
+                $q->where('status', 'active');
+            })
+            ->with([
+                'classroomStudents' => function ($q) {
+                    $q->where('status', 'active')
+                      ->with([
+                          'classroom' => function ($c) {
+                              $c->with([
+                                  'major',
+                                  'schoolYear',
+                              ]);
+                          }
+                      ]);
+                }
+            ])
+            ->firstOrFail()
+            ->classroomStudents
+            ->first();
+
+        return $classroomStudent->classroom;
+    }
+
+    public function getClassroomInfo(string $studentId, int $perPage = 12): array
+    {
+        $student = $this->model
+            ->with([
+                'user:id,name',
+                'classroomStudents' => function ($q) {
+                    $q->where('status', 'active')
+                      ->with([
+                          'classroom' => function ($c) {
+                              $c->with([
+                                  'major',
+                                  'schoolYear',
+                                  'homeroomTeacher.user:id,name',
+                              ])
+                              ->withCount([
+                                  'classroomStudents as classroom_students_count' => function ($cs) {
+                                      $cs->where('status', 'active');
+                                  }
+                              ]);
+                          }
+                      ]);
+                }
+            ])
+            ->findOrFail($studentId);
+
+        $classroomStudent = $student->classroomStudents->first();
+
+        if (!$classroomStudent || !$classroomStudent->classroom) {
+            throw new \Exception('Student is not assigned to any active classroom', 404);
+        }
+
+        $classroom = $classroomStudent->classroom;
+
+        $classmates = $classroom->classroomStudents()
+            ->where('status', 'active')
+            ->where('student_id', '!=', $student->id)
+            ->with([
+                'student:id,nisn,user_id,image',
+                'student.user:id,name'
+            ])
+            ->paginate($perPage);
+
+        return [
+            'student'    => $student,
+            'classroom'  => $classroom,
+            'classmates' => $classmates
+        ];
+    }    
+
+    //Student Close
 }
