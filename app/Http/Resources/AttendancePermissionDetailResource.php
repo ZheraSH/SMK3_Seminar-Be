@@ -3,7 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Enums\StudentStatusEnum;
-use App\Traits\ResolvesImageUrlTrait;
+use App\Traits\Resources\ResolvesImageUrlTrait;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class AttendancePermissionDetailResource extends JsonResource
