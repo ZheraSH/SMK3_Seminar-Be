@@ -134,13 +134,10 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
 */
 Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(function () {
     //Dashboard
-    // Route::prefix('dashboard')->controller(StudentDashboardController::class)->group(function () {
-    //     Route::get('header', 'header');
-    //     Route::get('attendance-summary', 'attendanceSummary');
-    //     Route::get('today-schedule', 'todaySchedule');
-    //     Route::get('latest-permissions', 'latestPermissions');
-    //     Route::get('attendance-monthly', 'attendanceMonthly');
-    // });
+    Route::prefix('dashboard')->controller(StudentDashboardController::class)->group(function () {
+        Route::get('attendance-summary', 'attendanceSummary');
+        Route::get('attendance-monthly', 'attendanceMonthly');
+    });
     Route::get('classroom-info', [StudentsController::class, 'getStudentClassroom']); // Kelas Siswa
     Route::get('attendance-history', [StudentsController::class, 'getStudentHistory']); // History Absensi Rfid Siswa
     Route::get('lesson-schedule/{day}', [StudentsController::class, 'getStudentSchedule']);// Jadwal Pelajaran Siswa

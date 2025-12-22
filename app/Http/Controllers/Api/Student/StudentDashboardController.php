@@ -2,47 +2,50 @@
 
 namespace App\Http\Controllers\Api\Student;
 
-use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Services\StudentDashboardService;
-use Illuminate\Http\Request;
+use App\Services\Student\StudentDashboardService;
+use App\Http\Resources\Student\Dashboard\StudentAttendanceSummaryResource;
+use App\Http\Resources\Student\Dashboard\StudentAttendanceMonthlyResource;
+use App\Helpers\ResponseHelper;
 
 class StudentDashboardController extends Controller
 {
-    public function __construct(
-        private StudentDashboardService $service
-    ) {}
+    private StudentDashboardService $studentDashboardService;
 
-    public function index(Request $request)
+    public function __construct(StudentDashboardService $studentDashboardService)
     {
-        try {
-            $user = auth()->user();
-
-            if (!$user->student) {
-                return ResponseHelper::success(null, 'Tidak ada data siswa', 200);
-            }
-
-            $studentId = $user->student->id;
-
-            $data = $this->service->getDashboardData($studentId);
-
-            return ResponseHelper::success($data, 'Dashboard berhasil dimuat', 200);
-
-        } catch (\Throwable $th) {
-            return ResponseHelper::error(
-                'Gagal memuat dashboard: ' . $th->getMessage(),
-                500,
-                null
-            );
-        }   
+        $this->studentDashboardService = $studentDashboardService;
     }
 
-        public function approve($id)
+    public function attendanceSummary()
     {
-        $permission = $this->permissionRepo->show($id);
+        try {
+            $studentId = auth()->user()->student->id;
 
-        $this->service->approvePermission($permission);
+            $data = $this->studentDashboardService->getAttendanceSummary($studentId);
 
-        return ResponseHelper::success("Berhasil Approve Izin");
+            return ResponseHelper::success(
+                new StudentAttendanceSummaryResource($data),
+                'Ringkasan absensi'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
+        }
+    }
+
+    public function attendanceMonthly()
+    {
+        try {
+            $studentId = auth()->user()->student->id;
+
+            $data = $this->studentDashboardService->getMonthlyAttendance($studentId);
+
+            return ResponseHelper::success(
+                StudentAttendanceMonthlyResource::collection($data),
+                'Statistik absensi bulanan'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
+        }
     }
 }

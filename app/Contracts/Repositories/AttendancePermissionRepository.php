@@ -3,6 +3,7 @@
 namespace App\Contracts\Repositories;
 
 use App\Contracts\Interfaces\AttendanceInterface;
+use App\Enums\PermissionStatusEnum;
 use App\Models\AttendancePermission;
 use App\Traits\PaginationTrait;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -126,4 +127,15 @@ class AttendancePermissionRepository extends BaseRepository implements Attendanc
 
         return $permission->fresh();
     }
+
+    //Student
+    public function countApprovedByStudent(string $studentId): int
+    {
+        return $this->model
+            ->where('student_id', $studentId)
+            ->where('status', PermissionStatusEnum::APPROVED->value)
+            ->count();
+    }
+
+    //Student Close
 }
