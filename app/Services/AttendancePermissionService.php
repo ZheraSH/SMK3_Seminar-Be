@@ -2,82 +2,88 @@
 
 namespace App\Services;
 
-use App\Contracts\Interfaces\AttendancePermissionInterface;
+use App\Contracts\Repositories\AttendancePermissionRepository;
+use App\Enums\PermissionStatusEnum;
 use App\Enums\UploadDiskEnum;
-use App\Http\Requests\StoreAttendancePermissionRequest;
-use App\Models\AttendancePermission;
 use App\Traits\UploadTrait;
-use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Collection;
 
 class AttendancePermissionService
 {
     use UploadTrait;
 
-    private AttendancePermissionInterface $attendancePermission;
-
-    public function __construct(AttendancePermissionInterface $attendancePermission)
+    private AttendancePermissionRepository $attendancePermissionRepository;
+    
+    public function __construct(AttendancePermissionRepository $attendancePermissionRepository)
     {
-        $this->attendancePermission = $attendancePermission;
+        $this->attendancePermissionRepository = $attendancePermissionRepository;
     }
 
-    public function store(StoreAttendancePermissionRequest $request): AttendancePermission
+    public function studentIndex(string $studentId, ?string $status = null)
+    {
+        if ($status) {
+            return $this->attendancePermissionRepository->getByStatus(
+                $studentId,
+                PermissionStatusEnum::from($status)->value
+            );
+        }
+
+        return $this->attendancePermissionRepository->getWithConditionalPagination($studentId);
+    }
+
+    public function store($request)
     {
         $data = $request->validated();
         $data['student_id'] = auth()->user()->student->id;
-        $data['status'] = 'pending';
-        
-        if ($request->hasFile('proof') && $request->file('proof')->isValid()) {
-            $data['proof'] = $this->upload(UploadDiskEnum::PROOF->value, $request->file('proof'));
+        $data['status'] = PermissionStatusEnum::PENDING->value;
+
+        if ($request->hasFile('proof')) {
+            $data['proof'] = $this->upload(
+                UploadDiskEnum::PROOF->value,
+                $request->file('proof')
+            );
         }
-        
-        $permission = $this->attendancePermission->store($data);
-        return $this->attendancePermission->show($permission->id);
+
+        return $this->attendancePermissionRepository->store($data);
     }
 
-    public function deleteStudentPermission(string $id, string $studentId): bool
+    public function delete(string $id, string $studentId): bool
     {
-        $permission = $this->attendancePermission->show($id);
-        
-        if ($permission->proof) {
-            $this->remove($permission->proof);
+        $permission = $this->attendancePermissionRepository
+            ->findByIdAndStudent($id, $studentId);
+
+        if (! $permission) {
+            throw new \Exception('Data izin tidak ditemukan');
         }
-        
-        return $this->attendancePermission->deleteIfPending($id, $studentId);
+
+        if ($permission->status !== PermissionStatusEnum::PENDING->value) {
+            throw new \Exception('Izin yang sudah diproses tidak dapat dihapus');
+        }
+
+        return $this->attendancePermissionRepository->delete($permission);
     }
 
-    public function approvePermission(string $id, string $counselorId): AttendancePermission
+    public function show(string $id)
     {
-        return $this->attendancePermission->approvePermission($id, $counselorId);
+        return $this->attendancePermissionRepository->show($id);
     }
 
-    public function rejectPermission(string $id, string $counselorId): AttendancePermission
+    public function counselorIndex()
     {
-        return $this->attendancePermission->rejectPermission($id, $counselorId);
-    }
-    public function getPermissionDetail(string $id): AttendancePermission
-    {
-        return $this->attendancePermission->show($id);
+        return $this->attendancePermissionRepository->getAllForCounselor();
     }
 
-    public function getStudentPermissions(string $studentId, Request $request): LengthAwarePaginator
+    public function getPending()
     {
-        return $this->attendancePermission->findByStudent($studentId, $request);
+        return $this->attendancePermissionRepository->getPending();
     }
 
-    public function getCounselorPermissions(Request $request): LengthAwarePaginator
+    public function approve(string $id, string $counselorId)
     {
-        return $this->attendancePermission->searchByCounselor($request);
+        return $this->attendancePermissionRepository->approve($id, $counselorId);
     }
 
-    public function getPendingPermissions(): Collection
+    public function reject(string $id, string $counselorId)
     {
-        return $this->attendancePermission->getPendingPermissions();
-    }
-
-    public function getWithFilter(Request $request): LengthAwarePaginator
-    {
-        return $this->attendancePermission->searchByCounselor($request);
+        return $this->attendancePermissionRepository->reject($id, $counselorId);
     }
 }

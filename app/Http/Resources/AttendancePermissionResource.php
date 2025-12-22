@@ -3,54 +3,29 @@
 namespace App\Http\Resources;
 
 use App\Enums\StudentStatusEnum;
-use App\Traits\Resources\ResolvesImageUrlTrait;
+use App\Traits\Resources\HasEnumLabelsTrait;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class AttendancePermissionResource extends JsonResource
 {
-    use ResolvesImageUrlTrait;
+    use HasEnumLabelsTrait;
 
     public function toArray($request)
     {
         return [
             'id' => $this->id,
-            'type' => $this->type?->value,
-            'type_label' => $this->type?->label(),
-            'start_date' => $this->start_date?->format('d-m-Y'),
-            'end_date' => $this->end_date?->format('d-m-Y'),
-            'reason' => $this->reason,
-            'proof' => $this->proof ? $this->resolveImageUrl($this->proof) : null,
-            'status' => $this->status?->value,
-            'status_label' => $this->status?->label(),
-            'student' => [
-                'id' => $this->student->id,
-                'name' => $this->student->user?->name,
+            'type' => [
+                'value' => $this->type?->value,
+                'label' => $this->type?->label(),
             ],
-            'classroom' => $this->getActiveClassroomData(),
+            'status' => [
+                'value' =>$this->status?->value,
+                'label' => $this->status?->label(),
+            ],
             'counselor' => $this->formatCounselor(),
-            'verification_message' => $this->verificationMessage(),
         ];
     }
 
-    private function getActiveClassroomData()
-    {
-        $activeClassroomStudent = $this->student
-            ->classroomStudents
-            ->where('status', StudentStatusEnum::ACTIVE->value)
-            ->first();
-    
-        if (!$activeClassroomStudent) {
-            return ['message' => 'Siswa belum memiliki kelas aktif'];
-        }
-    
-        $activeClassroom = $activeClassroomStudent->classroom;
-    
-        return [
-            'id' => $activeClassroom->id,
-            'name' => $activeClassroom->name,
-        ];
-    }
-    
     private function formatCounselor(): array
     {
         if (!$this->counselor_id) {
@@ -62,17 +37,7 @@ class AttendancePermissionResource extends JsonResource
         return [
             'id' => $this->counselor->id,
             'name' => $this->counselor->user?->name,
-            'verified_at' => $this->verified_at?->format('d-m-Y H:i'),
+            'verified_at' => $this->verified_at?->format('d-M-Y'),
         ];
-    }
-
-    private function verificationMessage(): string
-    {
-        return match ($this->status?->value) {
-            'pending' => 'Menunggu verifikasi oleh konselor',
-            'approved' => 'Izin telah disetujui',
-            'rejected' => 'Izin telah ditolak',
-            default => 'Menunggu verifikasi',
-        };
     }
 }

@@ -56,7 +56,6 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
 | Semua endpoint yang hanya boleh diakses operator sekolah
 */
 // Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
-
     //Dashboard
     Route::prefix('dashboard')->controller(OperatorDashboardController::class)->group(function () {
         Route::get('counters', 'getCounter'); //total siswa/guru/kelas/attendance
@@ -134,11 +133,21 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
 | Akses hanya untuk siswa
 */
 Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(function () {
-    Route::get('dashboard', [StudentDashboardController::class, 'index']); // Dashboard Siswa
+    //Dashboard
+    // Route::prefix('dashboard')->controller(StudentDashboardController::class)->group(function () {
+    //     Route::get('header', 'header');
+    //     Route::get('attendance-summary', 'attendanceSummary');
+    //     Route::get('today-schedule', 'todaySchedule');
+    //     Route::get('latest-permissions', 'latestPermissions');
+    //     Route::get('attendance-monthly', 'attendanceMonthly');
+    // });
     Route::get('classroom-info', [StudentsController::class, 'getStudentClassroom']); // Kelas Siswa
     Route::get('attendance-history', [StudentsController::class, 'getStudentHistory']); // History Absensi Rfid Siswa
     Route::get('lesson-schedule/{day}', [StudentsController::class, 'getStudentSchedule']);// Jadwal Pelajaran Siswa
     // izin siswa
+    Route::prefix('attendance-permissions')->group(function () {
+        Route::get('pending', [StudentAttendancePermissionController::class, 'pending']);
+    });
     Route::apiResource('attendance-permissions', StudentAttendancePermissionController::class)->except(['update']);
 });
 
@@ -185,13 +194,13 @@ Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->grou
     Route::prefix('attendance')->controller(CounselorAttendanceGlobalController::class)->group(function () {
         Route::get('statistics', 'index');
     });
-    // BK validasi izin
+    // validasi izin
     Route::prefix('attendance-permissions')->controller(CounselorAttendancePermissionController::class)->group(function () {
         Route::get('pending', 'pending'); // list izin yg belum divalidasi
         Route::post('{id}/approve', 'approve'); // setujui izin
         Route::post('{id}/reject', 'reject'); // tolak izin
     });
-    Route::apiResource('attendance-permissions', CounselorAttendancePermissionController::class)->except(['store', 'destroy']);
+    Route::apiResource('attendance-permissions', CounselorAttendancePermissionController::class)->except(['store', 'destroy', 'update']);
 });
 
 /*

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Api\Counselor;
 
-use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\AttendancePermissionResource;
 use App\Services\AttendancePermissionService;
+use App\Http\Resources\AttendancePermissionResource;
+use App\Helpers\ResponseHelper;
 use Illuminate\Http\Request;
 
 class CounselorAttendancePermissionController extends Controller
@@ -20,7 +20,7 @@ class CounselorAttendancePermissionController extends Controller
     public function index(Request $request)
     {
         try {
-            $data = $this->attendancePermissionService->getCounselorPermissions($request);
+            $data = $this->attendancePermissionService->counselorIndex();
             
             return ResponseHelper::pagination(
                 $data, 
@@ -32,24 +32,10 @@ class CounselorAttendancePermissionController extends Controller
         }
     }
 
-    public function pending()
-    {
-        try {
-            $data = $this->attendancePermissionService->getPendingPermissions();
-
-            return ResponseHelper::success(
-                AttendancePermissionResource::collection($data),
-                'Data izin pending berhasil diambil'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
-        }
-    }
-
     public function show(string $id)
     {
         try {
-            $data = $this->attendancePermissionService->getPermissionDetail($id);
+            $data = $this->attendancePermissionService->show($id);
 
             return ResponseHelper::success(
                 new AttendancePermissionResource($data),
@@ -60,11 +46,28 @@ class CounselorAttendancePermissionController extends Controller
         }
     }
 
+    public function pending()
+    {
+        try {
+            $data = $this->attendancePermissionService->getPending();
+            
+            return ResponseHelper::pagination(
+                $data, 
+                AttendancePermissionResource::class, 
+                'Data izin pending berhasil diambil'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
+        }
+    }
+
     public function approve(string $id)
     {
         try {
-            $counselorId = auth()->user()->employee->id;
-            $data = $this->attendancePermissionService->approvePermission($id, $counselorId);
+            $data = $this->attendancePermissionService->approve(
+                $id,
+                auth()->user()->counselor->id
+            );
 
             return ResponseHelper::success(
                 new AttendancePermissionResource($data),
@@ -78,8 +81,8 @@ class CounselorAttendancePermissionController extends Controller
     public function reject(string $id)
     {
         try {
-            $counselorId = auth()->user()->employee->id;
-            $data = $this->attendancePermissionService->rejectPermission($id, $counselorId);
+            $counselorId = auth()->user()->counselor->id;
+            $data = $this->attendancePermissionService->reject($id, $counselorId);
 
             return ResponseHelper::success(
                 new AttendancePermissionResource($data),

@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Api\Student;
 
-use App\Helpers\ResponseHelper;
+use App\Enums\PermissionStatusEnum;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreAttendancePermissionRequest;
-use App\Http\Resources\AttendancePermissionDetailResource;
-use App\Http\Resources\AttendancePermissionResource;
 use App\Services\AttendancePermissionService;
+use App\Http\Resources\AttendancePermissionResource;
+use App\Http\Resources\AttendancePermissionDetailResource;
+use App\Http\Resources\AttendancePermissionPendingResource;
+use App\Http\Requests\StoreAttendancePermissionRequest;
+use App\Helpers\ResponseHelper;
 use Illuminate\Http\Request;
 
 class StudentAttendancePermissionController extends Controller
@@ -18,13 +20,13 @@ class StudentAttendancePermissionController extends Controller
     {
         $this->attendancePermissionService = $attendancePermissionService;
     }
-    
+
     public function index(Request $request)
     {
         try {
             $studentId = auth()->user()->student->id;
-            $data = $this->attendancePermissionService->getStudentPermissions($studentId, $request);
-            
+            $data = $this->attendancePermissionService->studentIndex($studentId, $request->query('status'));
+
             return ResponseHelper::pagination(
                 $data, 
                 AttendancePermissionResource::class, 
@@ -41,19 +43,19 @@ class StudentAttendancePermissionController extends Controller
             $data = $this->attendancePermissionService->store($request);
 
             return ResponseHelper::success(
-                new AttendancePermissionResource($data),
+                new AttendancePermissionDetailResource($data),
                 'Izin berhasil diajukan',
                 201
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
-    }
+    }    
 
     public function show(string $id)
     {
         try {
-            $data = $this->attendancePermissionService->getPermissionDetail($id);
+            $data = $this->attendancePermissionService->show($id);
 
             return ResponseHelper::success(
                 new AttendancePermissionDetailResource($data),
@@ -63,12 +65,11 @@ class StudentAttendancePermissionController extends Controller
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 404);
         }
     }
-
     public function destroy(string $id)
     {
         try {
             $studentId = auth()->user()->student->id;
-            $this->attendancePermissionService->deleteStudentPermission($id, $studentId);
+            $this->attendancePermissionService->delete($id, $studentId);
 
             return ResponseHelper::success(
                 null,
@@ -76,6 +77,22 @@ class StudentAttendancePermissionController extends Controller
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
+        }
+    }
+
+    public function pending(Request $request)
+    {
+        try {
+            $studentId = auth()->user()->student->id;
+            $data = $this->attendancePermissionService->studentIndex($studentId, PermissionStatusEnum::PENDING->value);
+
+            return ResponseHelper::pagination(
+                $data, 
+                AttendancePermissionPendingResource::class, 
+                'Data izin pending berhasil diambil'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
         }
     }
 }
