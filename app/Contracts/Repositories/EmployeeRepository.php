@@ -63,7 +63,7 @@ class EmployeeRepository extends BaseRepository implements EmployeeInterface
                     $q->whereHas('user', function ($sub) use ($request) {
                         $sub->where('name', 'LIKE', '%' . $request->search . '%');
                     })
-                    ->orWhere('NIP', 'LIKE', '%' . $request->search . '%');
+                    ->orWhere('nip', 'LIKE', '%' . $request->search . '%');
                 });
             })
             ->when($request->role, function ($query) use ($request) {

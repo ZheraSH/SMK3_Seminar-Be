@@ -42,7 +42,7 @@ class EmployeeService
             'name' => $data['name'],
             'slug' => Str::slug($data['name']),
             'email' => $data['email'],
-            'password' => Hash::make($data['NIP']),
+            'password' => Hash::make($data['nip']),
         ];
 
         $user = $this->user->store($userData);
@@ -68,8 +68,8 @@ class EmployeeService
             'email' => $data['email'],
         ];
 
-        if (isset($data['NIP']) && $data['NIP'] !== $employee->NIP) {
-            $userData['password'] = Hash::make($data['NIP']);
+        if (isset($data['nip']) && $data['nip'] !== $employee->nip) {
+            $userData['password'] = Hash::make($data['nip']);
         }
 
         $this->user->update($employee->user_id, $userData);

@@ -12,7 +12,7 @@ trait BelongsToManySubjects
         return $this->belongsToMany(
             Subject::class,
             'lesson_schedules',
-            'employee_id',
+            'teacher_id',
             'subject_id'
         )->distinct();
     }
