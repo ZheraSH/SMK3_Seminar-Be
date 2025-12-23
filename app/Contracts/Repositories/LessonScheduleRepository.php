@@ -60,14 +60,14 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
             ->get();
     }
 
-    public function getByTeacherAndDay(string $teacherId, string $day): Collection
+    public function getByTeacherAndDay(string $homeroomTeacherId, string $day): Collection
     {
         return $this->model->query()
             ->with([
                 'subject', 
                 'classroom.major', 
                 'classroom.levelClass', 
-                'classroom.teacher.user',
+                'classroom.homeroomTeacher.user',
                 'classroom.schoolYear',
                 'classroom.classroomStudents' => function($query) {
                     $query->where('status', 'active');
@@ -76,7 +76,7 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
                 'lessonHour', 
                 'teacher.user'
             ])
-            ->where('teacher_id', $teacherId)
+            ->where('teacher_id', $homeroomTeacherId)
             ->where('lesson_schedules.day', $day)
             ->join('lesson_hours', 'lesson_schedules.lesson_hour_id', '=', 'lesson_hours.id')
             ->where('lesson_hours.is_lesson', true)

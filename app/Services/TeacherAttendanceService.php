@@ -31,7 +31,7 @@ class TeacherAttendanceService
         $schedules->load([
             'classroom.major',
             'classroom.levelClass', 
-            'classroom.teacher.user',
+            'classroom.homeroomTeacher.user',
             'classroom.schoolYear',
             'classroom.classroomStudents' => function($query) {
                 $query->where('status', 'active');
@@ -68,7 +68,7 @@ class TeacherAttendanceService
             'classroom.major',
             'classroom.levelClass',
             'classroom.schoolYear',
-            'classroom.teacher.user'
+            'classroom.homeroomTeacher.user'
         ]);
 
         $existingCrossCheck = $this->checkExistingCrossCheck($schedule->id, $date, $lessonOrder);
