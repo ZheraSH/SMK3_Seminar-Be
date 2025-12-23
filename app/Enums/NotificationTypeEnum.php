@@ -12,7 +12,7 @@ enum NotificationTypeEnum: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::ATTENDANCE_SUCCESS => 'Absen Berhasil',
             self::ATTENDANCE_LATE => 'Keterlambatan',
             self::ATTENDANCE_ABSENT => 'Ketidakhadiran',
@@ -23,12 +23,32 @@ enum NotificationTypeEnum: string
 
     public function getMessageTemplate(): string
     {
-        return match($this) {
-            self::ATTENDANCE_SUCCESS => 'Ananda {student_name} telah berhasil absen {attendance_type} pada {time}',
-            self::ATTENDANCE_LATE => 'Ananda {student_name} terlambat absen {attendance_type} pada {time}',
-            self::ATTENDANCE_ABSENT => 'Ananda {student_name} tidak hadir pada tanggal {date}',
-            self::RFID_INVALID => 'Kartu RFID {rfid_number} tidak valid atau tidak terdaftar',
-            self::HOLIDAY_NOTICE => 'Pemberitahuan: Besok {date} adalah hari libur {holiday_name}',
+        return match ($this) {
+            self::ATTENDANCE_SUCCESS =>
+                'Ananda {student_name} telah berhasil absen {attendance_type} pada {time}',
+            self::ATTENDANCE_LATE =>
+                'Ananda {student_name} terlambat absen {attendance_type} pada {time}',
+            self::ATTENDANCE_ABSENT =>
+                'Ananda {student_name} tidak hadir pada tanggal {date}',
+            self::RFID_INVALID =>
+                'Kartu RFID {rfid_number} tidak valid atau tidak terdaftar',
+            self::HOLIDAY_NOTICE =>
+                'Pemberitahuan: Besok {date} adalah hari libur {holiday_name}',
         };
+    }
+
+    public static function values(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
+
+    public static function toArray(): array
+    {
+        $data = [];
+        foreach (self::cases() as $case) {
+            $data[$case->value] = $case->label();
+        }
+
+        return $data;
     }
 }

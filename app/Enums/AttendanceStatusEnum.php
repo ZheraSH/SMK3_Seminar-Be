@@ -12,12 +12,27 @@ enum AttendanceStatusEnum: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::PRESENT => 'Hadir',
             self::LATE => 'Terlambat',
             self::ALPHA => 'Alpha',
             self::LEAVE => 'Izin',
             self::SICK => 'Sakit',
         };
+    }
+
+    public static function values(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
+
+    public static function toArray(): array
+    {
+        $data = [];
+        foreach (self::cases() as $case) {
+            $data[$case->value] = $case->label();
+        }
+
+        return $data;
     }
 }
