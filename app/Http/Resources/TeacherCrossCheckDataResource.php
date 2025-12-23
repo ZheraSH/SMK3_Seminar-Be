@@ -38,9 +38,9 @@ class TeacherCrossCheckDataResource extends JsonResource
                 'level' => $classroom->levelClass->name ?? null,
                 'major' => $classroom->major->code ?? null,
                 'school_year' => $classroom->schoolYear->name ?? null,
-                'homeroom_teacher' => $classroom->teacher ? [
-                    'id' => $classroom->teacher->id,
-                    'name' => $classroom->teacher->user->name ?? 'Tidak diketahui',
+                'homeroom_teacher' => $classroom->homeroomTeacher ? [
+                    'id' => $classroom->homeroomTeacher->id,
+                    'name' => $classroom->homeroomTeacher->user->name ?? 'Tidak diketahui',
                     'type' => 'homeroom_teacher',
                     'type_label' => 'Wali Kelas',
                 ] : null,
@@ -53,9 +53,9 @@ class TeacherCrossCheckDataResource extends JsonResource
                     'id' => $lessonSchedule->subject->id,
                     'name' => $lessonSchedule->subject->name,
                 ] : null,
-                'teacher' => $lessonSchedule->employee ? [
-                    'id' => $lessonSchedule->employee->id,
-                    'name' => $lessonSchedule->employee->user->name ?? 'Tidak diketahui',
+                'teacher' => $lessonSchedule->teacher ? [
+                    'id' => $lessonSchedule->teacher->id,
+                    'name' => $lessonSchedule->teacher->user->name ?? 'Tidak diketahui',
                 ] : null,
                 'lesson_hour' => $lessonSchedule->lessonHour ? [
                     'id' => $lessonSchedule->lessonHour->id,

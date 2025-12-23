@@ -16,10 +16,10 @@ class ClassroomDetailResource extends JsonResource
             'major' => $this->whenLoaded('major', fn() => $this->major->only(['id', 'name'])),
             'level_class' => $this->whenLoaded('levelClass', fn() => $this->levelClass->only(['id', 'name'])),
             'school_year' => $this->whenLoaded('schoolYear', fn() => $this->schoolYear->only(['id', 'name'])),
-            'homeroom_teacher' => $this->whenLoaded('teacher', function() {
-                return $this->teacher?->user ? [
-                    'id' => $this->teacher->id,
-                    'name' => $this->teacher->user->name,
+            'homeroom_teacher' => $this->whenLoaded('homeroomTeacher', function() {
+                return $this->homeroomTeacher?->user ? [
+                    'id' => $this->homeroomTeacher->id,
+                    'name' => $this->homeroomTeacher->user->name,
                 ] : null;
             }),
             'students' => $this->whenLoaded('classroomStudents', function() {

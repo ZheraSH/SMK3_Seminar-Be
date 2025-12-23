@@ -23,10 +23,10 @@ class StudentClassroomInfoResource extends JsonResource
                 'id' => $classroom->id,
                 'name' => $classroom->name,
                 'school_year' => $classroom->schoolYear->name ?? null,
-                'homeroom_teacher' => $classroom->teacher ? [
-                    'id' => $classroom->teacher->id,
-                    'name' => $classroom->teacher->user->name ?? null,
-                    'image' => $classroom->teacher->image ? asset('storage/' . $classroom->teacher->image) : null,
+                'homeroom_teacher' => $classroom->homeroomTeacher ? [
+                    'id' => $classroom->homeroomTeacher->id,
+                    'name' => $classroom->homeroomTeacher->user->name ?? null,
+                    'image' => $classroom->homeroomTeacher->image ? asset('storage/' . $classroom->homeroomTeacher->image) : null,
                 ] : null,
                 'total_students' => $classroom->classroom_students_count ?? 0,
             ],

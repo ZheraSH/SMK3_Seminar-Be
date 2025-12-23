@@ -22,9 +22,9 @@ class TeacherClassroomResource extends JsonResource
             'major' => $classroom->major->code ?? null,
             'level' => $classroom->levelClass->name ?? null,
             'school_year' => $classroom->schoolYear->name ?? '2024/2025',
-            'homeroom_teacher' => $classroom->teacher ? [
-                'id' => $classroom->teacher->id,
-                'name' => $classroom->teacher->user->name ?? 'Tidak diketahui',
+            'homeroom_teacher' => $classroom->homeroomTeacher ? [
+                'id' => $classroom->homeroomTeacher->id,
+                'name' => $classroom->homeroomTeacher->user->name ?? 'Tidak diketahui',
                 'type' => 'homeroom_teacher',
                 'type_label' => 'Wali Kelas',
             ] : null,

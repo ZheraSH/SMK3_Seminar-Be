@@ -22,7 +22,7 @@ class ClassroomStudentsResource extends JsonResource
                 'gender' => $this->student->gender?->label() ?? 'Tidak diketahui',
             ],
             'status' => $this->status->label(),
-            'teacher' => $activeClassroomData['teacher'],
+            'HomeroomTeacher' => $activeClassroomData['HomeroomTeacher'],
             'classroom' => $activeClassroomData['classroom'],
             'rfid' => $this->getRfidData(),
             'total_students' => $activeClassroomData['total_students'],
@@ -34,7 +34,7 @@ class ClassroomStudentsResource extends JsonResource
         if (!$this->relationLoaded('student') || !$this->student->relationLoaded('classroomStudents')) {
             return [
                 'classroom' => ['message' => 'Relasi student.classroomStudents belum diload'],
-                'teacher' => null,
+                'HomeroomTeacher' => null,
                 'total_students' => 0
             ];
         }
@@ -46,7 +46,7 @@ class ClassroomStudentsResource extends JsonResource
         if (!$activeClassroomStudent) {
             return [
                 'classroom' => ['message' => 'Siswa belum memiliki kelas aktif'],
-                'teacher' => null,
+                'HomeroomTeacher' => null,
                 'total_students' => 0
             ];
         }
@@ -61,9 +61,9 @@ class ClassroomStudentsResource extends JsonResource
                 'level_class' => $classroom->levelClass->name,
                 'schoolyear' => $classroom->schoolyear->name,
             ],
-            'teacher' => $classroom->teacher ? [
-                'id' => $classroom->teacher->id,
-                'name' => $classroom->teacher->user->name,
+            'HomeroomTeacher' => $classroom->homeroomTeacher ? [
+                'id' => $classroom->homeroomTeacher->id,
+                'name' => $classroom->homeroomTeacher->user->name,
             ] : null,
             'total_students' => $classroom->classroomStudents
                 ->where('status', StudentStatusEnum::ACTIVE->value)

@@ -31,9 +31,9 @@ class TeacherScheduleWithAttendanceResource extends JsonResource
                     'name' => $this->classroom->name,
                     'major' => $this->classroom->major->code ?? null,
                     'level' => $this->classroom->levelClass->name ?? null,
-                    'homeroom_teacher' => $this->classroom->teacher ? [
-                        'id' => $this->classroom->teacher->id,
-                        'name' => $this->classroom->teacher->user->name ?? 'Tidak diketahui',
+                    'homeroom_teacher' => $this->classroom->homeroomTeacherteacher ? [
+                        'id' => $this->classroom->homeroomTeacherteacher->id,
+                        'name' => $this->classroom->homeroomTeacherteacher->user->name ?? 'Tidak diketahui',
                         'type' => 'homeroom_teacher',
                         'type_label' => 'Wali Kelas',
                     ] : null,
@@ -51,10 +51,10 @@ class TeacherScheduleWithAttendanceResource extends JsonResource
                     'duration' => $this->calculateDuration(),
                 ];
             }),
-            'teacher' => $this->whenLoaded('employee', function () {
+            'teacher' => $this->whenLoaded('teacher', function () {
                 return [
-                    'id' => $this->employee->id ?? null,
-                    'name' => $this->employee->user->name ?? 'Tidak diketahui',
+                    'id' => $this->teacher->id ?? null,
+                    'name' => $this->teacher->user->name ?? 'Tidak diketahui',
                 ];
             }),
             'attendance' => [

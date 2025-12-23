@@ -20,7 +20,7 @@ class ClassroomDayScheduleResource extends JsonResource
             'classroom' => [
                 'id' => $classroom->id,
                 'name' => $classroom->name,
-                'homeroom_teacher' => $classroom->employee?->user?->name,
+                'homeroom_teacher' => $classroom->homeroomTeacher?->user?->name,
                 'total_students' => $classroom->classroomStudents
                     ?->where('status', \App\Enums\StudentStatusEnum::ACTIVE)
                     ->count() ?? 0,
@@ -38,7 +38,7 @@ class ClassroomDayScheduleResource extends JsonResource
                     'placement' => $hour?->name,
                     'time' => $this->formatTimeRange($hour?->start, $hour?->end),
                     'subject' => $schedule->subject?->name,
-                    'subject_teacher' => $schedule->employee?->user?->name,
+                    'subject_teacher' => $schedule->teacher?->user?->name,
                     'is_break' => !$hour?->is_lesson,
                 ];
             })->values(),
