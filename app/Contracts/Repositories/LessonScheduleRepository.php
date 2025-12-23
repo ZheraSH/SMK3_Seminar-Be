@@ -17,7 +17,7 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
     public function get(): Collection
     {
         return $this->model->query()
-            ->with(['classroom.schoolYear', 'classroom.major', 'classroom.levelClass', 'employee.user', 'lessonHour', 'subject'])
+            ->with(['classroom.schoolYear', 'classroom.major', 'classroom.levelClass', 'teacher.user', 'lessonHour', 'subject'])
             ->join('lesson_hours', 'lesson_schedules.lesson_hour_id', '=', 'lesson_hours.id')
             ->where('lesson_hours.is_lesson', true)
             ->orderBy('lesson_hours.start')
@@ -33,7 +33,7 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
     public function show(mixed $id): LessonSchedule
     {
         return $this->model->query()
-            ->with(['classroom.schoolYear', 'classroom.major', 'classroom.levelClass', 'employee.user', 'lessonHour', 'subject'])
+            ->with(['classroom.schoolYear', 'classroom.major', 'classroom.levelClass', 'teacher.user', 'lessonHour', 'subject'])
             ->findOrFail($id);
     }
 
@@ -51,7 +51,7 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
     public function getByDay(string $day): Collection
     {
         return $this->model->query()
-            ->with(['classroom.schoolYear', 'classroom.major', 'classroom.levelClass', 'employee.user', 'lessonHour', 'subject'])
+            ->with(['classroom.schoolYear', 'classroom.major', 'classroom.levelClass', 'teacher.user', 'lessonHour', 'subject'])
             ->where('lesson_schedules.day', $day)
             ->join('lesson_hours', 'lesson_schedules.lesson_hour_id', '=', 'lesson_hours.id')
             ->where('lesson_hours.is_lesson', true)
@@ -74,9 +74,9 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
                 },
                 'classroom.lessonSchedules.lessonHour',
                 'lessonHour', 
-                'employee.user'
+                'teacher.user'
             ])
-            ->where('employee_id', $teacherId)
+            ->where('teacher_id', $teacherId)
             ->where('lesson_schedules.day', $day)
             ->join('lesson_hours', 'lesson_schedules.lesson_hour_id', '=', 'lesson_hours.id')
             ->where('lesson_hours.is_lesson', true)
@@ -88,7 +88,7 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
     public function getByClassroom(string $classroomId)
     {
         return $this->model
-            ->with(['lessonHour', 'subject', 'employee.user'])
+            ->with(['lessonHour', 'subject', 'teacher.user'])
             ->where('classroom_id', $classroomId)
             ->orderBy('day')
             ->orderBy('lesson_hour_id')
@@ -98,7 +98,7 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
     public function getByClassroomAndDay(string $classroomId, string $day): Collection
     {
         return $this->model->query()
-            ->with(['subject', 'classroom.major', 'classroom.levelClass', 'lessonHour', 'employee.user'])
+            ->with(['subject', 'classroom.major', 'classroom.levelClass', 'lessonHour', 'teacher.user'])
             ->where('classroom_id', $classroomId)
             ->where('lesson_schedules.day', $day)
             ->join('lesson_hours', 'lesson_schedules.lesson_hour_id', '=', 'lesson_hours.id')
@@ -111,7 +111,7 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
     public function getFirstLessonByClassroomAndDay(string $classroomId, string $day): mixed
     {
         return $this->model->query()
-            ->with(['subject', 'classroom.major', 'classroom.levelClass', 'lessonHour', 'employee.user'])
+            ->with(['subject', 'classroom.major', 'classroom.levelClass', 'lessonHour', 'teacher.user'])
             ->where('classroom_id', $classroomId)
             ->where('lesson_schedules.day', $day)
             ->join('lesson_hours', 'lesson_schedules.lesson_hour_id', '=', 'lesson_hours.id')
@@ -135,8 +135,8 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
         }
 
         return $this->model->query()
-            ->with(['subject', 'classroom.major', 'classroom.levelClass', 'lessonHour', 'employee.user'])
-            ->where('employee_id', $teacherId)
+            ->with(['subject', 'classroom.major', 'classroom.levelClass', 'lessonHour', 'teacher.user'])
+            ->where('teacher_id', $teacherId)
             ->where('classroom_id', $classroomId)
             ->where('lesson_schedules.day', $day)
             ->where('lesson_hour_id', $targetLessonHour->id)
@@ -157,10 +157,10 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
         return $query->exists();
     }
 
-    public function checkTeacherConflict(string $employeeId, string $day, string $lessonHourId, ?string $excludeId = null): bool
+    public function checkTeacherConflict(string $teacherId, string $day, string $lessonHourId, ?string $excludeId = null): bool
     {
         $query = $this->model->query()
-            ->where('employee_id', $employeeId)
+            ->where('teacher_id', $teacherId)
             ->where('lesson_schedules.day', $day)
             ->where('lesson_hour_id', $lessonHourId);
 
@@ -172,11 +172,11 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
 
     public function getByStudentAndDay(string $studentId, string $day): mixed
     {
-        return \DB::table('student_lesson_schedules as sls')
+        return DB::table('student_lesson_schedules as sls')
             ->join('lesson_schedules as ls', 'ls.id', '=', 'sls.lesson_schedule_id')
             ->join('classrooms as c', 'c.id', '=', 'ls.classroom_id')
             ->join('subjects as s', 's.id', '=', 'ls.subject_id')
-            ->join('employees as e', 'e.id', '=', 'ls.employee_id')
+            ->join('employees as e', 'e.id', '=', 'ls.teacher_id')
             ->where('sls.student_id', $studentId)
             ->where('ls.day', $day)
             ->select('ls.*')
@@ -187,7 +187,7 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
     {
         return $this->model->query()
             ->with(['classroom.major','classroom.levelClass','lessonHour','subject'])
-            ->where('employee_id', $teacherId)
+            ->where('teacher_id', $teacherId)
             ->where('lesson_schedules.day', $day)
             ->join('lesson_hours', 'lesson_schedules.lesson_hour_id', '=', 'lesson_hours.id')
             ->where('lesson_hours.is_lesson', true)
@@ -205,7 +205,7 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
                 'classroom.levelClass',
                 'lessonHour'
             ])
-            ->where('employee_id', $teacherId)
+            ->where('teacher_id', $teacherId)
             ->where('lesson_schedules.day', $day)
             ->join(
                 'lesson_hours',

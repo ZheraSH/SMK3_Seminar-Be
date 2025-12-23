@@ -55,7 +55,7 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
                 'classroom.major',
                 'classroom.levelClass',
                 'classroom.schoolYear',
-                'classroom.teacher.user'
+                'classroom.homeroomTeacher.user'
             ])
             ->latest()
             ->paginate(8);
@@ -120,12 +120,12 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
                 'student.classroomStudents.classroom.major',
                 'student.classroomStudents.classroom.levelClass',
                 'student.classroomStudents.classroom.schoolYear',
-                'student.classroomStudents.classroom.teacher.user',
+                'student.classroomStudents.classroom.homeroomTeacher.user',
                 'student.rfid',
                 'classroom.major',
                 'classroom.levelClass',
                 'classroom.schoolYear',
-                'classroom.teacher.user',
+                'classroom.homeroomTeacher.user',
             ])
             ->where('classroom_id', $classroomId)
             ->where('status', StudentStatusEnum::ACTIVE->value);
@@ -141,7 +141,7 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
                 'classroom.major',
                 'classroom.levelClass',
                 'classroom.schoolYear',
-                'classroom.teacher.user'
+                'classroom.homeroomTeacher.user'
             ])
             ->where('classroom_id', $classroomId)
             ->where('status', StudentStatusEnum::ACTIVE->value);
@@ -171,7 +171,7 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
                 'classroom.major',
                 'classroom.levelClass',
                 'classroom.schoolYear',
-                'classroom.teacher.user'
+                'classroom.homeroomTeacher.user'
             ])
             ->where('classroom_id', $classroomId)
             ->where('status', StudentStatusEnum::ACTIVE->value);

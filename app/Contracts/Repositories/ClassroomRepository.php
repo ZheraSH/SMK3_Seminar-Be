@@ -25,7 +25,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
         'major',
         'levelClass',
         'schoolYear',
-        'teacher.user',
+        'homeroomTeacher.user',
     ];
 
     public function loadRelations($model)
@@ -40,7 +40,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
                 'major', 
                 'levelClass', 
                 'schoolYear', 
-                'teacher.user', 
+                'homeroomTeacher.user', 
                 'lessonSchedules',
                 'classroomStudents' => function($query) {
                     $query->where('status', StudentStatusEnum::ACTIVE->value);
@@ -62,14 +62,14 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
                 'major',
                 'levelClass',
                 'schoolYear',
-                'teacher.user',
+                'homeroomTeacher.user',
                 'classroomStudents' => function ($q) {
                     $q->with([
                         'student' => function ($s) {
                             $s->with([
                                 'user',
                                 'rfid',
-                                'classroomStudents.classroom.teacher.user',
+                                'classroomStudents.classroom.homeroomTeacher.user',
                                 'classroomStudents.classroom.major',
                                 'classroomStudents.classroom.levelClass',
                                 'classroomStudents.classroom.schoolYear',
@@ -99,7 +99,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
                 'major', 
                 'levelClass', 
                 'schoolYear', 
-                'teacher.user', 
+                'homeroomTeacher.user', 
                 'lessonSchedules',
                 'classroomStudents' => function($query) {
                     $query->where('status', StudentStatusEnum::ACTIVE->value);
@@ -116,7 +116,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
                 'major', 
                 'levelClass', 
                 'schoolYear', 
-                'teacher.user', 
+                'homeroomTeacher.user', 
                 'lessonSchedules',
                 'classroomStudents' => function($query) {
                     $query->where('status', StudentStatusEnum::ACTIVE->value);
@@ -131,7 +131,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
                         ->orWhereHas('levelClass', function ($sub) use ($request) {
                             $sub->where('name', 'LIKE', '%' . $request->search . '%');
                         })
-                        ->orWhereHas('teacher.user', function ($sub) use ($request) {
+                        ->orWhereHas('homeroomTeacher.user', function ($sub) use ($request) {
                             $sub->where('name', 'LIKE', '%' . $request->search . '%');
                         });
                 });
