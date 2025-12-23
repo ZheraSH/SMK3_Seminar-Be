@@ -32,7 +32,7 @@ class ClassroomSeeder extends Seeder
                         'major_id' => $major->id,
                         'level_class_id' => $level->id,
                         'school_year_id' => $schoolYear->id,
-                        'teacher_id' => $teacher->id,
+                        'homeroom_teacher_id' => $teacher->id,
                     ]
                 );
             }

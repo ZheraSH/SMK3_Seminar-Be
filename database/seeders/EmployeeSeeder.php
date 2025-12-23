@@ -71,8 +71,8 @@ class EmployeeSeeder extends Seeder
                 [
                     'id' => (string) Str::uuid(),
                     'image' => $gender === GenderEnum::MALE->value ? $imageMale : $imageFemale,
-                    'NIP' => $nip,
-                    'NIK' => $faker->unique()->numerify('################'),
+                    'nip' => $nip,
+                    'nik' => $faker->unique()->numerify('################'),
                     'religion_id' => $religion->id,
                     'gender' => $gender,
                     'birth_date' => $faker->date('Y-m-d'),

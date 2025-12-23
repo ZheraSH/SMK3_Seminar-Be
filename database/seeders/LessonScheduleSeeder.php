@@ -72,7 +72,7 @@ class LessonScheduleSeeder extends Seeder
                             [
                                 'id' => (string) Str::uuid(),
                                 'subject_id' => $subject->id,
-                                'employee_id' => $employee->id,
+                                'teacher_id' => $employee->id,
                             ]
                         );
                         $createdCount++;
@@ -129,7 +129,7 @@ class LessonScheduleSeeder extends Seeder
                             'day' => $day,
                             'lesson_hour_id' => $lessonHour->id,
                             'subject_id' => $selectedSubject->id,
-                            'employee_id' => $selectedEmployee->id,
+                            'teacher_id' => $selectedEmployee->id,
                         ]);
                         $createdCount++;
                         
