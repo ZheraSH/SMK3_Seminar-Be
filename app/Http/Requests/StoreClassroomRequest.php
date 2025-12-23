@@ -27,7 +27,7 @@ class StoreClassroomRequest extends ApiRequest
             'major_id' => 'required|exists:majors,id',
             'level_class_id' => 'required|exists:level_classes,id',
             'school_year_id' => 'required|exists:school_years,id',
-            'teacher_id' => 'required|exists:employees,id',
+            'homeroom_teacher_id' => 'required|exists:employees,id',
         ];
     }
 
@@ -42,8 +42,8 @@ class StoreClassroomRequest extends ApiRequest
             'level_class_id.exists' => 'Tingkatan kelas tidak ditemukan',
             'school_year_id.required' => 'Tahun ajaran tidak boleh kosong',
             'school_year_id.exists' => 'Tahun ajaran tidak ditemukan',
-            'teacher_id.required' => 'Guru/Wali tidak boleh kosong',
-            'teacher_id.exists' => 'Guru/Wali kelas tidak ditemukan',
+            'homeroom_teacher_id.required' => 'Guru/Wali tidak boleh kosong',
+            'homeroom_teacher_id.exists' => 'Guru/Wali kelas tidak ditemukan',
         ];
     }
 
@@ -54,7 +54,7 @@ class StoreClassroomRequest extends ApiRequest
             'major_id' => 'jurusan',
             'level_class_id' => 'tingkatan kelas',
             'school_year_id' => 'tahun ajaran',
-            'teacher_id' => 'guru/wali kelas',
+            'homeroom_teacher_id' => 'guru/wali kelas',
         ];
     }
 }
