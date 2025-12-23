@@ -40,7 +40,7 @@ class StudentLessonScheduleResource extends JsonResource
             'jam' => "{$this->lessonHour->start} - {$this->lessonHour->end}",
             'penempatan' => $penempatan,
             'mata_pelajaran' => $this->subject->name ?? '-',
-            'guru' => $this->employee->user->name ?? '-'
+            'guru' => $this->teacher->user->name ?? '-'
         ];
     }
 }

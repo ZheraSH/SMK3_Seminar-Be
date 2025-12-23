@@ -50,7 +50,7 @@ class StudentLessonScheduleService
                             'jam' => "{$startTime} - {$endTime}",
                             'penempatan' => $hour->name,
                             'mata_pelajaran' => $schedule->subject->name ?? '-',
-                            'guru' => $schedule->employee->user->name ?? '-',
+                            'guru' => $schedule->teacher->user->name ?? '-',
                         ];
                     }
                 } else {
