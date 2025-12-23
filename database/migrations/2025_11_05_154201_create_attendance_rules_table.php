@@ -7,11 +7,14 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('attendance_rules', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->enum('day', [DayEnum::MONDAY->value, DayEnum::TUESDAY->value, DayEnum::WEDNESDAY->value, DayEnum::THURSDAY->value, DayEnum::FRIDAY->value, DayEnum::SATURDAY->value, DayEnum::SUNDAY->value]);
+            $table->enum('day', DayEnum::values());
             $table->time('checkin_start')->nullable();
             $table->time('checkin_end')->nullable();
             $table->time('checkout_start')->nullable();
@@ -22,6 +25,9 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('attendance_rules');
