@@ -31,7 +31,7 @@ class StudentLessonScheduleRepository implements StudentLessonScheduleInterface
                   ->where('status', 'ACTIVE'); // kelas aktif
             })
             ->when($day, fn($q) => $q->where('day', $day))
-            ->with(['subject', 'employee.user', 'lessonHour'])
+            ->with(['subject', 'teacher.user', 'lessonHour'])
             ->orderBy('lesson_hour_id')
             ->get();
     }

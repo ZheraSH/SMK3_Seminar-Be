@@ -36,7 +36,7 @@ class StudentClassroomService
             ->where('student_id', '!=', $studentId)
             ->where('status', 'active')
             ->with(['student:id,nisn,user_id,image', 'student.user:id,name'])
-            ->paginate(10);
+            ->paginate(12);
     
         return [
             'student' => $student,
