@@ -7,18 +7,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\Models\BelongsToClassroom;
-use App\Traits\Models\BelongsToEmployee;
 use App\Traits\Models\BelongsToLessonHour;
 use App\Traits\Models\BelongsToSchoolYear;
 use App\Traits\Models\BelongsToSubject;
+use App\Traits\Models\BelongsToTeacher;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class LessonSchedule extends Model
 {
     use HasFactory, HasUuids, BelongsToClassroom,
-    BelongsToEmployee, BelongsToSchoolYear,
-    BelongsToLessonHour, BelongsToSubject,
-    SoftDeletes;
+    BelongsToSchoolYear, BelongsToLessonHour,
+    BelongsToSubject, BelongsToTeacher, SoftDeletes;
 
     public $incrementing = false;
     protected $keyType = 'string';
@@ -28,7 +27,7 @@ class LessonSchedule extends Model
         'day',
         'classroom_id',
         'lesson_hour_id',
-        'employee_id',
+        'teacher_id',
         'subject_id',
     ];
 
@@ -36,3 +35,4 @@ class LessonSchedule extends Model
         'day' => DayEnum::class,
     ];
 }
+

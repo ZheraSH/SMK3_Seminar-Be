@@ -37,7 +37,8 @@ class Student extends Model
         'number_akta',
         'order_child',
         'count_siblings',
-        'status'
+        'status',
+        'point'
     ];
     protected $casts = [
         'gender' => GenderEnum::class,

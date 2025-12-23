@@ -26,8 +26,8 @@ class Employee extends Model
     protected $fillable = [
         'user_id',
         'image',
-        'NIP',
-        'NIK',
+        'nip',
+        'nik',
         'religion_id',
         'gender',
         'birth_date',
