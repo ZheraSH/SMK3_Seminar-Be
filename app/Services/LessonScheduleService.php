@@ -73,7 +73,7 @@ class LessonScheduleService
                 'lesson_hour_id' => $hour->id,
                 'lessonHour' => $hour,
                 'subject' => null,
-                'employee' => null
+                'teacher' => null
             ];
         });
     
@@ -100,7 +100,7 @@ class LessonScheduleService
                 'lesson_hour_id' => $hour->id,
                 'lessonHour' => $hour,
                 'subject' => null,
-                'employee' => null
+                'teacher' => null
             ];
         });
 

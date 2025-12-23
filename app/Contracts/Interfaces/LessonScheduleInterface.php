@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Collection;
 interface LessonScheduleInterface extends GetInterface, StoreInterface, UpdateInterface, ShowInterface, DeleteInterface
 {
     public function getByDay(string $day): mixed;
+    public function getByClassroom(string $classroomId);
     public function getFirstLessonByClassroomAndDay(string $classroomId, string $day): mixed;
     public function getByClassroomAndDay(string $classroomId, string $day): mixed;
     public function getByTeacherAndDay(string $homeroomTeacherId, string $day): mixed;

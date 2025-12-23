@@ -266,7 +266,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
     {
         return $this->model->query()
             ->with([
-                'employee.user',
+                'homeroomTeacher.user',
                 'schoolYear', 
                 'major',
                 'levelClass',
@@ -276,7 +276,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
                 },
                 'lessonSchedules.lessonHour',
                 'lessonSchedules.subject',
-                'lessonSchedules.employee.user'
+                'lessonSchedules.teacher.user'
             ])
             ->get();
     }
@@ -285,14 +285,14 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
     {
         return $this->model->query()
             ->with([
-                'employee.user',
+                'homeroomTeacher.user',
                 'schoolYear', 
                 'major',
                 'levelClass',
                 'classroomStudents.student.user',
                 'lessonSchedules.lessonHour',
                 'lessonSchedules.subject',
-                'lessonSchedules.employee.user'
+                'lessonSchedules.teacher.user'
             ])
             ->findOrFail($id);
     }

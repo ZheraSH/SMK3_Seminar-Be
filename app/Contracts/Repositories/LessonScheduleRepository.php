@@ -88,7 +88,7 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
     public function getByClassroom(string $classroomId)
     {
         return $this->model
-            ->with(['lessonHour', 'subject', 'teacher.user'])
+            ->with(['lessonHour', 'subject', 'homeroomTeacher.user'])
             ->where('classroom_id', $classroomId)
             ->orderBy('day')
             ->orderBy('lesson_hour_id')

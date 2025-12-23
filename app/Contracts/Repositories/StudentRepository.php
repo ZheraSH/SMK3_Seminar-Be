@@ -179,10 +179,10 @@ class StudentRepository extends BaseRepository implements StudentInterface
                 'classroomStudents' => function($query) {
                     $query->where('status', 'active')
                           ->with([
-                              'classroom:id,name,school_year_id,teacher_id',
+                              'classroom:id,name,school_year_id,homeroom_teacher_id',
                               'classroom.schoolYear:id,name',
-                              'classroom.teacher:id,user_id,image',
-                              'classroom.teacher.user:id,name'
+                              'classroom.homeroomTeacher:id,user_id,image',
+                              'classroom.homeroomTeacher.user:id,name'
                           ]);
                 }
             ])
