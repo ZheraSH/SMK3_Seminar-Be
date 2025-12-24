@@ -43,10 +43,10 @@ class TeacherClassroomListResource extends JsonResource
 
     private function getHomeroomTeacher($classroom): ?array
     {
-        if ($classroom->teacher && $classroom->teacher->user) {
+        if ($classroom->homeroomTeacher && $classroom->homeroomTeacher->user) {
             return [
-                'id' => $classroom->teacher->id,
-                'name' => $classroom->teacher->user->name,
+                'id' => $classroom->homeroomTeacher->id,
+                'name' => $classroom->homeroomTeacher->user->name,
                 'type' => 'homeroom_teacher',
                 'type_label' => 'Wali Kelas',
             ];
