@@ -22,10 +22,10 @@ class SubjectSeeder extends Seeder
             'PKK',
             'Produktif PPLG',
             'Produktif DKV',
-            'Praktik BDP',
-            'Praktik PH',
-            'Praktik KCS',
-            'Praktik Kuliner',
+            'Produktif BDP',
+            'Produktif PH',
+            'Produktif KCS',
+            'Produktif Kuliner',
         ];
 
         foreach ($subjects as $subject) {
