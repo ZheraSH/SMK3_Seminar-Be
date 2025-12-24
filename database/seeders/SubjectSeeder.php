@@ -11,14 +11,14 @@ class SubjectSeeder extends Seeder
     public function run(): void
     {
         $subjects = [
+            'Pend. Agama Islam',
             'Bahasa Indonesia',
             'Bahasa Inggris',
             'Bahasa Madura',
-            'Pend. Agama Islam',
-            'Pend. Pancasila',
-            'Matematika',
             'Seni Budaya',
+            'Matematika',
             'PJOK',
+            'PPKN',
             'PKK',
             'Produktif PPLG',
             'Produktif DKV',
