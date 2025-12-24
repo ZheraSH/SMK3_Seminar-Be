@@ -117,7 +117,7 @@ class LessonScheduleService
             throw new Exception('Kelas sudah memiliki jadwal di hari dan jam yang sama.');
         }
 
-        if ($this->lessonSchedule->checkTeacherConflict($data['employee_id'], $data['day'], $data['lesson_hour_id'], $excludeId)) {
+        if ($this->lessonSchedule->checkTeacherConflict($data['teacher_id'], $data['day'], $data['lesson_hour_id'], $excludeId)) {
             throw new Exception('Guru sudah memiliki jadwal mengajar di hari dan jam yang sama.');
         }
     }
