@@ -22,6 +22,7 @@ class AttendancePermissionResource extends JsonResource
                 'value' =>$this->status?->value,
                 'label' => $this->status?->label(),
             ],
+            'reason' => $this->reason,
             'counselor' => $this->formatCounselor(),
         ];
     }

@@ -20,10 +20,8 @@ use App\Http\Controllers\Api\Operator\RfidController;
 use App\Http\Controllers\Api\Operator\RfidTapController;
 use App\Http\Controllers\Api\Operator\OperatorDashboardController;
 use App\Http\Controllers\Api\Student\StudentsController;
-use App\Http\Controllers\Api\Student\StudentAttendancePermissionController;
 use App\Http\Controllers\Api\Student\StudentDashboardController;
-use App\Http\Controllers\Api\Teacher\TeacherScheduleController;
-use App\Http\Controllers\Api\Teacher\TeacherAttendanceController;
+use App\Http\Controllers\Api\Teacher\TeachersController;
 use App\Http\Controllers\Api\Teacher\TeacherDashboardController;
 use App\Http\Controllers\Api\Counselor\CounselorAttendanceMonitoringController;
 use App\Http\Controllers\Api\Counselor\CounselorAttendanceGlobalController;
@@ -143,9 +141,9 @@ Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(fu
     Route::get('lesson-schedule/{day}', [StudentsController::class, 'getStudentSchedule']);// Jadwal Pelajaran Siswa
     // izin siswa
     Route::prefix('attendance-permissions')->group(function () {
-        Route::get('pending', [StudentAttendancePermissionController::class, 'pending']);
+        Route::get('pending', [StudentsController::class, 'pending']);
     });
-    Route::apiResource('attendance-permissions', StudentAttendancePermissionController::class)->except(['update']);
+    Route::apiResource('attendance-permissions', StudentsController::class)->except(['update']);
 });
 
 /*
@@ -154,23 +152,22 @@ Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(fu
 |--------------------------------------------------------------------------
 | Akses hanya untuk guru
 */
-Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->group(function () {
-    // Teacher Dashboard
-    Route::prefix('dashboard')->controller(TeacherDashboardController::class)->group(function () {
-        Route::get('classroom-list', 'getClassroomList'); // Daftar kelas yang diajar hari ini
-        Route::get('today-schedule', 'getTodaySchedule'); // Jadwal mengajar hari ini dengan status absensi
-    });
-    // Teacher schedule
-    Route::prefix('schedule')->controller(TeacherScheduleController::class)->group(function () {
-        Route::get('daily', 'getDailySchedule'); // jadwal mengajar hari perhari (basic)
-    });
-    // Teacher attendance cross-check
-    Route::prefix('attendance')->controller(TeacherAttendanceController::class)->group(function () {
-        Route::get('classroom', 'getTeacherClassrooms'); // daftar classroom untuk attendance
-        Route::get('cross-check-data', 'getCrossCheckData'); // Data untuk cross-check
-        Route::post('cross-check', 'submitCrossCheck'); // Submit cross-check
-    });
-});
+// Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->group(function () {
+//     // Teacher Dashboard
+//     Route::prefix('dashboard')->controller(TeacherDashboardController::class)->group(function () {
+//         Route::get('today-schedule', 'getTodaySchedule'); // Jadwal mengajar hari ini dengan status absensi
+//     });
+//     // Teacher schedule
+//     Route::prefix('schedule')->controller(TeachersController::class)->group(function () {
+//         Route::get('daily', 'getDailySchedule'); // jadwal mengajar hari perhari (basic)
+//     });
+//     // Teacher attendance cross-check
+//     Route::prefix('attendance')->controller(TeachersController::class)->group(function () {
+//         Route::get('classroom-list', 'getTeacherClassrooms'); // daftar classroom untuk attendance
+//         Route::get('cross-check-data', 'getCrossCheckData'); // Data untuk cross-check
+//         Route::post('cross-check', 'submitCrossCheck'); // Submit cross-check
+//     });
+// });
 
 /*
 |--------------------------------------------------------------------------
