@@ -11,5 +11,5 @@ use App\Contracts\Interfaces\Eloquent\GetByDayInterface;
 
 interface AttendanceRuleInterface extends GetInterface, StoreInterface, UpdateInterface, ShowInterface, DeleteInterface, GetByDayInterface
 {
-    // getByDay is now in GetByDayInterface
+    //Define your methods here
 }

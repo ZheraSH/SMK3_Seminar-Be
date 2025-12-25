@@ -19,10 +19,7 @@ use App\Contracts\Interfaces\Operator\LessonScheduleInterface;
 use App\Contracts\Interfaces\Operator\AttendanceRuleInterface;
 use App\Contracts\Interfaces\Operator\RfidInterface;
 use App\Contracts\Interfaces\AttendanceInterface;
-use App\Contracts\Interfaces\AttendanceGlobalInterface;
 use App\Contracts\Interfaces\AttendancePermissionInterface;
-use App\Contracts\Interfaces\AttendanceMonitoringInterface;
-use App\Contracts\Interfaces\StudentLessonScheduleInterface;
 use App\Contracts\Repositories\UserRepository;
 use App\Contracts\Repositories\Operator\RoleRepository;
 use App\Contracts\Repositories\Operator\SchoolRepository;
@@ -40,10 +37,7 @@ use App\Contracts\Repositories\Operator\LessonScheduleRepository;
 use App\Contracts\Repositories\Operator\AttendanceRuleRepository;
 use App\Contracts\Repositories\Operator\RfidRepository;
 use App\Contracts\Repositories\AttendanceRepository;
-use App\Contracts\Repositories\AttendanceGlobalRepository;
 use App\Contracts\Repositories\AttendancePermissionRepository;
-use App\Contracts\Repositories\AttendanceMonitoringRepository;
-use App\Contracts\Repositories\StudentLessonScheduleRepository;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -67,9 +61,6 @@ class AppServiceProvider extends ServiceProvider
         RfidInterface::class => RfidRepository::class,
         AttendanceInterface::class => AttendanceRepository::class,
         AttendancePermissionInterface::class => AttendancePermissionRepository::class,
-        StudentLessonScheduleInterface::class => StudentLessonScheduleRepository::class,
-        AttendanceMonitoringInterface::class => AttendanceMonitoringRepository::class,
-        AttendanceGlobalInterface::class => AttendanceGlobalRepository::class,
     ];
 
     public function register(): void
