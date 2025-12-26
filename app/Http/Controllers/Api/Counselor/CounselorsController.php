@@ -2,21 +2,23 @@
 
 namespace App\Http\Controllers\Api\Counselor;
 
-use App\Http\Controllers\Controller;
-use App\Services\AttendancePermissionService;
-use App\Http\Resources\AttendancePermissionResource;
 use App\Helpers\ResponseHelper;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\AttendancePermissionResource;
+use App\Services\AttendancePermissionService;
+use App\Services\Counselor\CounselorService;
+use Illuminate\Support\Facades\Request;
 
-class CounselorAttendancePermissionController extends Controller
+class CounselorsController extends Controller
 {
+    private CounselorService $counselorService;
     private AttendancePermissionService $attendancePermissionService;
 
-    public function __construct(AttendancePermissionService $attendancePermissionService)
+    public function __construct(CounselorService $counselorService, AttendancePermissionService $attendancePermissionService)
     {
+        $this->counselorService = $counselorService;
         $this->attendancePermissionService = $attendancePermissionService;
     }
-
     public function index(Request $request)
     {
         try {
@@ -66,7 +68,7 @@ class CounselorAttendancePermissionController extends Controller
         try {
             $data = $this->attendancePermissionService->approve(
                 $id,
-                auth()->user()->counselor->id
+                auth()->user()->employee->id
             );
 
             return ResponseHelper::success(
@@ -81,7 +83,7 @@ class CounselorAttendancePermissionController extends Controller
     public function reject(string $id)
     {
         try {
-            $counselorId = auth()->user()->counselor->id;
+            $counselorId = auth()->user()->employee->id;
             $data = $this->attendancePermissionService->reject($id, $counselorId);
 
             return ResponseHelper::success(

@@ -3,20 +3,15 @@
 namespace App\Http\Controllers\Api\Counselor;
 
 use App\Http\Controllers\Controller;
-use App\Services\CounselorDashboardService;
+use App\Services\Counselor\CounselorDashboardService;
 
 class CounselorDashboardController extends Controller
 {
-    public function __construct(
-        private CounselorDashboardService $dashboardService
-    ) {}
+    private CounselorDashboardService $counselorDashboardService;
 
-    public function index()
+    public function __construct(CounselorDashboardService $counselorDashboardService)
     {
-        return response()->json([
-            'status' => true,
-            'message' => 'Dashboard BK',
-            'data' => $this->dashboardService->getDashboardData()
-        ]);
+        $this->counselorDashboardService = $counselorDashboardService;
     }
+
 }
