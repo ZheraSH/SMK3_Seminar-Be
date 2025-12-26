@@ -50,10 +50,11 @@ class SubjectRepository extends BaseRepository implements SubjectInterface
     public function search(Request $request, int $perPage = 12): mixed
     {
         return $this->model->query()
-            ->when($request->keyword, fn($q) => $q->where('name', 'like', "%{$request->keyword}%"))
+            ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%"))
             ->latest()
             ->paginate($perPage);
     }
+
     public function storeOrRestore(array $data)
     {
 

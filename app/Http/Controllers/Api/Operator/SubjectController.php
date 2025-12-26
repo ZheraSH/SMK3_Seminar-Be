@@ -22,7 +22,7 @@ class SubjectController extends Controller
     public function index(Request $request)
     {
         try {
-            $data = $this->subjectRepository->paginate();
+            $data = $this->subjectRepository->search($request);
 
             return ResponseHelper::pagination(
                 $data,
@@ -31,20 +31,6 @@ class SubjectController extends Controller
             );
         } catch (\Throwable $th) {
             return ResponseHelper::notFound('List data mata pelajaran gagal diambil');
-        }
-    }
-
-    public function search(Request $request)
-    {
-        try {
-            $data = $this->subjectRepository->search($request);
-
-            return ResponseHelper::success(
-                SubjectResource::collection($data),
-                'Hasil pencarian mata pelajaran berhasil diambil'
-            );
-        } catch (\Throwable $th) {
-            return ResponseHelper::notFound('Hasil pencarian mata pelajaran gagal diambil');
         }
     }
 
