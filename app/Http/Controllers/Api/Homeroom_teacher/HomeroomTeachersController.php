@@ -2,24 +2,24 @@
 
 namespace App\Http\Controllers\Api\Homeroom_teacher;
 
-use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\DailyAttendanceRequest;
-use App\Http\Requests\WeeklyStatisticsRequest;
-use App\Http\Requests\SummaryClassRequest;
-use App\Http\Resources\SummaryClassResource;
-use App\Http\Resources\WeeklyAttendanceStatisticsResource;
-use App\Http\Resources\DailyStudentAttendanceResource;
-use App\Services\HomeroomTeacherSummaryService;
+use App\Services\HomeroomTeacher\HomeroomTeacherService;
+use App\Http\Resources\Homeroom_teacher\SummaryClassResource;
+use App\Http\Resources\Homeroom_teacher\WeeklyAttendanceStatisticsResource;
+use App\Http\Resources\Homeroom_teacher\DailyStudentAttendanceResource;
+use App\Http\Requests\Homeroom_teacher\SummaryClassRequest;
+use App\Http\Requests\Homeroom_teacher\DailyAttendanceRequest;
+use App\Http\Requests\Homeroom_teacher\WeeklyStatisticsRequest;
+use App\Helpers\ResponseHelper;
 
 
-class HomeroomTeacherSummaryClassController extends Controller
+class HomeroomTeachersController extends Controller
 {
-    protected HomeroomTeacherSummaryService $homeroomTeacherSummaryService;
+    protected HomeroomTeacherService $homeroomTeacherService;
 
-    public function __construct(HomeroomTeacherSummaryService $homeroomTeacherSummaryService)
+    public function __construct(HomeroomTeacherService $homeroomTeacherService)
     {
-        $this->homeroomTeacherSummaryService = $homeroomTeacherSummaryService;
+        $this->homeroomTeacherService = $homeroomTeacherService;
     }
 
     public function getSummaryClass(SummaryClassRequest $request)
@@ -28,16 +28,14 @@ class HomeroomTeacherSummaryClassController extends Controller
             $teacher = $request->user();
             $date = $request->input('date');
 
-            $data = $this->homeroomTeacherSummaryService->getDailySummary($teacher, $date);
+            $data = $this->homeroomTeacherService->getDailySummary($teacher, $date);
 
             return ResponseHelper::success(
                 new SummaryClassResource($data),
                 'Ringkasan kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(
-                $th->getMessage(),
-                $th->getCode() ?: 500
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500
             );
         }
     }
@@ -49,16 +47,14 @@ class HomeroomTeacherSummaryClassController extends Controller
             $startDate = $request->input('start_date');
             $endDate = $request->input('end_date');
 
-            $data = $this->homeroomTeacherSummaryService->getWeeklyStatistics($teacher, $startDate, $endDate);
+            $data = $this->homeroomTeacherService->getWeeklyStatistics($teacher, $startDate, $endDate);
 
             return ResponseHelper::success(
                 new WeeklyAttendanceStatisticsResource($data),
                 'Statistik mingguan berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error(
-                $th->getMessage(),
-                $th->getCode() ?: 500
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500
             );
         }
     }
@@ -70,7 +66,7 @@ class HomeroomTeacherSummaryClassController extends Controller
             $date = $request->input('date');
             $perPage = $request->input('per_page', 10);
 
-            $data = $this->homeroomTeacherSummaryService->getDailyAttendance($teacher, $date, $perPage);
+            $data = $this->homeroomTeacherService->getDailyAttendance($teacher, $date, $perPage);
 
             return ResponseHelper::success([
                 'summary' => new SummaryClassResource($data['summary']),
@@ -78,9 +74,7 @@ class HomeroomTeacherSummaryClassController extends Controller
                 'pagination' => $data['pagination'],
             ], 'Data kehadiran harian berhasil diambil');
         } catch (\Throwable $th) {
-            return ResponseHelper::error(
-                $th->getMessage(),
-                $th->getCode() ?: 500
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500
             );
         }
     }

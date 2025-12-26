@@ -23,11 +23,10 @@ use App\Http\Controllers\Api\Student\StudentsController;
 use App\Http\Controllers\Api\Student\StudentDashboardController;
 use App\Http\Controllers\Api\Teacher\TeachersController;
 // use App\Http\Controllers\Api\Teacher\TeacherDashboardController;
-use App\Http\Controllers\Api\Counselor\CounselorAttendanceMonitoringController;
-use App\Http\Controllers\Api\Counselor\CounselorAttendanceGlobalController;
-use App\Http\Controllers\Api\Counselor\CounselorAttendancePermissionController;
+use App\Http\Controllers\Api\Counselor\CounselorsController;
 use App\Http\Controllers\Api\Counselor\CounselorDashboardController;
-use App\Http\Controllers\Api\Homeroom_teacher\HomeroomTeacherSummaryClassController;
+use App\Http\Controllers\Api\Homeroom_teacher\HomeroomTeachersController;
+use App\Http\Controllers\Api\Homeroom_teacher\HomeroomTeacherDashboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -131,7 +130,7 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
 | Akses hanya untuk siswa
 */
 Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(function () {
-    //Dashboard
+    //Student Dashboard
     Route::prefix('dashboard')->controller(StudentDashboardController::class)->group(function () {
         Route::get('attendance-summary', 'attendanceSummary');
         Route::get('attendance-monthly', 'attendanceMonthly');
@@ -175,25 +174,25 @@ Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->group(fu
 | Akses hanya untuk guru BK
 */
 Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->group(function () {
-
-    // Dasboar BK
-    Route::get('dashboard', [CounselorDashboardController::class, 'index']);
+    // BK Dashboard
+    // Route::prefix('dashboard')->controller(CounselorDashboardController::class)->group(function () {
+    // });
     // Monitoring Kehadiran Siswa (BK)
-    Route::prefix('attendance-monitoring')->controller(CounselorAttendanceMonitoringController::class) ->group(function () {
-        Route::get('/', 'index'); // monitoring list
-        Route::post('sync', 'syncData'); // sync rekap
-    });
+    // Route::prefix('attendance-monitoring')->controller(CounselorAttendanceMonitoringController::class) ->group(function () {
+    //     Route::get('/', 'index'); // monitoring list
+    //     Route::post('sync', 'syncData'); // sync rekap
+    // });
     // Statistik Global (BK)
-    Route::prefix('attendance')->controller(CounselorAttendanceGlobalController::class)->group(function () {
-        Route::get('statistics', 'index');
-    });
+    // Route::prefix('attendance')->controller(CounselorAttendanceGlobalController::class)->group(function () {
+    //     Route::get('statistics', 'index');
+    // });
     // validasi izin
-    Route::prefix('attendance-permissions')->controller(CounselorAttendancePermissionController::class)->group(function () {
+    Route::prefix('attendance-permissions')->controller(CounselorsController::class)->group(function () {
         Route::get('pending', 'pending'); // list izin yg belum divalidasi
         Route::post('{id}/approve', 'approve'); // setujui izin
         Route::post('{id}/reject', 'reject'); // tolak izin
     });
-    Route::apiResource('attendance-permissions', CounselorAttendancePermissionController::class)->except(['store', 'destroy', 'update']);
+    Route::apiResource('attendance-permissions', CounselorsController::class)->except(['store', 'destroy', 'update']);
 });
 
 /*
@@ -203,8 +202,11 @@ Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->grou
 | Akses hanya untuk wali kelas
 */
 Route::middleware(['auth:sanctum', 'role:homeroom_teacher'])->prefix('homeroom-teacher')->group(function () {
+    //HomeroomTeacher Dashboard
+    // Route::prefix('dashboard')->controller(HomeroomTeacherDashboardController::class)->group(function () {
+    // });
     // rekap kelas 
-    Route::prefix('summary-class')->controller(HomeroomTeacherSummaryClassController::class)->group(function () {
+    Route::prefix('summary-class')->controller(HomeroomTeachersController::class)->group(function () {
         Route::get('/', 'getSummaryClass'); // summary class
         Route::get('weekly-attendance', 'getWeeklyAttendanceStatistics'); // weekly attendance
         Route::get('daily-attendance', 'getDailyStudentAttendance'); // daily attendance

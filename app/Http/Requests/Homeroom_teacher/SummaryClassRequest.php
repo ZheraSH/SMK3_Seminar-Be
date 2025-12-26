@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Homeroom_teacher;
 
 use App\Http\Requests\ApiRequest;
 
