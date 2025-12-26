@@ -10,6 +10,7 @@ use App\Models\Student;
 use App\Traits\PaginationTrait;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class ClassroomStudentsRepository extends BaseRepository implements ClassroomStudentsInterface
@@ -74,11 +75,10 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             ->where('classroom_id', $classroomId)
             ->where('status', StudentStatusEnum::ACTIVE->value)
             ->with([
-                // Load student dengan user dan rfid
                 'student' => function($q) {
                     $q->select('id', 'nisn', 'gender', 'user_id')
                       ->with([
-                          'user:id,name', // Pastikan user di-load
+                          'user:id,name',
                           'rfid:id,student_id,rfid'
                       ]);
                 }
@@ -144,4 +144,48 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             ->where('student_id', $studentId)
             ->update(['status' => StudentStatusEnum::INACTIVE->value]);
     }
+
+    //Teacher
+    public function getByClassroomForAttendance(string $classroomId, ?Request $request = null): LengthAwarePaginator
+    {
+        $query = $this->model
+            ->where('classroom_id', $classroomId)
+            ->where('status', StudentStatusEnum::ACTIVE->value)
+            ->with([
+                'student.user:id,name',
+                'student.rfid:id,student_id,rfid'
+            ]);
+    
+        if ($request?->search) {
+            $search = $request->search;
+            $query->whereHas('student', function ($q) use ($search) {
+                $q->where('nisn', 'like', "%{$search}%")
+                  ->orWhereHas('user', fn($u) => 
+                      $u->where('name', 'like', "%{$search}%")
+                  );
+            });
+        }
+    
+        return $query->orderBy('created_at', 'desc')
+                     ->paginate($request->limit ?? 20);
+    }
+    
+    public function getByStudentAndClassroom(string $studentId, string $classroomId): ?ClassroomStudents
+    {
+        return $this->model
+            ->where('student_id', $studentId)
+            ->where('classroom_id', $classroomId)
+            ->where('status', StudentStatusEnum::ACTIVE->value)
+            ->first();
+    }
+    
+    public function countActiveByClassroom(string $classroomId): int
+    {
+        return $this->model
+            ->where('classroom_id', $classroomId)
+            ->where('status', StudentStatusEnum::ACTIVE->value)
+            ->count();
+    }
+
+    //Teacher Close
 }

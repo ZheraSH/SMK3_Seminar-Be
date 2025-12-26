@@ -6,15 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Helpers\ResponseHelper;
 use App\Http\Resources\TeacherClassroomListResource;
 use App\Http\Resources\TeacherScheduleWithAttendanceResource;
-use App\Services\TeacherDashboardService;
+use App\Services\Teacher\TeacherDashboardService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class TeacherDashboardController extends Controller
 {
-    public function __construct(
-        private TeacherDashboardService $dashboardService
-    ) {}
+    private TeacherDashboardService $teacherDashboardService;
+
+    public function __construct(TeacherDashboardService $teacherDashboardService)
+    {
+        $this->teacherDashboardService = $teacherDashboardService;
+    }
 
     public function getClassroomList(Request $request): JsonResponse
     {
@@ -22,8 +25,8 @@ class TeacherDashboardController extends Controller
             $teacherId = auth()->user()->employee->id;
             $date = $request->date ?? now()->format('Y-m-d');
             
-            $date = $this->dashboardService->validateDate($date);
-            $classroomList = $this->dashboardService->getClassroomList($teacherId, $date);
+            $date = $this->teacherDashboardService->validateDate($date);
+            $classroomList = $this->teacherDashboardService->getClassroomList($teacherId, $date);
 
             if (empty($classroomList)) {
                 return ResponseHelper::success([], 'Tidak ada kelas yang diajar hari ini');
@@ -44,9 +47,9 @@ class TeacherDashboardController extends Controller
         try {
             $teacherId = auth()->user()->employee->id;
             $date = $request->date ?? now()->format('Y-m-d');
-            
-            $date = $this->dashboardService->validateDate($date);
-            $schedules = $this->dashboardService->getTodaySchedule($teacherId, $date);
+
+            $date = $this->teacherDashboardService->validateDate($date);
+            $schedules = $this->teacherDashboardService->getTodaySchedule($teacherId, $date);
 
             if ($schedules->isEmpty()) {
                 return ResponseHelper::success([], 'Tidak ada jadwal mengajar untuk hari ini');

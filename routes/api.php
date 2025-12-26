@@ -22,7 +22,7 @@ use App\Http\Controllers\Api\Operator\OperatorDashboardController;
 use App\Http\Controllers\Api\Student\StudentsController;
 use App\Http\Controllers\Api\Student\StudentDashboardController;
 use App\Http\Controllers\Api\Teacher\TeachersController;
-use App\Http\Controllers\Api\Teacher\TeacherDashboardController;
+// use App\Http\Controllers\Api\Teacher\TeacherDashboardController;
 use App\Http\Controllers\Api\Counselor\CounselorAttendanceMonitoringController;
 use App\Http\Controllers\Api\Counselor\CounselorAttendanceGlobalController;
 use App\Http\Controllers\Api\Counselor\CounselorAttendancePermissionController;
@@ -152,22 +152,21 @@ Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(fu
 |--------------------------------------------------------------------------
 | Akses hanya untuk guru
 */
-// Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->group(function () {
-//     // Teacher Dashboard
-//     Route::prefix('dashboard')->controller(TeacherDashboardController::class)->group(function () {
-//         Route::get('today-schedule', 'getTodaySchedule'); // Jadwal mengajar hari ini dengan status absensi
-//     });
-//     // Teacher schedule
-//     Route::prefix('schedule')->controller(TeachersController::class)->group(function () {
-//         Route::get('daily', 'getDailySchedule'); // jadwal mengajar hari perhari (basic)
-//     });
-//     // Teacher attendance cross-check
-//     Route::prefix('attendance')->controller(TeachersController::class)->group(function () {
-//         Route::get('classroom-list', 'getTeacherClassrooms'); // daftar classroom untuk attendance
-//         Route::get('cross-check-data', 'getCrossCheckData'); // Data untuk cross-check
-//         Route::post('cross-check', 'submitCrossCheck'); // Submit cross-check
-//     });
-// });
+Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->group(function () {
+    // Teacher Dashboard
+    // Route::prefix('dashboard')->controller(TeacherDashboardController::class)->group(function () {
+    // });
+    // Teacher schedule
+    Route::prefix('schedules')->controller(TeachersController::class)->group(function () {
+        Route::get('/', 'indexSchedule');
+        Route::get('classrooms/{day}', 'indexScheduleClassrooms');
+    });
+    // Teacher attendance cross-check
+    // Route::prefix('attendances')->controller(TeachersController::class)->group(function () {
+    //     Route::get('form', 'getAttendanceForm');
+    //     Route::post('submit', 'submitAttendance');
+    // });
+});
 
 /*
 |--------------------------------------------------------------------------

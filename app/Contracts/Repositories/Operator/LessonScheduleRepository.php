@@ -106,4 +106,29 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
             )
             ->get();
     }
+
+    //Teacher
+    public function getByTeacherClassroomAndLessonOrder(string $teacherId, string $classroomId, string $day, int $lessonOrder): ?LessonSchedule {
+        return $this->baseQuery()
+            ->where('teacher_id', $teacherId)
+            ->where('classroom_id', $classroomId)
+            ->where('day', $day)
+            ->whereHas('lessonHour', function ($q) use ($lessonOrder) {
+                $q->where('order', $lessonOrder);
+            })
+            ->first();
+    }
+    
+    public function getByTeacherAndDayWithLessonHour(string $teacherId, string $day): Collection
+    {
+        return $this->baseQuery()
+            ->join('lesson_hours', 'lesson_schedules.lesson_hour_id', '=', 'lesson_hours.id')
+            ->where('lesson_schedules.teacher_id', $teacherId)
+            ->where('lesson_schedules.day', $day)
+            ->where('lesson_hours.is_lesson', true)
+            ->orderBy('lesson_hours.order', 'ASC')
+            ->select('lesson_schedules.*')
+            ->get();
+    }
+    //Teacher Close
 }

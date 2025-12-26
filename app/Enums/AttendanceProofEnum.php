@@ -7,6 +7,7 @@ enum AttendanceProofEnum: string
     case RFID = 'rfid';
     case MANUAL = 'manual';
     case CLASSROOM = 'class';
+    case PERMISSION = 'permission';
 
     public function label(): string
     {
@@ -14,6 +15,7 @@ enum AttendanceProofEnum: string
             self::RFID => 'Kartu RFID',
             self::MANUAL => 'Input Manual',
             self::CLASSROOM => 'Absen Kelas',
+            self::PERMISSION => 'Izin Kelas',
         };
     }
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Teacher;
 
 use App\Http\Requests\ApiRequest;
 
@@ -15,9 +15,10 @@ class GetCrossCheckDataRequest extends ApiRequest
     {
         return [
             'classroom_id' => 'required|exists:classrooms,id',
-            'date' => 'required|date',
-            'lesson_order' => 'required|integer|min:2',
-            'page' => 'sometimes|integer|min:1',
+            'date' => 'required|date|date_format:Y-m-d',
+            'lesson_order' => 'required|integer',
+            'search' => 'sometimes|string|max:100',
+            'limit' => 'sometimes|integer|min:1|max:50',
         ];
     }
 
@@ -29,7 +30,6 @@ class GetCrossCheckDataRequest extends ApiRequest
             'date.required' => 'Tanggal wajib diisi',
             'date.date' => 'Format tanggal tidak valid',
             'lesson_order.required' => 'Urutan jam pelajaran wajib diisi',
-            'lesson_order.min' => 'Cross-check hanya untuk jam pelajaran ke-2 dan seterusnya',
         ];
     }
 }
