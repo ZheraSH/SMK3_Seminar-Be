@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Operator;
 
-use App\Contracts\Interfaces\RfidInterface;
-use App\Contracts\Interfaces\StudentInterface;
-use App\Contracts\Interfaces\AttendanceRuleInterface;
-use App\Contracts\Interfaces\AttendanceInterface;
-use App\Contracts\Interfaces\LessonScheduleInterface;
+use App\Contracts\Repositories\AttendanceRepository;
+use App\Contracts\Repositories\Operator\RfidRepository;
+use App\Contracts\Repositories\Operator\AttendanceRuleRepository;
+use App\Contracts\Repositories\Operator\LessonScheduleRepository;
 use App\Enums\AttendanceProofEnum;
 use App\Enums\AttendanceStatusEnum;
 use App\Enums\RfidStatusEnum;
@@ -21,11 +20,10 @@ use Illuminate\Support\Facades\DB;
 class RfidTapService
 {
     public function __construct(
-        private RfidInterface $rfidRepo,
-        private StudentInterface $studentRepo,
-        private AttendanceInterface $attendanceRepo,
-        private AttendanceRuleInterface $attendanceRuleRepo,
-        private LessonScheduleInterface $lessonScheduleRepo
+        private RfidRepository $rfidRepository,
+        private AttendanceRepository $attendanceRepository,
+        private AttendanceRuleRepository $attendanceRuleRepository,
+        private LessonScheduleRepository $lessonScheduleRepository
     ) {}
 
     public function processTap(Request $request): array
@@ -37,7 +35,7 @@ class RfidTapService
             }
 
             // validate rfid
-            $rfid = $this->rfidRepo->getByRfidNumber($rfidValue);
+            $rfid = $this->rfidRepository->getByRfidNumber($rfidValue);
             if (!$rfid) return $this->errorResponse(TapStatusEnum::INVALID, 'Kartu RFID tidak valid');
 
             if (TapHelper::getSafeEnumValue($rfid->status, RfidStatusEnum::class) !== RfidStatusEnum::ACTIVE->value) {
@@ -62,7 +60,7 @@ class RfidTapService
             // time rules
             $now = TapHelper::nowWib();
             $day = strtolower($now->englishDayOfWeek);
-            $rule = $this->attendanceRuleRepo->getByDay($day);
+            $rule = $this->attendanceRuleRepository->getByDay($day);
 
             if (!$rule) {
                 return $this->errorResponse(TapStatusEnum::INVALID, 'Tidak ada aturan absensi untuk hari ini', $student, $rfid);
@@ -83,7 +81,7 @@ class RfidTapService
             }
 
             // fetch today's attendance (repo must implement getTodayByStudent)
-            $todayAttendance = $this->attendanceRepo->getTodayByStudent($student->id);
+            $todayAttendance = $this->attendanceRepository->getTodayByStudent($student->id);
 
             if ($isCheckinTime) {
                 return $this->handleCheckin($student, $rfid, $rule, $now, $todayAttendance, $activeClassroom);
@@ -100,7 +98,7 @@ class RfidTapService
         }
 
         // check first lesson window (safe)
-        $firstLesson = $this->lessonScheduleRepo->getFirstLessonByClassroomAndDay($activeClassroom->classroom_id ?? $activeClassroom->id, strtolower($now->englishDayOfWeek));
+        $firstLesson = $this->lessonScheduleRepository->getFirstLessonByClassroomAndDay($activeClassroom->classroom_id ?? $activeClassroom->id, strtolower($now->englishDayOfWeek));
         $isFirstLesson = false;
         if ($firstLesson && $firstLesson->lessonHour) {
             $start = TapHelper::parseRuleTimeToCarbon($firstLesson->lessonHour->start);
@@ -130,11 +128,11 @@ class RfidTapService
         ];
 
         if ($todayAttendance) {
-            $attendance = $this->attendanceRepo->update($todayAttendance->id, $data);
-            $attendance = $this->attendanceRepo->show($todayAttendance->id);
+            $attendance = $this->attendanceRepository->update($todayAttendance->id, $data);
+            $attendance = $this->attendanceRepository->show($todayAttendance->id);
         } else {
-            $new = $this->attendanceRepo->store($data);
-            $attendance = $this->attendanceRepo->show($new->id);
+            $new = $this->attendanceRepository->store($data);
+            $attendance = $this->attendanceRepository->show($new->id);
         }
 
         $message = $status === AttendanceStatusEnum::PRESENT->value ? 'Hadir tepat waktu' : ("Terlambat {$minutesLate} menit");
@@ -152,12 +150,12 @@ class RfidTapService
             return $this->duplicateResponse($student, $todayAttendance, TapTypeEnum::CHECKOUT, 'Absen pulang sudah tercatat sebelumnya', $rfid);
         }
 
-        $this->attendanceRepo->update($todayAttendance->id, [
+        $this->attendanceRepository->update($todayAttendance->id, [
             'checkout_time' => $now->toDateTimeString(),
             'tap_type' => TapTypeEnum::CHECKOUT->value,
         ]);
 
-        $updated = $this->attendanceRepo->show($todayAttendance->id);
+        $updated = $this->attendanceRepository->show($todayAttendance->id);
         return $this->successResponse(TapStatusEnum::VALID, 'Absen pulang berhasil', $student, $rfid, $updated, TapTypeEnum::CHECKOUT);
     }
 

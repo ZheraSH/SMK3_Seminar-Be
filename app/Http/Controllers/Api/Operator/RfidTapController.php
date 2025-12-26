@@ -1,16 +1,15 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\Operator;
 
 use App\Http\Controllers\Controller;
+use App\Services\Operator\RfidTapService;
 use App\Helpers\ResponseHelper;
 use App\Http\Requests\TapRfidRequest;
 use App\Http\Resources\TapResultResource;
-use App\Services\RfidTapService;
-use Illuminate\Http\Request;
 
 class RfidTapController extends Controller
-{
+{   
     private RfidTapService $rfidTapService;
 
     public function __construct(RfidTapService $rfidTapService)
@@ -25,7 +24,7 @@ class RfidTapController extends Controller
             $status = ($result['status'] ?? 'invalid') === \App\Enums\TapStatusEnum::VALID->value ? 200 : 400;
             return ResponseHelper::success(new TapResultResource($result), $result['message'] ?? 'OK', $status);
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage() ?: 'Internal Server Error', $th->getCode() >= 400 ? $th->getCode() : 500);
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 }
