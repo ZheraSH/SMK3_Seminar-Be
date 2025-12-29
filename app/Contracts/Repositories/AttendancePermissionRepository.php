@@ -151,8 +151,8 @@
             return $this->model->query()->count();
         }
 
- public function getLatest(string $studentId): Collection
-    {
+         public function getLatest(string $studentId): Collection
+        {
         $permissions = $this->model
             ->where('student_id', $studentId)
             ->with(['student.user', 'counselor.user'])

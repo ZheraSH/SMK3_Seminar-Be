@@ -18,31 +18,18 @@ class StudentDashboardController extends Controller
         try {
             $user = auth()->user();
 
-            if (!$user->student) {
+            if (!$user || !$user->student) {
                 return ResponseHelper::success(null, 'Tidak ada data siswa', 200);
             }
 
-            $studentId = $user->student->id;
-
-            $data = $this->service->getDashboardData($studentId);
+            $data = $this->service->getDashboardData($user->student->id);
 
             return ResponseHelper::success($data, 'Dashboard berhasil dimuat', 200);
-
-        } catch (\Throwable $th) {
+        } catch (\Throwable $e) {
             return ResponseHelper::error(
-                'Gagal memuat dashboard: ' . $th->getMessage(),
-                500,
-                null
+                'Gagal memuat dashboard: ' . $e->getMessage(),
+                500
             );
-        }   
-    }
-
-        public function approve($id)
-    {
-        $permission = $this->permissionRepo->show($id);
-
-        $this->service->approvePermission($permission);
-
-        return ResponseHelper::success("Berhasil Approve Izin");
+        }
     }
 }

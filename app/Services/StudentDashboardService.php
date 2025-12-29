@@ -2,42 +2,36 @@
 
 namespace App\Services;
 
-use Carbon\Carbon;
-use App\Models\Student;
-use App\Models\Attendance;
-use Illuminate\Support\Facades\DB;
+use App\Contracts\Interfaces\StudentInterface;
+use App\Contracts\Interfaces\AttendanceInterface;
+use App\Contracts\Interfaces\AttendancePermissionInterface;
+use App\Contracts\Interfaces\ClassroomStudentsInterface;
 use App\Enums\AttendanceStatusEnum;
-use App\Contracts\Interfaces\{
-    StudentInterface,
-    AttendanceInterface,
-    LessonScheduleInterface,
-    AttendancePermissionInterface,
-    ClassroomStudentsInterface
-};
 use App\Enums\PermissionStatusEnum;
+use App\Models\Student;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class StudentDashboardService
 {
     public function __construct(
         private StudentInterface $studentRepo,
         private AttendanceInterface $attendanceRepo,
-        private LessonScheduleInterface $scheduleRepo,
         private AttendancePermissionInterface $permissionRepo,
         private ClassroomStudentsInterface $classroomStudentRepo,
-        private StudentLessonScheduleService $studentScheduleService
+        private StudentLessonScheduleService $scheduleService
     ) {}
-
 
     public function getDashboardData(string $studentId): array
     {
-        $student = $this->studentRepo->findWithClassroom($studentId);
+        $student = $this->studentRepo->showWithActiveClassroom($studentId);
 
         return [
             'header' => $this->getHeader($student),
             'attendance' => [
                 'summary' => $this->getAttendanceSummary($studentId),
             ],
-            'today_schedules' => $this->getTodaySchedules($studentId),
+            'today_schedules' => $this->getTodaySchedules($student),
             'latest_permissions' => $this->getLatestPermissions($studentId),
         ];
     }
@@ -53,76 +47,72 @@ class StudentDashboardService
 
     private function getClassroomName(Student $student): string
     {
-        if ($student->classroom?->name) {
-            return $student->classroom->name;
-        }
+        $cls = $student->classroomStudents
+            ->where('status', 'ACTIVE')
+            ->first();
 
-        $cls = $this->classroomStudentRepo->getLatestByStudent($student->id);
         if (!$cls || !$cls->classroom) return '-';
 
         $level = $cls->classroom->levelClass->name ?? '';
         $major = $cls->classroom->major->name ?? '';
-        $name  = $cls->classroom->name;
+        $name  = $cls->classroom->name ?? '';
 
         $map = [
             'Pengembangan Perangkat Lunak & Game' => 'PPLG',
             'Teknik Jaringan Komputer & Telekomunikasi' => 'TJKT',
             'Desain Komunikasi Visual' => 'DKV',
-    ];
+        ];
 
-    $shortMajor = $map[$major] ?? $major;
+        preg_match('/(\d+)/', $name, $match);
+        $rombel = $match[1] ?? '';
 
-    preg_match('/(\d+)/', $name, $match);
-    $rombel = $match[1] ?? '';
-
-    return trim("$level $shortMajor $rombel") ?: '-';
+        return trim($level . ' ' . ($map[$major] ?? $major) . ' ' . $rombel) ?: '-';
     }
 
-  private function getAttendanceSummary(string $studentId): array
-{
-    $presentVal = AttendanceStatusEnum::PRESENT->value;
-    $lateVal    = AttendanceStatusEnum::LATE->value;
-    $alphaVal   = AttendanceStatusEnum::ALPHA->value;
-    $sickVal    = AttendanceStatusEnum::SICK->value;
+    private function getAttendanceSummary(string $studentId): array
+    {
+        $row = DB::table('attendances')
+            ->where('student_id', $studentId)
+            ->selectRaw("
+                SUM(status = ?) AS present,
+                SUM(status = ?) AS late,
+                SUM(status = ?) AS alpha,
+                SUM(status = ?) AS sick
+            ", [
+                AttendanceStatusEnum::PRESENT->value,
+                AttendanceStatusEnum::LATE->value,
+                AttendanceStatusEnum::ALPHA->value,
+                AttendanceStatusEnum::SICK->value,
+            ])
+            ->first();
 
-    $row = DB::table('attendances as a')
-        ->leftJoin('attendance_permissions as p', function ($join) {
-            $join->on('p.student_id', '=', 'a.student_id')
-                 ->whereRaw('a.date BETWEEN p.start_date AND p.end_date');
-        })
-        ->where('a.student_id', $studentId)
-        ->selectRaw("
-            SUM(CASE WHEN a.status = ? THEN 1 ELSE 0 END) as present,
-            SUM(CASE WHEN a.status = ? THEN 1 ELSE 0 END) as late,
-            SUM(CASE WHEN a.status = ? THEN 1 ELSE 0 END) as alpha,
-            SUM(CASE WHEN a.status = ? THEN 1 ELSE 0 END) as sick_absen
-        ", [$presentVal, $lateVal, $alphaVal, $sickVal])
-        ->first();
+        $approvedPermission = DB::table('attendance_permissions')
+            ->where('student_id', $studentId)
+            ->where('status', PermissionStatusEnum::APPROVED->value)
+            ->count();
 
-    $approvedPermissionsCount = DB::table('attendance_permissions')
-        ->where('student_id', $studentId)
-        ->where('status', PermissionStatusEnum::APPROVED->value)
-        ->count();
+        return [
+            'present' => (int) ($row->present ?? 0),
+            'late' => (int) ($row->late ?? 0),
+            'alpha' => (int) ($row->alpha ?? 0),
+            'sick' => (int) ($row->sick ?? 0) + $approvedPermission,
+        ];
+    }
 
-    return [
-        'present' => (int) $row->present,
-        'late'    => (int) $row->late,
-        'alpha'   => (int) $row->alpha,
-        'sick'    => (int) $row->sick_absen + (int) $approvedPermissionsCount,
-    ];
-}
-
-
-
-    private function getTodaySchedules(string $studentId): array
+    private function getTodaySchedules(Student $student): array
     {
         $day = strtolower(Carbon::now()->englishDayOfWeek);
 
-        $student = $this->studentRepo->findWithClassroom($studentId);
+        $classroom = $student->classroomStudents
+            ->where('status', 'ACTIVE')
+            ->first();
+
+        if (!$classroom) return [];
+
+        $schedules = $this->scheduleService
+            ->getSchedule($student->id, $day);
 
         $classroomName = $this->getClassroomName($student);
-
-        $schedules = $this->studentScheduleService->getSchedule($studentId, $day);
 
         return array_map(function ($item) use ($classroomName) {
             $item['classroom'] = $classroomName;
@@ -130,37 +120,24 @@ class StudentDashboardService
         }, $schedules);
     }
 
-
-    private function formatLessonHour(?int $seq, int $i): string
-    {
-        $start = $seq ?: ($i + 1);
-        return "Jam Ke {$start} - " . ($start + 1);
-    }
-
     private function getLatestPermissions(string $studentId): array
     {
-        $perms = $this->permissionRepo->getLatest($studentId);
-        if ($perms->isEmpty()) return [];
+        $permissions = $this->permissionRepo->getLatest($studentId);
 
-        return $perms->map(fn($p) => $this->formatPermission($p))
-            ->values()->toArray();
-    }
+        if ($permissions->isEmpty()) return [];
 
-    private function formatPermission($p): array
-    {
-        $statusValue = strtolower($p->status instanceof \BackedEnum ? $p->status->value : $p->status);
+        return $permissions->map(function ($p) {
+            $status = PermissionStatusEnum::tryFrom(
+                strtolower($p->status instanceof \BackedEnum ? $p->status->value : $p->status)
+            );
 
-        $statusEnum = PermissionStatusEnum::tryFrom($statusValue);
-
-        return [
-            'Tanggal' => $p->created_at?->format('d/m/Y') ?? '-',
-            'Alasan' => $this->limit($p->reason ?? '-'),
-            'Status' => $statusEnum?->label() ?? 'Unknown', 
-        ];
-    }
-
-    private function limit(string $txt): string
-    {
-        return strlen($txt) > 50 ? substr($txt, 0, 50) . '...' : $txt;
+            return [
+                'Tanggal' => $p->created_at?->format('d/m/Y') ?? '-',
+                'Alasan' => strlen($p->reason ?? '') > 50
+                    ? substr($p->reason, 0, 50) . '...'
+                    : ($p->reason ?? '-'),
+                'Status' => $status?->label() ?? 'Unknown',
+            ];
+        })->values()->toArray();
     }
 }
