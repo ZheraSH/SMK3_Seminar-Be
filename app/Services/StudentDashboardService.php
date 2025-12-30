@@ -8,6 +8,7 @@ use App\Contracts\Interfaces\AttendancePermissionInterface;
 use App\Contracts\Interfaces\ClassroomStudentsInterface;
 use App\Enums\AttendanceStatusEnum;
 use App\Enums\PermissionStatusEnum;
+use App\Enums\StudentStatusEnum;
 use App\Models\Student;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -48,20 +49,15 @@ class StudentDashboardService
     private function getClassroomName(Student $student): string
     {
         $cls = $student->classroomStudents
-            ->where('status', 'ACTIVE')
-            ->first();
+            ->first(fn ($cs) => StudentStatusEnum::isActive($cs->status));
 
-        if (!$cls || !$cls->classroom) return '-';
+        if (!$cls || !$cls->classroom) {
+            return '-';
+        }
 
         $level = $cls->classroom->levelClass->name ?? '';
-        $major = $cls->classroom->major->name ?? '';
+        $major = $cls->classroom->major->code ?? '';
         $name  = $cls->classroom->name ?? '';
-
-        $map = [
-            'Pengembangan Perangkat Lunak & Game' => 'PPLG',
-            'Teknik Jaringan Komputer & Telekomunikasi' => 'TJKT',
-            'Desain Komunikasi Visual' => 'DKV',
-        ];
 
         preg_match('/(\d+)/', $name, $match);
         $rombel = $match[1] ?? '';
@@ -93,9 +89,9 @@ class StudentDashboardService
 
         return [
             'present' => (int) ($row->present ?? 0),
-            'late' => (int) ($row->late ?? 0),
-            'alpha' => (int) ($row->alpha ?? 0),
-            'sick' => (int) ($row->sick ?? 0) + $approvedPermission,
+            'late'    => (int) ($row->late ?? 0),
+            'alpha'   => (int) ($row->alpha ?? 0),
+            'sick'    => (int) ($row->sick ?? 0) + $approvedPermission,
         ];
     }
 
@@ -104,10 +100,11 @@ class StudentDashboardService
         $day = strtolower(Carbon::now()->englishDayOfWeek);
 
         $classroom = $student->classroomStudents
-            ->where('status', 'ACTIVE')
-            ->first();
+            ->first(fn ($cs) => StudentStatusEnum::isActive($cs->status));
 
-        if (!$classroom) return [];
+        if (!$classroom) {
+            return [];
+        }
 
         $schedules = $this->scheduleService
             ->getSchedule($student->id, $day);
@@ -124,19 +121,25 @@ class StudentDashboardService
     {
         $permissions = $this->permissionRepo->getLatest($studentId);
 
-        if ($permissions->isEmpty()) return [];
+        if ($permissions->isEmpty()) {
+            return [];
+        }
 
         return $permissions->map(function ($p) {
             $status = PermissionStatusEnum::tryFrom(
-                strtolower($p->status instanceof \BackedEnum ? $p->status->value : $p->status)
+                strtolower(
+                    $p->status instanceof \BackedEnum
+                        ? $p->status->value
+                        : $p->status
+                )
             );
 
             return [
                 'Tanggal' => $p->created_at?->format('d/m/Y') ?? '-',
-                'Alasan' => strlen($p->reason ?? '') > 50
+                'Alasan'  => strlen($p->reason ?? '') > 50
                     ? substr($p->reason, 0, 50) . '...'
                     : ($p->reason ?? '-'),
-                'Status' => $status?->label() ?? 'Unknown',
+                'Status'  => $status?->label() ?? 'Unknown',
             ];
         })->values()->toArray();
     }
