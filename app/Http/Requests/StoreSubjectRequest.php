@@ -12,7 +12,7 @@ class StoreSubjectRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255|unique:subjects,name,NULL,id,deleted_at,NULL',
+            'name' => 'required|string|max:20|unique:subjects,name,NULL,id,deleted_at,NULL',
         ];
     }
 

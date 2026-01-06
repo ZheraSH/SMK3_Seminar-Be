@@ -14,7 +14,7 @@ class UpdateSubjectRequest extends ApiRequest
     {
         $id = $this->route('id');
         return [
-            'name' => 'required|string|max:255|unique:subjects,name,' . $id . ',id,deleted_at,NULL',
+            'name' => 'required|string|max:20|unique:subjects,name,' . $id . ',id,deleted_at,NULL',
         ];
     }
 
