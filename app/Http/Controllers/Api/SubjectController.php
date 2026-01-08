@@ -23,28 +23,30 @@ class SubjectController extends Controller
     public function index(Request $request)
     {
         try {
-            $subjects = $this->subjectRepository->paginate();
+            $subjects = $this->subjectRepository->paginate(12);
 
-            return ResponseHelper::success(
-                SubjectResource::collection($subjects),
+            return ResponseHelper::pagination(
+                $subjects,
+                SubjectResource::class,
                 'List mata pelajaran berhasil diambil'
             );
         } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), 500);
         }
     }
 
     public function search(Request $request)
     {
         try {
-            $subjects = $this->subjectRepository->search($request);
+            $subjects = $this->subjectRepository->search($request, 12);
 
-            return ResponseHelper::success(
-                SubjectResource::collection($subjects),
+            return ResponseHelper::pagination(
+                $subjects,
+                SubjectResource::class,
                 'Hasil pencarian mata pelajaran berhasil diambil'
             );
         } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), 500);
         }
     }
 
@@ -59,7 +61,7 @@ class SubjectController extends Controller
                 201
             );
         } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), 500);
         }
     }
 
@@ -68,23 +70,19 @@ class SubjectController extends Controller
         try {
             $subject = $this->subjectRepository->show($id);
 
-            if (! $subject) {
-                return ResponseHelper::notFound('Data mata pelajaran tidak ditemukan');
-            }
-
             return ResponseHelper::success(
                 new SubjectResource($subject),
                 'Detail mata pelajaran berhasil diambil'
             );
         } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error('Data mata pelajaran tidak ditemukan', 404);
         }
     }
 
     public function update(UpdateSubjectRequest $request, string $id)
     {
         try {
-            $updated = $this->subjectRepository->update($id, $request->validated());
+            $this->subjectRepository->update($id, $request->validated());
             $subject = $this->subjectRepository->show($id);
 
             return ResponseHelper::success(
@@ -92,22 +90,18 @@ class SubjectController extends Controller
                 'Data mata pelajaran berhasil diperbarui'
             );
         } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error($th->getMessage(), 500);
         }
     }
 
     public function destroy(string $id)
     {
         try {
-            $deleted = $this->subjectRepository->delete($id);
-
-            if (! $deleted) {
-                return ResponseHelper::notFound('Data mata pelajaran tidak ditemukan');
-            }
+            $this->subjectRepository->delete($id);
 
             return ResponseHelper::success(null, 'Data mata pelajaran berhasil dihapus');
         } catch (Throwable $th) {
-            return ResponseHelper::error(500, $th->getMessage());
+            return ResponseHelper::error('Gagal menghapus data atau data tidak ditemukan', 500);
         }
     }
 }
