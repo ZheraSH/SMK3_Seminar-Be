@@ -23,6 +23,7 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
                 'classroom.major',
                 'classroom.levelClass',
                 'classroom.schoolYear',
+                'classroom.homeroomTeacher',
                 'teacher.user',
                 'lessonHour',
                 'subject',
@@ -80,7 +81,8 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
             $classroomId,
             $day,
             $lessonHourId,
-            $excludeId);
+            $excludeId
+        );
     }
 
     public function checkTeacherConflict(string $teacherId, string $day, string $lessonHourId, ?string $excludeId = null): bool
@@ -99,7 +101,7 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
         return $this->baseQuery()
             ->where('classroom_id', $classroomId)
             ->where('day', $day)
-            ->whereHas('lessonHour', fn ($q) => $q->where('is_lesson', true))
+            ->whereHas('lessonHour', fn($q) => $q->where('is_lesson', true))
             ->orderBy(
                 LessonHour::select('start')
                     ->whereColumn('lesson_hours.id', 'lesson_schedules.lesson_hour_id')
@@ -108,7 +110,8 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
     }
 
     //Teacher
-    public function getByTeacherClassroomAndLessonOrder(string $teacherId, string $classroomId, string $day, int $lessonOrder): ?LessonSchedule {
+    public function getByTeacherClassroomAndLessonOrder(string $teacherId, string $classroomId, string $day, int $lessonOrder): ?LessonSchedule
+    {
         return $this->baseQuery()
             ->where('teacher_id', $teacherId)
             ->where('classroom_id', $classroomId)
@@ -118,7 +121,7 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
             })
             ->first();
     }
-    
+
     public function getByTeacherAndDayWithLessonHour(string $teacherId, string $day): Collection
     {
         return $this->baseQuery()

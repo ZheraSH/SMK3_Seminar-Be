@@ -24,9 +24,9 @@ use App\Http\Controllers\Api\Student\StudentDashboardController;
 use App\Http\Controllers\Api\Teacher\TeachersController;
 // use App\Http\Controllers\Api\Teacher\TeacherDashboardController;
 use App\Http\Controllers\Api\Counselor\CounselorsController;
-use App\Http\Controllers\Api\Counselor\CounselorDashboardController;
+// use App\Http\Controllers\Api\Counselor\CounselorDashboardController;
 use App\Http\Controllers\Api\Homeroom_teacher\HomeroomTeachersController;
-use App\Http\Controllers\Api\Homeroom_teacher\HomeroomTeacherDashboardController;
+// use App\Http\Controllers\Api\Homeroom_teacher\HomeroomTeacherDashboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -157,14 +157,14 @@ Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->group(fu
     // });
     // Teacher schedule
     Route::prefix('schedules')->controller(TeachersController::class)->group(function () {
-        Route::get('/', 'indexSchedule');
+        Route::get('{day}', 'indexSchedule');
         Route::get('classrooms/{day}', 'indexScheduleClassrooms');
     });
     // Teacher attendance cross-check
-    // Route::prefix('attendances')->controller(TeachersController::class)->group(function () {
-    //     Route::get('form', 'getAttendanceForm');
-    //     Route::post('submit', 'submitAttendance');
-    // });
+    Route::prefix('attendances')->controller(TeachersController::class)->group(function () {
+        Route::get('form', 'getAttendanceForm');
+        Route::post('submit', 'submitAttendance');
+    });
 });
 
 /*
@@ -178,9 +178,7 @@ Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->grou
     // Route::prefix('dashboard')->controller(CounselorDashboardController::class)->group(function () {
     // });
     // Monitoring Kehadiran Siswa (BK)
-    // Route::prefix('attendance-monitoring')->controller(CounselorAttendanceMonitoringController::class) ->group(function () {
-    //     Route::get('/', 'index'); // monitoring list
-    //     Route::post('sync', 'syncData'); // sync rekap
+    // Route::prefix('attendance-monitoring')->controller(CounselorAttendanceMonitoringController::class) ->group(function ()
     // });
     // Statistik Global (BK)
     // Route::prefix('attendance')->controller(CounselorAttendanceGlobalController::class)->group(function () {

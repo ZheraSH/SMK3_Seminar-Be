@@ -38,11 +38,9 @@ class TeacherCrossCheckDataResource extends JsonResource
                 'level' => $classroom->levelClass->name ?? null,
                 'major' => $classroom->major->code ?? null,
                 'school_year' => $classroom->schoolYear->name ?? null,
-                'homeroom_teacher' => $classroom->teacher ? [
-                    'id' => $classroom->teacher->id,
-                    'name' => $classroom->teacher->user->name ?? 'Tidak diketahui',
-                    'type' => 'homeroom_teacher',
-                    'type_label' => 'Wali Kelas',
+                'homeroom_teacher' => $classroom->homeroomTeacher ? [
+                    'id' => $classroom->homeroomTeacher->id,
+                    'name' => $classroom->homeroomTeacher->user->name ?? 'Tidak diketahui',
                 ] : null,
             ] : null,
             'lesson_schedule' => $lessonSchedule ? [
@@ -53,9 +51,9 @@ class TeacherCrossCheckDataResource extends JsonResource
                     'id' => $lessonSchedule->subject->id,
                     'name' => $lessonSchedule->subject->name,
                 ] : null,
-                'teacher' => $lessonSchedule->employee ? [
-                    'id' => $lessonSchedule->employee->id,
-                    'name' => $lessonSchedule->employee->user->name ?? 'Tidak diketahui',
+                'teacher' => $lessonSchedule->teacher ? [
+                    'id' => $lessonSchedule->teacher->id,
+                    'name' => $lessonSchedule->teacher->user->name ?? 'Tidak diketahui',
                 ] : null,
                 'lesson_hour' => $lessonSchedule->lessonHour ? [
                     'id' => $lessonSchedule->lessonHour->id,
@@ -64,14 +62,6 @@ class TeacherCrossCheckDataResource extends JsonResource
                     'name' => $lessonSchedule->lessonHour->name ?? "Jam Ke {$this->lesson_order}",
                 ] : null,
             ] : null,
-            'summary' => [
-                'total_students' => $this->total_students ?? 0,
-                'present' => $this->present ?? 0,
-                'late' => $this->late ?? 0,
-                'alpha' => $this->alpha ?? 0,
-                'leave' => $this->leave ?? 0,
-                'sick' => $this->sick ?? 0,
-            ],
             'submission_status' => [
                 'has_submitted' => $this->has_submitted ?? false,
                 'submitted_at' => $this->submitted_at ?? null,

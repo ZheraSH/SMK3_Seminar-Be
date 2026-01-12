@@ -5,8 +5,7 @@ namespace App\Contracts\Repositories;
 use App\Contracts\Interfaces\AttendanceInterface;
 use App\Enums\AttendanceStatusEnum;
 use App\Models\Attendance;
-use App\Models\Student;
-use Illuminate\Support\Facades\DB;
+
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -77,7 +76,7 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
             ->groupBy('date')
             ->orderByDesc('date')
             ->paginate($perPage);
-    }    
+    }
 
     public function getStudentSummary(string $studentId): array
     {
@@ -144,7 +143,6 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
             ->where('student_id', $studentId)
             ->whereDate('date', $date)
             ->where('lesson_order', $lessonOrder)
-            ->where('is_final', true)
             ->first();
     }
 
@@ -155,7 +153,6 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
                 $q->where('classroom_id', $classroomId);
             })
             ->whereDate('date', $date)
-            ->where('is_final', true)
             ->get();
     }
 
@@ -188,7 +185,6 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
         return $this->model
             ->where('student_id', $studentId)
             ->whereDate('date', $date)
-            ->where('is_final', true)
             ->orderBy('lesson_order')
             ->get();
     }
@@ -198,23 +194,15 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
         return $this->model
             ->where('student_id', $studentId)
             ->whereBetween('date', $dateRange)
-            ->where('is_locked', false)
             ->update([
                 'status' => $status,
-                'is_locked' => true,
                 'overridden_by_permission_id' => $permissionId,
-                'is_final' => true
             ]);
     }
 
     public function isAttendanceLocked(string $studentId, string $date, int $lessonOrder): bool
     {
-        return $this->model
-            ->where('student_id', $studentId)
-            ->whereDate('date', $date)
-            ->where('lesson_order', $lessonOrder)
-            ->where('is_locked', true)
-            ->exists();
+        return false;
     }
 
     //Teacher Close

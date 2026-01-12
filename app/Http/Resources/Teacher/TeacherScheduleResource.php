@@ -19,7 +19,7 @@ class TeacherScheduleResource extends JsonResource
                 'value' => $this->getEnumValue($this->day),
                 'label' => $this->getEnumLabel($this->day),
             ],
-            'lesson_order' => $this->lessonHour?->lesson_order,
+            'lesson_order' => $this->lessonHour?->order,
             'time' => $this->formatTimeRange(
                 $this->lessonHour?->start,
                 $this->lessonHour?->end

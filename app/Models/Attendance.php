@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Enums\AttendanceStatusEnum;
 use App\Enums\AttendanceProofEnum;
-use App\Traits\Models\BelongsToAttendancePermission;
 use App\Traits\Models\BelongsToClassroomStudents;
 use App\Traits\Models\BelongsToRfid;
 use App\Traits\Models\BelongsToStudent;
@@ -21,7 +20,7 @@ class Attendance extends Model
     use HasFactory, HasUuids, BelongsToStudent, 
     BelongsToSubject, BelongsToTeacher,
     BelongsToLessonSchedule, BelongsToClassroomStudents,
-    BelongsToRfid, BelongsToAttendancePermission, SoftDeletes;
+    BelongsToRfid, SoftDeletes;
 
     public $incrementing = false;
     protected $keyType = 'string';
@@ -41,9 +40,6 @@ class Attendance extends Model
         'attendance_type',
         'status',
         'proof',
-        'is_final',
-        'is_locked',
-        'overridden_by_permission_id',
     ];
 
     protected $casts = [
@@ -52,8 +48,6 @@ class Attendance extends Model
         'checkout_time' => 'string',
         'status' => AttendanceStatusEnum::class,
         'proof' => AttendanceProofEnum::class,
-        'is_final' => 'boolean',
-        'is_locked' => 'boolean',
     ];
 
     public function scopeToday($query)

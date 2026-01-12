@@ -53,42 +53,42 @@ class TeachersController extends Controller
         }
     }
 
-    // public function getAttendanceForm(GetCrossCheckDataRequest $request): JsonResponse
-    // {
-    //     try {
-    //         $teacherId = auth()->user()->employee->id;
+    public function getAttendanceForm(GetCrossCheckDataRequest $request): JsonResponse
+    {
+        try {
+            $teacherId = auth()->user()->employee->id;
 
-    //         $data = $this->teacherService->getCrossCheckData(
-    //             $teacherId,
-    //             $request->validated('classroom_id'),
-    //             $request->validated('date'),
-    //             $request->validated('lesson_order'),
-    //             $request
-    //         );
+            $data = $this->teacherService->getCrossCheckData(
+                $teacherId,
+                $request->validated('classroom_id'),
+                $request->validated('date'),
+                $request->validated('lesson_order'),
+                $request
+            );
 
-    //         return ResponseHelper::success(
-    //             new TeacherCrossCheckDataResource($data),
-    //             'Data absensi kelas berhasil diambil'
-    //         );
-    //     } catch (\Throwable $th) {
-    //         return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
-    //     }
-    // }
+            return ResponseHelper::success(
+                new TeacherCrossCheckDataResource($data),
+                'Data absensi kelas berhasil diambil'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
+        }
+    }
 
-    // public function submitAttendance(CrossCheckAttendanceRequest $request): JsonResponse
-    // {
-    //     try {
-    //         $teacherId = auth()->user()->employee->id;
+    public function submitAttendance(CrossCheckAttendanceRequest $request): JsonResponse
+    {
+        try {
+            $teacherId = auth()->user()->employee->id;
 
-    //         $result = $this->teacherService->submitCrossCheck($request->validated(), $teacherId);
+            $result = $this->teacherService->submitCrossCheck($request->validated(), $teacherId);
 
-    //         return ResponseHelper::success(
-    //             $result,
-    //             'Absensi berhasil disimpan',
-    //             201
-    //         );
-    //     } catch (\Throwable $th) {
-    //         return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
-    //     }
-    // }
+            return ResponseHelper::success(
+                $result,
+                'Absensi berhasil disimpan',
+                201
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
+        }
+    }
 }
