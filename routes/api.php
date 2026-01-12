@@ -26,7 +26,7 @@ use App\Http\Controllers\Api\Teacher\TeachersController;
 use App\Http\Controllers\Api\Counselor\CounselorsController;
 use App\Http\Controllers\Api\Counselor\CounselorDashboardController;
 use App\Http\Controllers\Api\Homeroom_teacher\HomeroomTeachersController;
-// use App\Http\Controllers\Api\Homeroom_teacher\HomeroomTeacherDashboardController;
+use App\Http\Controllers\Api\Homeroom_teacher\HomeroomTeacherDashboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -204,8 +204,10 @@ Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->grou
 */
 Route::middleware(['auth:sanctum', 'role:homeroom_teacher'])->prefix('homeroom-teacher')->group(function () {
     //HomeroomTeacher Dashboard
-    // Route::prefix('dashboard')->controller(HomeroomTeacherDashboardController::class)->group(function () {
-    // });
+    Route::prefix('dashboard')->controller(HomeroomTeacherDashboardController::class)->group(function () {
+        Route::get('attendance-counts', 'indexStats');
+        Route::get('rfid-logs', 'rfidLogs');
+    });
     // rekap kelas 
     Route::prefix('summary-class')->controller(HomeroomTeachersController::class)->group(function () {
         Route::get('/', 'getSummaryClass'); // summary class

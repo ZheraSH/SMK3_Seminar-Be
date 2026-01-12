@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\HomeroomTeacher;
+namespace App\Services\Homeroom_Teacher;
 
 use App\Contracts\Repositories\AttendanceRepository;
 use App\Contracts\Repositories\AttendancePermissionRepository;
@@ -161,7 +161,7 @@ class HomeroomTeacherService
         return [
             'summary' => $this->getDailySummary($teacher, $date),
             'students' => $students->getCollection()->map(
-                fn ($cs) => $this->mapStudentAttendance($cs, $date, $attendances, $permissions)
+                fn($cs) => $this->mapStudentAttendance($cs, $date, $attendances, $permissions)
             )->filter(),
         ];
     }
@@ -180,7 +180,7 @@ class HomeroomTeacherService
     private function isHomeroomTeacher(User $user): bool
     {
         return $user->roles->contains(
-            fn ($role) => $role->name === RoleEnum::HOMEROOM_TEACHER->value
+            fn($role) => $role->name === RoleEnum::HOMEROOM_TEACHER->value
         );
     }
 
@@ -262,7 +262,9 @@ class HomeroomTeacherService
         return \App\Models\AttendancePermission::where('status', 'approved')
             ->whereDate('start_date', '<=', $date)
             ->whereDate('end_date', '>=', $date)
-            ->whereHas('student.classrooms', fn ($q) =>
+            ->whereHas(
+                'student.classroomStudents',
+                fn($q) =>
                 $q->where('classroom_id', $classroomId)
             )
             ->get();

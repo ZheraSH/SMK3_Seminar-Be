@@ -253,4 +253,19 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
     }
     // Counselor Close
 
+    // Homeroom Teacher
+    public function getRFIDLogByClassroom(string $classroomId, string $date): Collection
+    {
+        return $this->model
+            ->whereDate('date', $date)
+            ->where('attendance_type', 'rfid')
+            ->whereHas('student.classroomStudents', function ($q) use ($classroomId) {
+                $q->where('classroom_id', $classroomId)
+                    ->where('status', 'active');
+            })
+            ->with(['student.user'])
+            ->orderBy('checkin_time', 'desc')
+            ->get();
+    }
+    // Homeroom Teacher Close
 }

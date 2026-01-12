@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Homeroom_teacher;
 
 use App\Http\Controllers\Controller;
-use App\Services\HomeroomTeacher\HomeroomTeacherService;
+use App\Services\Homeroom_Teacher\HomeroomTeacherService;
 use App\Http\Resources\Homeroom_teacher\SummaryClassResource;
 use App\Http\Resources\Homeroom_teacher\WeeklyAttendanceStatisticsResource;
 use App\Http\Resources\Homeroom_teacher\DailyStudentAttendanceResource;
@@ -35,8 +35,7 @@ class HomeroomTeachersController extends Controller
                 'Ringkasan kelas berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500
-            );
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
         }
     }
 
@@ -54,8 +53,7 @@ class HomeroomTeachersController extends Controller
                 'Statistik mingguan berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500
-            );
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
         }
     }
 
@@ -74,8 +72,7 @@ class HomeroomTeachersController extends Controller
                 'pagination' => $data['pagination'],
             ], 'Data kehadiran harian berhasil diambil');
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500
-            );
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
         }
     }
 }
