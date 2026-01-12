@@ -24,7 +24,7 @@ use App\Http\Controllers\Api\Student\StudentDashboardController;
 use App\Http\Controllers\Api\Teacher\TeachersController;
 // use App\Http\Controllers\Api\Teacher\TeacherDashboardController;
 use App\Http\Controllers\Api\Counselor\CounselorsController;
-// use App\Http\Controllers\Api\Counselor\CounselorDashboardController;
+use App\Http\Controllers\Api\Counselor\CounselorDashboardController;
 use App\Http\Controllers\Api\Homeroom_teacher\HomeroomTeachersController;
 // use App\Http\Controllers\Api\Homeroom_teacher\HomeroomTeacherDashboardController;
 use Illuminate\Support\Facades\Route;
@@ -34,6 +34,7 @@ use Illuminate\Support\Facades\Route;
 | Authentication Routes
 |--------------------------------------------------------------------------
 */
+
 Route::controller(AuthController::class)->prefix('auth')->group(function () {
     // Public routes
     Route::post('login', 'login');
@@ -53,74 +54,74 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
 | Semua endpoint yang hanya boleh diakses operator sekolah
 */
 // Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
-    //Dashboard
-    Route::prefix('dashboard')->controller(OperatorDashboardController::class)->group(function () {
-        Route::get('counters', 'getCounter'); //total siswa/guru/kelas/attendance
-        Route::get('tap-history', 'getRfidHistory'); //kegiatan tap RFID terbaru
-        Route::get('statistic-today', 'getStatisticsDay'); //statistik absen harian
-        Route::get('statistic-monthly', 'getStatisticsMonthly'); //statistik absen bulanan
-    });
-    //school Informations
-    Route::apiResource('school-information', SchoolController::class)->only('index');
-    Route::prefix('school-information')->controller(SchoolController::class)->group(function () {
-        Route::post('update', 'update'); //update pake method post
-    });
-    // Roles
-    Route::apiResource('roles', RoleController::class)->only('index');
-    // Religions
-    Route::apiResource('religions', ReligionController::class)->only('index');
-    // Employees
-    Route::apiResource('employees', EmployeeController::class);
-    // Students
-    Route::apiResource('students', StudentController::class);
-    // Majors
-    Route::apiResource('majors', MajorController::class)->only('index');
-    // Level Classes
-    Route::apiResource('level-classes', LevelClassController::class)->only('index');
-    // School Years
-    Route::prefix('school-years')->controller(SchoolYearsController::class)->group(function () {
-        Route::get('active', 'active'); // tahun ajaran aktif
-        Route::post('{id}/activate', 'activate'); // aktifkan tahun ajaran
-    });
-    Route::apiResource('school-years', SchoolYearsController::class)->except(['show','update']);
-    // Classrooms
-    Route::apiResource('classrooms', ClassroomController::class)->except(['update','destroy']);
-    // Classroom Students
-    Route::prefix('classrooms/{classroomId}')->controller(ClassroomStudentsController::class)->group(function () {
-        Route::get('students', 'index'); // list siswa di classroom (paginate dengan search)
-        Route::get('students-available', 'getAvailableStudents'); // siswa belum/bisa pindah dengan search
-        Route::post('students-add', 'store'); // tambahkan siswa ke classroom
-        Route::delete('student-remove/{studentId}', 'destroy'); // hapus siswa dari classroom
-    });
-    // Semesters
-    Route::prefix('semesters')->controller(SemesterController::class)->group(function () {
-        Route::get('active', 'active'); // semester aktif
-    });
-    // Subjects
-    Route::apiResource('subjects', SubjectController::class);
-    // Lesson Hours
-    Route::prefix('lesson-hours')->controller(LessonHourController::class)->group(function () {
-        Route::get('{day}', 'getByDay'); // jam pelajaran khusus hari tertentu
-    });
-    Route::apiResource('lesson-hours', LessonHourController::class)->except(['index', 'show']);
-    // Lesson Schedules
-    Route::prefix('lesson-schedules')->controller(LessonSchedulesController::class)->group(function () {
-        Route::get('{classroomId}/schedules/{day}', 'getLessonScheduleClassroomAndDay'); // jadwal kelas per hari
-    });
-    Route::apiResource('lesson-schedules', LessonSchedulesController::class)->except(['index','show']);
-    // Attendance Rules
-    Route::prefix('attendance-rules')->controller(AttendanceRuleController::class)->group(function () {
-        Route::put('{day}', 'updateByDay'); // update aturan absensi per hari
-        Route::get('{day}', 'getByDay'); // aturan absensi hari tertentu
-    });
-    Route::apiResource('attendance-rules', AttendanceRuleController::class)->only(['store']);
-    // RFID Management
-    Route::prefix('rfids')->controller(RfidController::class)->group(function () {
-        Route::get('students-available', 'getAvailableStudents'); // list siswa yg belum punya kartu RFID
-    });
-    Route::apiResource('rfids', RfidController::class);
-    // RFID Tap (perlu Master card)
-    Route::post('rfid-tap', [RfidTapController::class, 'tap']);
+//Dashboard
+Route::prefix('dashboard')->controller(OperatorDashboardController::class)->group(function () {
+    Route::get('counters', 'getCounter'); //total siswa/guru/kelas/attendance
+    Route::get('tap-history', 'getRfidHistory'); //kegiatan tap RFID terbaru
+    Route::get('statistic-today', 'getStatisticsDay'); //statistik absen harian
+    Route::get('statistic-monthly', 'getStatisticsMonthly'); //statistik absen bulanan
+});
+//school Informations
+Route::apiResource('school-information', SchoolController::class)->only('index');
+Route::prefix('school-information')->controller(SchoolController::class)->group(function () {
+    Route::post('update', 'update'); //update pake method post
+});
+// Roles
+Route::apiResource('roles', RoleController::class)->only('index');
+// Religions
+Route::apiResource('religions', ReligionController::class)->only('index');
+// Employees
+Route::apiResource('employees', EmployeeController::class);
+// Students
+Route::apiResource('students', StudentController::class);
+// Majors
+Route::apiResource('majors', MajorController::class)->only('index');
+// Level Classes
+Route::apiResource('level-classes', LevelClassController::class)->only('index');
+// School Years
+Route::prefix('school-years')->controller(SchoolYearsController::class)->group(function () {
+    Route::get('active', 'active'); // tahun ajaran aktif
+    Route::post('{id}/activate', 'activate'); // aktifkan tahun ajaran
+});
+Route::apiResource('school-years', SchoolYearsController::class)->except(['show', 'update']);
+// Classrooms
+Route::apiResource('classrooms', ClassroomController::class)->except(['update', 'destroy']);
+// Classroom Students
+Route::prefix('classrooms/{classroomId}')->controller(ClassroomStudentsController::class)->group(function () {
+    Route::get('students', 'index'); // list siswa di classroom (paginate dengan search)
+    Route::get('students-available', 'getAvailableStudents'); // siswa belum/bisa pindah dengan search
+    Route::post('students-add', 'store'); // tambahkan siswa ke classroom
+    Route::delete('student-remove/{studentId}', 'destroy'); // hapus siswa dari classroom
+});
+// Semesters
+Route::prefix('semesters')->controller(SemesterController::class)->group(function () {
+    Route::get('active', 'active'); // semester aktif
+});
+// Subjects
+Route::apiResource('subjects', SubjectController::class);
+// Lesson Hours
+Route::prefix('lesson-hours')->controller(LessonHourController::class)->group(function () {
+    Route::get('{day}', 'getByDay'); // jam pelajaran khusus hari tertentu
+});
+Route::apiResource('lesson-hours', LessonHourController::class)->except(['index', 'show']);
+// Lesson Schedules
+Route::prefix('lesson-schedules')->controller(LessonSchedulesController::class)->group(function () {
+    Route::get('{classroomId}/schedules/{day}', 'getLessonScheduleClassroomAndDay'); // jadwal kelas per hari
+});
+Route::apiResource('lesson-schedules', LessonSchedulesController::class)->except(['index', 'show']);
+// Attendance Rules
+Route::prefix('attendance-rules')->controller(AttendanceRuleController::class)->group(function () {
+    Route::put('{day}', 'updateByDay'); // update aturan absensi per hari
+    Route::get('{day}', 'getByDay'); // aturan absensi hari tertentu
+});
+Route::apiResource('attendance-rules', AttendanceRuleController::class)->only(['store']);
+// RFID Management
+Route::prefix('rfids')->controller(RfidController::class)->group(function () {
+    Route::get('students-available', 'getAvailableStudents'); // list siswa yg belum punya kartu RFID
+});
+Route::apiResource('rfids', RfidController::class);
+// RFID Tap (perlu Master card)
+Route::post('rfid-tap', [RfidTapController::class, 'tap']);
 // });
 
 /*
@@ -137,7 +138,7 @@ Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(fu
     });
     Route::get('classroom-info', [StudentsController::class, 'getStudentClassroom']); // Kelas Siswa
     Route::get('attendance-history', [StudentsController::class, 'getStudentHistory']); // History Absensi Rfid Siswa
-    Route::get('lesson-schedule/{day}', [StudentsController::class, 'getStudentSchedule']);// Jadwal Pelajaran Siswa
+    Route::get('lesson-schedule/{day}', [StudentsController::class, 'getStudentSchedule']); // Jadwal Pelajaran Siswa
     // izin siswa
     Route::prefix('attendance-permissions')->group(function () {
         Route::get('pending', [StudentsController::class, 'pending']);
@@ -175,8 +176,10 @@ Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->group(fu
 */
 Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->group(function () {
     // BK Dashboard
-    // Route::prefix('dashboard')->controller(CounselorDashboardController::class)->group(function () {
-    // });
+    Route::prefix('dashboard')->controller(CounselorDashboardController::class)->group(function () {
+        Route::get('attendance-counts', 'index');
+        Route::get('high-alpha-students', 'highAlphaStudents');
+    });
     // Monitoring Kehadiran Siswa (BK)
     // Route::prefix('attendance-monitoring')->controller(CounselorAttendanceMonitoringController::class) ->group(function ()
     // });

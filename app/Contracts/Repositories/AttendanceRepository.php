@@ -214,4 +214,43 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
     }
 
     //Teacher Close
+
+    // Counselor
+    public function countTotalStatusToday(string $date): array
+    {
+        return $this->model
+            ->whereDate('date', $date)
+            ->selectRaw("
+                COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as hadir,
+                COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as telat,
+                COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as izin, 
+                COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as sakit,
+                COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as alpha
+            ", [
+                AttendanceStatusEnum::PRESENT->value,
+                AttendanceStatusEnum::LATE->value,
+                AttendanceStatusEnum::LEAVE->value,
+                AttendanceStatusEnum::SICK->value,
+                AttendanceStatusEnum::ALPHA->value
+            ])
+            ->first()
+            ->toArray();
+    }
+
+    public function getStudentsWithHighAlpha(int $threshold, int $limit = 10): Collection
+    {
+        return $this->model
+            ->where('status', AttendanceStatusEnum::ALPHA->value)
+            ->selectRaw('student_id, COUNT(*) as total_alpha')
+            ->groupBy('student_id')
+            ->having('total_alpha', '>=', $threshold)
+            ->orderByDesc('total_alpha')
+            ->limit($limit)
+            ->with(['student.classroomStudents' => function ($q) {
+                $q->where('status', 'active')->with('classroom');
+            }])
+            ->get();
+    }
+    // Counselor Close
+
 }
