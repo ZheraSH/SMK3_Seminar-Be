@@ -117,7 +117,8 @@ class TeacherService
                     'checkout_time' => $rfidAttendance->checkout_time,
                     'status' => $rfidAttendance->status
                 ] : null,
-                'current_status' => $existingAttendance->status ?? AttendanceStatusEnum::ALPHA->value
+                'is_locked' => $existingAttendance?->is_locked ?? false,
+                'current_status' => $existingAttendance?->status ?? AttendanceStatusEnum::ALPHA->value
             ];
         });
 
@@ -141,6 +142,16 @@ class TeacherService
             foreach ($data['attendances'] as $attendanceData) {
                 $studentId = $attendanceData['student_id'];
 
+                $isLocked = $this->attendanceRepository->isAttendanceLocked(
+                    $studentId,
+                    $data['date'],
+                    $data['lesson_order']
+                );
+
+                if ($isLocked) {
+                    continue;
+                }
+
                 $classroomStudent = $this->classroomStudentsRepository->getByStudentAndClassroom($studentId, $data['classroom_id']);
 
                 $attendance = $this->attendanceRepository->updateOrCreate(
@@ -157,6 +168,7 @@ class TeacherService
                         'attendance_type' => 'cross_check',
                         'status' => $attendanceData['status'],
                         'proof' => AttendanceProofEnum::CLASSROOM->value,
+                        'is_final' => true,
                         'updated_at' => now()
                     ]
                 );

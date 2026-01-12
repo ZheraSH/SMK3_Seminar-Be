@@ -22,8 +22,6 @@ class TeacherCrossCheckDataResource extends JsonResource
                 'last_page' => $studentsPaginator->lastPage(),
                 'per_page' => $studentsPaginator->perPage(),
                 'total' => $studentsPaginator->total(),
-                'from' => $studentsPaginator->firstItem(),
-                'to' => $studentsPaginator->lastItem(),
             ];
         } else {
             $studentsData = $this->students ?? [];

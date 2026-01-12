@@ -2,50 +2,148 @@
 
 namespace Database\Seeders;
 
+use App\Enums\AttendanceProofEnum;
 use App\Enums\AttendanceStatusEnum;
+use App\Models\ClassroomStudents;
+use App\Models\LessonSchedule;
+use App\Models\Student;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 
 class AttendanceSeeder extends Seeder
 {
     public function run(): void
     {
-        $students = DB::table('students')->get();
+        // 1. Clear existing data
+        DB::table('attendances')->delete();
+
+        $students = Student::with(['classroomStudents' => function ($q) {
+            $q->where('status', 'active')->with('classroom');
+        }])->get();
 
         if ($students->isEmpty()) {
-            dd("Seeder Error: Tidak ada student di database!");
+            $this->command->error("Seeder Error: Tidak ada student di database!");
+            return;
         }
 
-        foreach ($students as $student) {
+        // 2. Define simulation range
+        $startDate = Carbon::now()->subDays(6);
+        $endDate = Carbon::now();
 
-            for ($i = 0; $i < 10; $i++) {
-                $date = Carbon::today()->subDays($i)->toDateString();
+        // 3. Iterate Days
+        for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
+            if ($date->isWeekend()) {
+                continue;
+            }
 
-                $status = match (true) {
-                    $i < 2 => AttendanceStatusEnum::LATE->value,
-                    $i < 5 => AttendanceStatusEnum::ALPHA->value,
-                    $i < 7 => AttendanceStatusEnum::LEAVE->value,
-                    default => AttendanceStatusEnum::PRESENT->value
+            $currentDate = $date->format('Y-m-d');
+            $dayName = strtolower($date->locale('en')->dayName);
+
+            $this->command->info("Seeding for Date: {$currentDate} ({$dayName})");
+
+            foreach ($students as $student) {
+                // Determine student behavior
+                $rand = rand(1, 100);
+                $scenario = match (true) {
+                    $rand <= 70 => 'present',
+                    $rand <= 80 => 'late',
+                    $rand <= 90 => 'sick',
+                    default => 'alpha'
                 };
 
-                DB::table('attendances')->insert([
-                    'id' => Str::uuid(),
-                    'student_id' => $student->id,
-                    'classroom_student_id' => null,
-                    'rfid_id' => null,
-                    'subject_id' => null,
-                    'teacher_id' => null,
-                    'lesson_schedule_id' => null,
-                    'date' => $date,
-                    'checkin_time' => '07:00:00',
-                    'checkout_time' => '15:00:00',
-                    'lesson_order' => 1,
-                    'attendance_type' => 'rfid',
-                    'status' => $status,
-                    'proof' => 'manual',
-                ]);
+                // A. Create RFID Attendance
+                if (in_array($scenario, ['present', 'late'])) {
+                    $checkIn = $scenario === 'late' ? '07:15:00' : '06:45:00';
+                    try {
+                        DB::table('attendances')->insert([
+                            'id' => Str::uuid()->toString(),
+                            'student_id' => $student->id,
+                            'classroom_student_id' => null,
+                            'rfid_id' => null,
+                            'date' => $currentDate,
+                            'checkin_time' => $checkIn,
+                            'checkout_time' => '15:00:00',
+                            'lesson_order' => 1,
+                            'attendance_type' => 'rfid',
+                            'status' => $scenario === 'late' ? AttendanceStatusEnum::LATE->value : AttendanceStatusEnum::PRESENT->value,
+                            'proof' => 'manual',
+                            'is_locked' => 0,
+                            'is_final' => 0,
+                            'overridden_by_permission_id' => null,
+                            'created_at' => now()->toDateTimeString(),
+                            'updated_at' => now()->toDateTimeString(),
+                        ]);
+                    } catch (\Exception $e) {
+                        $this->command->error("RFID Insert Error for Student {$student->id}: " . $e->getMessage());
+                    }
+                }
+
+                // B. Create CrossCheck Attendance
+                $classroomStudent = $student->classroomStudents->first();
+                $classroom = $classroomStudent?->classroom;
+
+                if (!$classroom) continue;
+
+                $schedules = LessonSchedule::with('lessonHour')
+                    ->where('classroom_id', $classroom->id)
+                    ->where('day', $dayName)
+                    ->get()
+                    ->sortBy(function ($schedule) {
+                        return $schedule->lessonHour?->order;
+                    });
+
+                foreach ($schedules as $schedule) {
+                    $lessonOrder = $schedule->lessonHour?->order ?? 1; // Fallback or strict
+
+                    $status = AttendanceStatusEnum::ALPHA->value;
+                    $isLocked = 0;
+                    $isFinal = 0;
+                    $proof = AttendanceProofEnum::MANUAL->value;
+
+                    if ($scenario === 'present') {
+                        $status = AttendanceStatusEnum::PRESENT->value;
+                        $isFinal = 1;
+                        $proof = AttendanceProofEnum::CLASSROOM->value;
+                    } elseif ($scenario === 'late') {
+                        $status = ($lessonOrder == 1) ? AttendanceStatusEnum::LATE->value : AttendanceStatusEnum::PRESENT->value;
+                        $isFinal = 1;
+                        $proof = AttendanceProofEnum::CLASSROOM->value;
+                    } elseif ($scenario === 'sick') {
+                        $status = AttendanceStatusEnum::SICK->value;
+                        $isLocked = 1;
+                        $isFinal = 1;
+                        $proof = AttendanceProofEnum::PERMISSION->value;
+                    }
+                    if ($scenario === 'alpha' && rand(1, 100) > 20) {
+                        $isFinal = 1;
+                        $proof = AttendanceProofEnum::CLASSROOM->value;
+                    }
+
+                    try {
+                        DB::table('attendances')->insert([
+                            'id' => Str::uuid()->toString(),
+                            'student_id' => $student->id,
+                            'classroom_student_id' => $classroomStudent?->id,
+                            'lesson_schedule_id' => $schedule->id,
+                            'subject_id' => $schedule->subject_id,
+                            'teacher_id' => $schedule->teacher_id,
+                            'date' => $currentDate,
+                            'lesson_order' => $lessonOrder,
+                            'attendance_type' => 'cross_check',
+                            'status' => $status,
+                            'proof' => $proof,
+                            'is_locked' => $isLocked,
+                            'is_final' => $isFinal,
+                            'overridden_by_permission_id' => null,
+                            'created_at' => now()->toDateTimeString(),
+                            'updated_at' => now()->toDateTimeString(),
+                        ]);
+                    } catch (\Exception $e) {
+                        $this->command->error("CrossCheck Insert Error for Student {$student->id}, Schedule {$schedule->id}: " . $e->getMessage());
+                    }
+                }
             }
         }
     }

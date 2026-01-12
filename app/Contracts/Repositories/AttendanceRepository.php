@@ -194,15 +194,23 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
         return $this->model
             ->where('student_id', $studentId)
             ->whereBetween('date', $dateRange)
+            ->where('is_locked', false)
             ->update([
                 'status' => $status,
+                'is_locked' => true,
                 'overridden_by_permission_id' => $permissionId,
+                'is_final' => true
             ]);
     }
 
     public function isAttendanceLocked(string $studentId, string $date, int $lessonOrder): bool
     {
-        return false;
+        return $this->model
+            ->where('student_id', $studentId)
+            ->whereDate('date', $date)
+            ->where('lesson_order', $lessonOrder)
+            ->where('is_locked', true)
+            ->exists();
     }
 
     //Teacher Close
