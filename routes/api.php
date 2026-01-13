@@ -210,9 +210,9 @@ Route::middleware(['auth:sanctum', 'role:homeroom_teacher'])->prefix('homeroom-t
     });
     // rekap kelas 
     Route::prefix('summary-class')->controller(HomeroomTeachersController::class)->group(function () {
-        Route::get('/', 'getSummaryClass'); // summary class
-        Route::get('weekly-attendance', 'getWeeklyAttendanceStatistics'); // weekly attendance
-        Route::get('daily-attendance', 'getDailyStudentAttendance'); // daily attendance
+        Route::get('header', 'getHeaderClass'); // Get classroom header (auto today)
+        Route::get('students', 'getStudentAttendanceList'); // Student list with search & pagination
+        Route::get('recap', 'generateAttendanceRecap'); // Attendance recap for print/export
     });
 });
 

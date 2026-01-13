@@ -58,12 +58,24 @@ class HomeroomTeacherService
         ];
     }
 
+    public function getClassroomHeader(User $teacher): array
+    {
+        $classroom = $this->requireClassroom($teacher);
+
+        return [
+            'classroom_id' => $classroom['id'],
+            'classroom_name' => $classroom['name'],
+            'tahun_ajaran' => $classroom['school_year'],
+            'total_students' => $classroom['total_students'],
+        ];
+    }
+
     public function getDailySummary(User $teacher, string $date): array
     {
         $classroom = $this->requireClassroom($teacher);
 
         if ($classroom['total_students'] === 0) {
-            return $this->emptyDailySummary($date);
+            return $this->emptyDailySummary($classroom);
         }
 
         $attendances = $this->attendanceRepository
@@ -89,6 +101,7 @@ class HomeroomTeacherService
             'day_name' => Carbon::parse($date)->translatedFormat('l'),
             'classroom_id' => $classroom['id'],
             'classroom_name' => $classroom['name'],
+            'tahun_ajaran' => $classroom['school_year'],
             'total_students' => $classroom['total_students'],
             ...$counters,
             'percentage' => round(($attended / $classroom['total_students']) * 100, 2),
@@ -145,12 +158,12 @@ class HomeroomTeacherService
         ];
     }
 
-    public function getDailyAttendance(User $teacher, string $date): array
+    public function getDailyAttendance(User $teacher, string $date, ?string $search = null, int $perPage = 10)
     {
         $classroom = $this->requireClassroom($teacher);
 
-        $students = $this->classroomStudentsRepository
-            ->getByClassroomForAttendance($classroom['id']);
+        $studentsPaginated = $this->classroomStudentsRepository
+            ->getByClassroomForDailyAttendance($classroom['id'], $search, $perPage);
 
         $attendances = $this->attendanceRepository
             ->getByClassroomAndDate($classroom['id'], $date)
@@ -159,10 +172,15 @@ class HomeroomTeacherService
         $permissions = $this->getApprovedPermissions($classroom['id'], $date);
 
         return [
-            'summary' => $this->getDailySummary($teacher, $date),
-            'students' => $students->getCollection()->map(
+            'students' => $studentsPaginated->map(
                 fn($cs) => $this->mapStudentAttendance($cs, $date, $attendances, $permissions)
-            )->filter(),
+            )->filter()->values(),
+            'pagination' => [
+                'current_page' => $studentsPaginated->currentPage(),
+                'per_page' => $studentsPaginated->perPage(),
+                'total' => $studentsPaginated->total(),
+                'last_page' => $studentsPaginated->lastPage(),
+            ],
         ];
     }
 
@@ -224,20 +242,22 @@ class HomeroomTeacherService
 
     private function mapStudentAttendance($cs, string $date, $attendances, $permissions): ?array
     {
-        if (!$cs->student) {
+        if (!$cs->student || !$cs->student->user) {
             return null;
         }
 
         $studentId = $cs->student_id;
 
+        $studentImage = $cs->student->image
+            ? asset('storage/' . $cs->student->image)
+            : null;
+
         if ($permissions->contains('student_id', $studentId)) {
             return [
-                'student_uuid' => $cs->student->id,
+                'student_image' => $studentImage,
                 'student_name' => $cs->student->user->name,
                 'nisn' => $cs->student->nisn,
                 'status' => 'permission',
-                'time_in' => null,
-                'time_out' => null,
                 'date' => $date,
             ];
         }
@@ -245,12 +265,10 @@ class HomeroomTeacherService
         $attendance = $attendances->firstWhere('student_id', $studentId);
 
         return [
-            'student_uuid' => $cs->student->id,
+            'student_image' => $studentImage,
             'student_name' => $cs->student->user->name,
             'nisn' => $cs->student->nisn,
             'status' => $attendance?->status ?? 'alpha',
-            'time_in' => $attendance?->checkin_time,
-            'time_out' => $attendance?->checkout_time,
             'date' => $date,
         ];
     }
@@ -270,20 +288,47 @@ class HomeroomTeacherService
             ->get();
     }
 
-    private function emptyDailySummary(string $date): array
+    public function generateAttendanceRecap(User $teacher, ?string $date = null): array
     {
+        $date = $date ?? Carbon::now()->format('Y-m-d');
+        $classroom = $this->requireClassroom($teacher);
+
+        $dailyData = $this->getDailyAttendance($teacher, $date);
+
+        $attendances = $this->attendanceRepository
+            ->getByClassroomAndDate($classroom['id'], $date)
+            ->where('lesson_order', 1);
+
+        $permissions = $this->getApprovedPermissions($classroom['id'], $date);
+
+        $counters = $this->countAttendance(
+            $classroom['id'],
+            $date,
+            $attendances,
+            $permissions
+        );
+
         return [
             'date' => $date,
             'day_name' => Carbon::parse($date)->translatedFormat('l'),
-            'classroom_id' => null,
-            'classroom_name' => null,
+            'classroom' => [
+                'id' => $classroom['id'],
+                'name' => $classroom['name'],
+            ],
+            'tahun_ajaran' => $classroom['school_year'],
+            'total_students' => $classroom['total_students'],
+            'attendance_summary' => $counters,
+            'students' => $dailyData['students'],
+        ];
+    }
+
+    private function emptyDailySummary(array $classroom): array
+    {
+        return [
+            'classroom_id' => $classroom['id'],
+            'classroom_name' => $classroom['name'],
+            'tahun_ajaran' => $classroom['school_year'],
             'total_students' => 0,
-            'present' => 0,
-            'late' => 0,
-            'sick' => 0,
-            'permission' => 0,
-            'alpha' => 0,
-            'percentage' => 0,
         ];
     }
 }

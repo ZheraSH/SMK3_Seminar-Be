@@ -22,7 +22,7 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
         $this->model = $classroomStudents;
     }
 
- protected function baseQuery()
+    protected function baseQuery()
     {
         return $this->model->query()->with([
             'student.user:id,name',
@@ -67,7 +67,7 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             ->where('classroom_id', $classroomId)
             ->where('status', StudentStatusEnum::ACTIVE->value)
             ->count();
-    }    
+    }
 
     public function getByClassroom(string $classroomId, Request $request = null): mixed
     {
@@ -75,27 +75,29 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             ->where('classroom_id', $classroomId)
             ->where('status', StudentStatusEnum::ACTIVE->value)
             ->with([
-                'student' => function($q) {
+                'student' => function ($q) {
                     $q->select('id', 'nisn', 'gender', 'user_id')
-                      ->with([
-                          'user:id,name',
-                          'rfid:id,student_id,rfid'
-                      ]);
+                        ->with([
+                            'user:id,name',
+                            'rfid:id,student_id,rfid'
+                        ]);
                 }
             ]);
-    
+
         if ($request?->search) {
             $search = $request->search;
             $query->whereHas('student', function ($q) use ($search) {
                 $q->where('nisn', 'like', "%{$search}%")
-                  ->orWhereHas('user', fn ($u) =>
-                      $u->where('name', 'like', "%{$search}%")
-                  );
+                    ->orWhereHas(
+                        'user',
+                        fn($u) =>
+                        $u->where('name', 'like', "%{$search}%")
+                    );
             });
         }
-    
+
         return $query->orderBy('created_at', 'desc')
-                     ->paginate($request->limit ?? 10);
+            ->paginate($request->limit ?? 10);
     }
 
     public function getAvailableStudents(string $classroomId, ?string $search, int $limit = 10): Collection
@@ -104,22 +106,24 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             ->where('status', StudentStatusEnum::ACTIVE->value)
             ->whereDoesntHave('classroomStudents', function ($q) use ($classroomId) {
                 $q->where('classroom_id', $classroomId)
-                  ->where('status', StudentStatusEnum::ACTIVE->value);
+                    ->where('status', StudentStatusEnum::ACTIVE->value);
             })
             ->with('user:id,name');
 
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('nisn', 'like', "%{$search}%")
-                  ->orWhereHas('user', fn ($u) =>
-                      $u->where('name', 'like', "%{$search}%")
-                  );
+                    ->orWhereHas(
+                        'user',
+                        fn($u) =>
+                        $u->where('name', 'like', "%{$search}%")
+                    );
             });
         }
 
         return $query->orderBy('created_at', 'desc')
-                     ->limit($limit)
-                     ->get();
+            ->limit($limit)
+            ->get();
     }
 
     public function addStudents(string $classroomId, array $studentIds): void
@@ -155,21 +159,23 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
                 'student.user:id,name',
                 'student.rfid:id,student_id,rfid'
             ]);
-    
+
         if ($request?->search) {
             $search = $request->search;
             $query->whereHas('student', function ($q) use ($search) {
                 $q->where('nisn', 'like', "%{$search}%")
-                  ->orWhereHas('user', fn($u) => 
-                      $u->where('name', 'like', "%{$search}%")
-                  );
+                    ->orWhereHas(
+                        'user',
+                        fn($u) =>
+                        $u->where('name', 'like', "%{$search}%")
+                    );
             });
         }
-    
+
         return $query->orderBy('created_at', 'desc')
-                     ->paginate($request->limit ?? 20);
+            ->paginate($request->limit ?? 20);
     }
-    
+
     public function getByStudentAndClassroom(string $studentId, string $classroomId): ?ClassroomStudents
     {
         return $this->model
@@ -178,7 +184,8 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             ->where('status', StudentStatusEnum::ACTIVE->value)
             ->first();
     }
-    
+
+
     public function countActiveByClassroom(string $classroomId): int
     {
         return $this->model
@@ -188,4 +195,28 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
     }
 
     //Teacher Close
+
+    //Homeroom Teacher
+
+    public function getByClassroomForDailyAttendance(string $classroomId, ?string $search = null, int $perPage = 10): LengthAwarePaginator
+    {
+        $query = $this->model
+            ->where('classroom_id', $classroomId)
+            ->where('status', StudentStatusEnum::ACTIVE->value)
+            ->with(['student.user', 'student']);
+
+        if ($search) {
+            $query->whereHas('student', function ($q) use ($search) {
+                $q->where('nisn', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        return $query->orderBy('created_at', 'desc')
+            ->paginate($perPage);
+    }
+
+    //Homeroom Teacher Close
 }

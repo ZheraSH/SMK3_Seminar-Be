@@ -4,12 +4,12 @@ namespace App\Http\Resources\Homeroom_teacher;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class DailyStudentAttendanceResource extends JsonResource
+class StudentAttendanceListResource extends JsonResource
 {
     public function toArray($request)
     {
         return [
-            'student_uuid' => $this['student_uuid'],
+            'student_image' => $this['student_image'],
             'student_name' => $this['student_name'],
             'nisn' => $this['nisn'],
             'status' => $this['status'],
