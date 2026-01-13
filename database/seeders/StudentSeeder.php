@@ -19,11 +19,11 @@ class StudentSeeder extends Seeder
 
         for ($i = 1; $i <= 20; $i++) {
             $gender = $i % 2 == 0 ? GenderEnum::MALE : GenderEnum::FEMALE;
-            
+
             $name = $this->generateName($i, $gender->value);
             $email = "student{$i}@skaniga.com";
-            $nisn = '00' . str_pad($i, 10, '0', STR_PAD_LEFT);
-            
+            $nisn = sprintf('%010d', $i);
+
             $user = User::firstOrCreate(
                 ['email' => $email],
                 [
@@ -41,7 +41,7 @@ class StudentSeeder extends Seeder
                 ['user_id' => $user->id],
                 [
                     'id' => $user->id,
-                    'image' => $gender->value === GenderEnum::MALE->value 
+                    'image' => $gender->value === GenderEnum::MALE->value
                         ? 'default_image/student-boy.png'
                         : 'default_image/student-girl.png',
                     'nisn' => $nisn,
@@ -61,16 +61,16 @@ class StudentSeeder extends Seeder
 
     private function generateName(int $index, string $gender): string
     {
-        $maleNames = ['Nando', 'Saiful', 'Fairouz', 'Dimas', 'Angga','Hilman', 'King', 'Ega', 'Zherash', 'Shinozaki'];
-        $femaleNames = ['Dwi', 'Vita', 'Weis', 'Sekar', 'Rani','Edel', 'Alexia', 'Rara', 'Ai', 'Lovita'];
-        $lastNames = ['Hamzi', 'Islami', 'Cairigio', 'Nayaka','Ramadhan', 'Rahmawati', 'Tirta'];
-        
+        $maleNames = ['Nando', 'Saiful', 'Fairouz', 'Dimas', 'Angga', 'Hilman', 'King', 'Ega', 'Zherash', 'Shinozaki'];
+        $femaleNames = ['Dwi', 'Vita', 'Tokisaki', 'Night', 'Rani', 'Kurumi', 'Alexia', 'Rara', 'Ai', 'Lovita'];
+        $lastNames = ['Hamzi', 'Islami', 'Cairigio', 'Nayaka', 'Ramadhan', 'Rahmawati', 'Tirta'];
+
         $firstName = $gender === GenderEnum::MALE->value
             ? $maleNames[($index - 1) % count($maleNames)]
             : $femaleNames[($index - 1) % count($femaleNames)];
-            
+
         $lastName = $lastNames[($index - 1) % count($lastNames)];
-        
+
         return "{$firstName} {$lastName}";
     }
 

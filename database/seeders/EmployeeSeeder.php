@@ -14,12 +14,8 @@ use Illuminate\Support\Str;
 class EmployeeSeeder extends Seeder
 {
     private const TOTAL_EMPLOYEES = 30;
-
-    // Distribusi berdasarkan kebutuhan sekolah
-    // 9 kelas butuh 9 wali kelas, 12 guru reguler, 3 BK, 6 staff
     private const DISTRIBUTION = [
-        // Kategori Guru (Teacher Roles)
-        'teacher_only' => [ // Key string, value array
+        'teacher_only' => [
             'roles' => ['teacher'],
             'count' => 12
         ],
@@ -43,8 +39,6 @@ class EmployeeSeeder extends Seeder
             'roles' => ['homeroom_teacher', 'counselor'],
             'count' => 1
         ],
-        
-        // Kategori Staff (Staff Roles)
         'staff_tu' => [
             'roles' => ['staff_tu'],
             'count' => 5
@@ -65,27 +59,23 @@ class EmployeeSeeder extends Seeder
 
         $counter = 1;
         $totalCreated = 0;
-        
-        // Catatan wali kelas untuk ClassroomSeeder
+
         $homeroomTeacherIds = [];
-        
-        // Generate berdasarkan distribusi
+
         foreach (self::DISTRIBUTION as $category => $data) {
             $roleArray = $data['roles'];
             $count = $data['count'];
-            
+
             for ($i = 0; $i < $count; $i++) {
-                // Generate NIP dan NIK valid
                 $nip = $this->generateValidNIP($counter);
                 $nik = $this->generateValidNIK($counter);
-                
+
                 $employee = $this->createEmployee($counter, $religion, $roleArray, $nip, $nik);
-                
-                // Simpan ID wali kelas untuk ClassroomSeeder
+
                 if (in_array(RoleEnum::HOMEROOM_TEACHER->value, $roleArray)) {
                     $homeroomTeacherIds[] = $employee->id;
                 }
-                
+
                 $counter++;
                 $totalCreated++;
             }
@@ -93,17 +83,16 @@ class EmployeeSeeder extends Seeder
     }
 
     private function createEmployee(
-        int $index, 
-        Religion $religion, 
-        array $roles, 
-        string $nip, 
+        int $index,
+        Religion $religion,
+        array $roles,
+        string $nip,
         string $nik
     ): Employee {
         $gender = $this->determineGender($index);
         $name = $this->generateName($index, $gender->value);
         $email = "employee{$index}@skaniga.com";
-        
-        // Validasi: roles tidak boleh campur kategori guru dan staff
+
         $this->validateRoleCombination($roles);
 
         $user = User::firstOrCreate(
@@ -123,7 +112,7 @@ class EmployeeSeeder extends Seeder
             ['user_id' => $user->id],
             [
                 'id' => Str::uuid(),
-                'image' => $gender->value === GenderEnum::MALE->value 
+                'image' => $gender->value === GenderEnum::MALE->value
                     ? 'default_image/teacher-boy.png'
                     : 'default_image/teacher-girl.png',
                 'nip' => $nip,
@@ -144,36 +133,32 @@ class EmployeeSeeder extends Seeder
     {
         $teacherRoles = RoleEnum::teacherRoles();
         $staffRoles = RoleEnum::staffRoles();
-        
+
         $hasTeacherRole = !empty(array_intersect($roles, $teacherRoles));
         $hasStaffRole = !empty(array_intersect($roles, $staffRoles));
-        
-        // Validasi: Tidak boleh campur guru dan staff
+
         if ($hasTeacherRole && $hasStaffRole) {
-            return; // Skip exception agar seeder tetap jalan
+            return;
         }
-        
-        // Validasi: Guru max 2 role
+
         if ($hasTeacherRole && count($roles) > 2) {
             return;
         }
-        
-        // Validasi: Staff max 1 role
+
         if ($hasStaffRole && count($roles) > 1) {
             return;
         }
-        
-        // Validasi kombinasi role guru
+
         if ($hasTeacherRole && count($roles) == 2) {
             $sortedRoles = $roles;
             sort($sortedRoles);
-            
+
             $validCombinations = [
                 [RoleEnum::TEACHER->value, RoleEnum::HOMEROOM_TEACHER->value],
                 [RoleEnum::TEACHER->value, RoleEnum::COUNSELOR->value],
                 [RoleEnum::HOMEROOM_TEACHER->value, RoleEnum::COUNSELOR->value],
             ];
-            
+
             if (!in_array($sortedRoles, $validCombinations)) {
                 return;
             }
@@ -182,13 +167,7 @@ class EmployeeSeeder extends Seeder
 
     private function generateValidNIP(int $index): string
     {
-        $base = '198';
-        $year = date('y');
-        $sequence = str_pad($index, 10, '0', STR_PAD_LEFT);
-        $random = str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
-        
-        $nip = $base . $year . $sequence . $random;
-        return substr($nip, 0, 18);
+        return sprintf('%010d', $index);
     }
 
     private function generateValidNIK(int $index): string
@@ -200,7 +179,7 @@ class EmployeeSeeder extends Seeder
         $birthMonth = str_pad(rand(1, 12), 2, '0', STR_PAD_LEFT);
         $birthYear = rand(65, 85);
         $unique = str_pad($index, 4, '0', STR_PAD_LEFT);
-        
+
         $nik = $province . $regency . $district . $birthDay . $birthMonth . $birthYear . $unique;
         return substr($nik, 0, 16);
     }
@@ -230,7 +209,7 @@ class EmployeeSeeder extends Seeder
         $birthYear = 1900 + rand(65, 85);
         $birthMonth = rand(1, 12);
         $birthDay = rand(1, 28);
-        
+
         return sprintf('%04d-%02d-%02d', $birthYear, $birthMonth, $birthDay);
     }
 
@@ -245,10 +224,10 @@ class EmployeeSeeder extends Seeder
         $streets = ['Jl. Merdeka', 'Jl. Sudirman', 'Jl. Gatot Subroto', 'Jl. Thamrin', 'Jl. Hayam Wuruk'];
         $street = $streets[array_rand($streets)];
         $city = $this->randomCity();
-        
+
         $rt = str_pad(rand(1, 10), 2, '0', STR_PAD_LEFT);
         $rw = str_pad(rand(1, 10), 2, '0', STR_PAD_LEFT);
-        
+
         return "{$street} No. {$index}, RT {$rt}/RW {$rw}, {$city}";
     }
 
@@ -258,7 +237,7 @@ class EmployeeSeeder extends Seeder
         $selectedPrefix = $prefix[array_rand($prefix)];
         $middle = str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
         $end = str_pad($index, 4, '0', STR_PAD_LEFT);
-        
+
         return "{$selectedPrefix}{$middle}{$end}";
     }
 }
