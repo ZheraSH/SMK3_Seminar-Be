@@ -6,6 +6,7 @@ use App\Contracts\Interfaces\StudentLessonScheduleInterface;
 use App\Models\LessonSchedule;
 use App\Models\LessonHour;
 use App\Models\Student;
+use App\Models\SchoolYear; 
 use Illuminate\Database\Eloquent\Collection;
 
 class StudentLessonScheduleRepository implements StudentLessonScheduleInterface
@@ -25,10 +26,14 @@ class StudentLessonScheduleRepository implements StudentLessonScheduleInterface
 
     public function getSchedule(string $studentId, ?string $day = null): Collection
     {
+        $activeYearId = SchoolYear::where('active', true)->first()?->id;
+
         return LessonSchedule::query()
-            ->whereHas('classroom.classroomStudents', function ($q) use ($studentId) {
+            ->where('school_year_id', $activeYearId) 
+            ->whereHas('classroom.classroomStudents', function ($q) use ($studentId, $activeYearId) {
                 $q->where('student_id', $studentId)
-                  ->where('status', 'ACTIVE'); // kelas aktif
+                  ->where('school_year_id', $activeYearId) 
+                  ->where('status', 'ACTIVE');
             })
             ->when($day, fn($q) => $q->where('day', $day))
             ->with(['subject', 'teacher.user', 'lessonHour'])
