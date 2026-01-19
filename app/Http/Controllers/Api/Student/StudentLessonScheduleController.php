@@ -27,13 +27,17 @@ class StudentLessonScheduleController extends Controller
             $data = $this->scheduleService->getSchedule($student->id, $day);
 
             $classroomStudent = $student->classroomStudents()
-                ->with('classroom')
-                ->where('status', 'active') 
+                ->with('classroom.schoolYear')
+                ->where('status', 'active')
                 ->first();
+
             $className = $classroomStudent?->classroom?->name ?? 'Kelas Tidak Ditemukan';
 
-            $semester = SemesterHelper::getSemesterLabel();
-            $schoolYear = SemesterHelper::getSchoolYear();
+            $schoolYear = $classroomStudent?->classroom?->schoolYear?->name ?? null;
+
+            $semester = SemesterHelper::getSemester()['semester'];
+
+            $semesterLabel = SemesterHelper::getSemesterLabel($schoolYear, $semester);
 
             return ResponseHelper::success([
                 'kelas'         => $className,
@@ -42,6 +46,7 @@ class StudentLessonScheduleController extends Controller
                 'hari'          => $this->scheduleService->getDayName($day),
                 'jadwal'        => $data,
             ], 'Jadwal pelajaran berhasil diambil');
+
         } catch (Throwable $e) {
             return ResponseHelper::error('Terjadi kesalahan: ' . $e->getMessage(), 500);
         }

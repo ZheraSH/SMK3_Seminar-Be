@@ -3,33 +3,29 @@
 namespace App\Services;
 
 use App\Contracts\Interfaces\StudentLessonScheduleInterface;
-use App\Contracts\Interfaces\SchoolYearInterface; 
 use Illuminate\Database\Eloquent\Collection;
 use Carbon\Carbon;
 
 class StudentLessonScheduleService
 {
     public function __construct(
-        private StudentLessonScheduleInterface $scheduleRepo,
-        private SchoolYearInterface $schoolYearRepo 
+        private StudentLessonScheduleInterface $scheduleRepo
     ) {}
 
     public function getSchedule(string $studentId, ?string $day = null): array
     {
-        $activeYear = $this->schoolYearRepo->active();
-        $activeYearId = $activeYear ? $activeYear->id : null;
-
         $student = $this->scheduleRepo->getStudentById($studentId);
         $classroomId = $student->classroomStudents()
             ->where('status', 'ACTIVE')
-            ->where('school_year_id', $activeYearId) 
             ->first()?->classroom_id;
 
         $allHours = $this->scheduleRepo->getAllLessonHoursByDay($day);
+
         $schedules = $this->scheduleRepo
             ->getSchedule($studentId, $day)
             ->filter(fn($s) => $s->classroom_id === $classroomId)
             ->groupBy('lesson_hour_id');
+
 
         $formatted = [];
         $order = 1;
