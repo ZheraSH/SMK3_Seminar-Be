@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\StudentLessonScheduleService;
 use App\Helpers\ResponseHelper;
 use App\Helpers\SemesterHelper;
+use App\Models\SchoolYear;
 use Illuminate\Http\Request;
 use Throwable;
 
@@ -28,21 +29,21 @@ class StudentLessonScheduleController extends Controller
 
             $classroomStudent = $student->classroomStudents()
                 ->with('classroom.schoolYear')
-                ->where('status', 'active')
+                ->where('status', 'ACTIVE')
                 ->first();
 
-            $className = $classroomStudent?->classroom?->name ?? 'Kelas Tidak Ditemukan';
+            $className   = $classroomStudent?->classroom?->name ?? 'Kelas Tidak Ditemukan';
+            $schoolYear  = $classroomStudent?->classroom?->schoolYear?->name;
 
-            $schoolYear = $classroomStudent?->classroom?->schoolYear?->name ?? null;
+            $activeYear  = SchoolYear::where('active', true)->first()?->name;
 
             $semester = SemesterHelper::getSemester()['semester'];
-
-            $semesterLabel = SemesterHelper::getSemesterLabel($schoolYear, $semester);
+            $semesterLabel = SemesterHelper::getSemesterLabel($activeYear, $semester);
 
             return ResponseHelper::success([
                 'kelas'         => $className,
                 'semester'      => $semester,
-                'tahun_ajaran'  => $schoolYear,
+                'tahun_ajaran'  => $activeYear ?? $schoolYear ?? 'Belum Ada',
                 'hari'          => $this->scheduleService->getDayName($day),
                 'jadwal'        => $data,
             ], 'Jadwal pelajaran berhasil diambil');

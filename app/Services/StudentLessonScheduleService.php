@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Contracts\Interfaces\StudentLessonScheduleInterface;
-use Illuminate\Database\Eloquent\Collection;
 use Carbon\Carbon;
 
 class StudentLessonScheduleService
@@ -25,7 +24,6 @@ class StudentLessonScheduleService
             ->getSchedule($studentId, $day)
             ->filter(fn($s) => $s->classroom_id === $classroomId)
             ->groupBy('lesson_hour_id');
-
 
         $formatted = [];
         $order = 1;
@@ -61,9 +59,9 @@ class StudentLessonScheduleService
                         'mata_pelajaran' => '-',
                         'guru' => null,
                     ];
-                }   
+                }
             }
-        }   
+        }
 
         return $formatted;
     }
