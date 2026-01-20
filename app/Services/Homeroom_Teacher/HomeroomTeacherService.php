@@ -158,7 +158,7 @@ class HomeroomTeacherService
         ];
     }
 
-    public function getDailyAttendance(User $teacher, string $date, ?string $search = null, int $perPage = 10)
+    public function getDailyAttendance(User $teacher, string $date, ?string $search = null, ?string $status = null, int $perPage = 10)
     {
         $classroom = $this->requireClassroom($teacher);
 
@@ -171,10 +171,16 @@ class HomeroomTeacherService
 
         $permissions = $this->getApprovedPermissions($classroom['id'], $date);
 
+        $students = $studentsPaginated->map(
+            fn($cs) => $this->mapStudentAttendance($cs, $date, $attendances, $permissions)
+        )->filter();
+
+        if ($status) {
+            $students = $students->filter(fn($student) => $student && $student['status'] === $status);
+        }
+
         return [
-            'students' => $studentsPaginated->map(
-                fn($cs) => $this->mapStudentAttendance($cs, $date, $attendances, $permissions)
-            )->filter()->values(),
+            'students' => $students->values(),
             'pagination' => [
                 'current_page' => $studentsPaginated->currentPage(),
                 'per_page' => $studentsPaginated->perPage(),

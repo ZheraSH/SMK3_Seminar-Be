@@ -40,9 +40,10 @@ class HomeroomTeachersController extends Controller
             $teacher = $request->user();
             $date = $request->input('date', now()->format('Y-m-d'));
             $search = $request->input('search');
+            $status = $request->input('status');
             $perPage = $request->input('per_page', 10);
 
-            $data = $this->service->getDailyAttendance($teacher, $date, $search, $perPage);
+            $data = $this->service->getDailyAttendance($teacher, $date, $search, $status, $perPage);
 
             return ResponseHelper::success([
                 'students' => StudentAttendanceListResource::collection($data['students']),
