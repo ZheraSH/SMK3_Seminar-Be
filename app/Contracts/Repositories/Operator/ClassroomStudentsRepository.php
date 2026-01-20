@@ -218,5 +218,25 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             ->paginate($perPage);
     }
 
+    public function getAllByClassroomForAttendanceRecap(string $classroomId, ?string $search = null): Collection
+    {
+        $query = $this->model
+            ->where('classroom_id', $classroomId)
+            ->where('status', StudentStatusEnum::ACTIVE->value)
+            ->with(['student.user', 'student']);
+
+        if ($search) {
+            $query->whereHas('student', function ($q) use ($search) {
+                $q->where('nisn', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        return $query->orderBy('created_at', 'desc')
+            ->get();
+    }
+
     //Homeroom Teacher Close
 }

@@ -298,14 +298,17 @@ class HomeroomTeacherService
     {
         $date = $date ?? Carbon::now()->format('Y-m-d');
         $classroom = $this->requireClassroom($teacher);
-
-        $dailyData = $this->getDailyAttendance($teacher, $date);
+        $studentsCollection = $this->classroomStudentsRepository
+            ->getAllByClassroomForAttendanceRecap($classroom['id']);
 
         $attendances = $this->attendanceRepository
             ->getByClassroomAndDate($classroom['id'], $date)
             ->where('lesson_order', 1);
 
         $permissions = $this->getApprovedPermissions($classroom['id'], $date);
+        $students = $studentsCollection->map(
+            fn($cs) => $this->mapStudentAttendance($cs, $date, $attendances, $permissions)
+        )->filter()->values();
 
         $counters = $this->countAttendance(
             $classroom['id'],
@@ -324,7 +327,7 @@ class HomeroomTeacherService
             'tahun_ajaran' => $classroom['school_year'],
             'total_students' => $classroom['total_students'],
             'attendance_summary' => $counters,
-            'students' => $dailyData['students'],
+            'students' => $students,
         ];
     }
 
