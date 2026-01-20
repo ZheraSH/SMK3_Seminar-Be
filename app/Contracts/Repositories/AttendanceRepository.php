@@ -61,6 +61,13 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
         return $this->model->where('name', 'LIKE', '%' . $request->search . '%')->get();
     }
 
+    public function getByDate(string $date): Collection
+    {
+        return $this->model->query()
+            ->whereDate('date', $date)
+            ->get();
+    }
+
     //Student
     public function getStudentHistory(string $studentId, int $perPage = 10): LengthAwarePaginator
     {
