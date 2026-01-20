@@ -26,9 +26,9 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
             'levelClass:id,name',
             'schoolYear:id,name',
             'homeroomTeacher.user:id,name',
-            'classroomStudents' => function($q) {
+            'classroomStudents' => function ($q) {
                 $q->where('status', StudentStatusEnum::ACTIVE->value)
-                  ->with('student.user:id,name');
+                    ->with('student.user:id,name');
             }
         ]);
     }
@@ -69,26 +69,38 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
             ->when($request->search, function ($query) use ($request) {
                 $query->where(function ($q) use ($request) {
                     $q->where('name', 'like', "%{$request->search}%")
-                      ->orWhereHas('major', fn ($m) =>
-                          $m->where('name', 'like', "%{$request->search}%")
-                            ->orWhere('code', 'like', "%{$request->search}%")
-                      )
-                      ->orWhereHas('levelClass', fn ($l) =>
-                          $l->where('name', 'like', "%{$request->search}%")
-                      )
-                      ->orWhereHas('homeroomTeacher.user', fn ($t) =>
-                          $t->where('name', 'like', "%{$request->search}%")
-                      );
+                        ->orWhereHas(
+                            'major',
+                            fn($m) =>
+                            $m->where('name', 'like', "%{$request->search}%")
+                                ->orWhere('code', 'like', "%{$request->search}%")
+                        )
+                        ->orWhereHas(
+                            'levelClass',
+                            fn($l) =>
+                            $l->where('name', 'like', "%{$request->search}%")
+                        )
+                        ->orWhereHas(
+                            'homeroomTeacher.user',
+                            fn($t) =>
+                            $t->where('name', 'like', "%{$request->search}%")
+                        );
                 });
             })
-            ->when($request->major, fn ($q) =>
-                $q->whereHas('major', fn ($m) => $m->where('code', $request->major))
+            ->when(
+                $request->major,
+                fn($q) =>
+                $q->whereHas('major', fn($m) => $m->where('code', $request->major))
             )
-            ->when($request->level_class, fn ($q) =>
-                $q->whereHas('levelClass', fn ($l) => $l->where('name', $request->level_class))
+            ->when(
+                $request->level_class,
+                fn($q) =>
+                $q->whereHas('levelClass', fn($l) => $l->where('name', $request->level_class))
             )
-            ->when($request->school_year, fn ($q) =>
-                $q->whereHas('schoolYear', fn ($s) => $s->where('name', $request->school_year))
+            ->when(
+                $request->school_year,
+                fn($q) =>
+                $q->whereHas('schoolYear', fn($s) => $s->where('name', $request->school_year))
             )
             ->orderBy('name')
             ->paginate($pagination);
@@ -97,6 +109,13 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
     public function count(): int
     {
         return $this->model->count();
+    }
+
+    public function countActive(): int
+    {
+        return $this->model->whereHas('schoolYear', function ($query) {
+            $query->where('active', true);
+        })->count();
     }
 
     public function graduateClass(string $classroomId): void

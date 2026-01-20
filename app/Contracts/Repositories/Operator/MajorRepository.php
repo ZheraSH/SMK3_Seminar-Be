@@ -37,4 +37,9 @@ class MajorRepository extends BaseRepository implements MajorInterface
     {
         return $this->show($id)->delete();
     }
+
+    public function count(): int
+    {
+        return $this->model->query()->count();
+    }
 }

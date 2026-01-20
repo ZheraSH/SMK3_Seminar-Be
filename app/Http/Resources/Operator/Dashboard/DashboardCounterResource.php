@@ -12,8 +12,8 @@ class DashboardCounterResource extends JsonResource
         return [
             'total_students' => $this['total_students'],
             'total_employees' => $this['total_employees'],
+            'total_majors' => $this['total_majors'],
             'total_classrooms' => $this['total_classrooms'],
-            'attendance_percentage_today' => $this['attendance_percentage_today'],
         ];
     }
 }
