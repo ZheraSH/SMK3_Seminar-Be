@@ -4,8 +4,10 @@ namespace App\Contracts\Repositories;
 
 use App\Contracts\Interfaces\AttendanceInterface;
 use App\Enums\PermissionStatusEnum;
+use App\Enums\StudentStatusEnum;
 use App\Models\AttendancePermission;
 use App\Traits\PaginationTrait;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class AttendancePermissionRepository extends BaseRepository implements AttendanceInterface
@@ -25,7 +27,7 @@ class AttendancePermissionRepository extends BaseRepository implements Attendanc
     public function get(string $studentId = null): LengthAwarePaginator
     {
         return $this->baseQuery()
-            ->when($studentId, fn ($q) => $q->where('student_id', $studentId))
+            ->when($studentId, fn($q) => $q->where('student_id', $studentId))
             ->latest()
             ->paginate(10);
     }
@@ -49,7 +51,7 @@ class AttendancePermissionRepository extends BaseRepository implements Attendanc
     {
         return $this->model
             ->where('id', $id)
-            ->when($studentId, fn ($q) => $q->where('student_id', $studentId))
+            ->when($studentId, fn($q) => $q->where('student_id', $studentId))
             ->first();
     }
 
@@ -95,9 +97,25 @@ class AttendancePermissionRepository extends BaseRepository implements Attendanc
             ->paginate(5);
     }
 
-    public function getAllForCounselor(): LengthAwarePaginator
+    public function getAllForCounselor(Request $request): LengthAwarePaginator
     {
         return $this->baseQuery()
+            ->when($request->search, function ($query) use ($request) {
+                $search = $request->search;
+                $query->whereHas('student.user', function ($q) use ($search) {
+                    $q->where('name', 'LIKE', "%{$search}%");
+                });
+            })
+            ->when($request->classroom || $request->filter, function ($query) use ($request) {
+                $classroomParam = $request->classroom ?? $request->filter;
+                $classrooms = explode(',', $classroomParam);
+                $query->whereHas('student.classroomStudents', function ($q) use ($classrooms) {
+                    $q->where('status', StudentStatusEnum::ACTIVE->value)
+                        ->whereHas('classroom', function ($c) use ($classrooms) {
+                            $c->whereIn('name', $classrooms);
+                        });
+                });
+            })
             ->latest()
             ->paginate(10);
     }

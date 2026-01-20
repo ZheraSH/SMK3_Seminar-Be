@@ -180,13 +180,9 @@ Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->grou
         Route::get('attendance-counts', 'index');
         Route::get('high-alpha-students', 'highAlphaStudents');
     });
-    // Monitoring Kehadiran Siswa (BK)
-    // Route::prefix('attendance-monitoring')->controller(CounselorAttendanceMonitoringController::class) ->group(function ()
-    // });
-    // Statistik Global (BK)
-    // Route::prefix('attendance')->controller(CounselorAttendanceGlobalController::class)->group(function () {
-    //     Route::get('statistics', 'index');
-    // });
+    Route::get('attendance-monitoring-global', [CounselorsController::class, 'attendanceMonitoringGlobal']); // Monitoring Kehadiran Siswa Global
+    Route::get('attendance-statistic-global', [CounselorsController::class, 'attendanceGlobalStats']); // Statistik Global
+    Route::get('attendance-statistic-monthly', [CounselorsController::class, 'attendanceMonthlyStats']); // Statistik Bulanan
     // validasi izin
     Route::prefix('attendance-permissions')->controller(CounselorsController::class)->group(function () {
         Route::get('pending', 'pending'); // list izin yg belum divalidasi
@@ -210,9 +206,9 @@ Route::middleware(['auth:sanctum', 'role:homeroom_teacher'])->prefix('homeroom-t
     });
     // rekap kelas 
     Route::prefix('summary-class')->controller(HomeroomTeachersController::class)->group(function () {
-        Route::get('header', 'getHeaderClass'); // Get classroom header (auto today)
-        Route::get('students', 'getStudentAttendanceList'); // Student list with search & pagination
-        Route::get('recap', 'generateAttendanceRecap'); // Attendance recap for print/export
+        Route::get('header', 'getHeaderClass'); // classroom header
+        Route::get('students', 'getStudentAttendanceList'); // listnya student 
+        Route::get('recap', 'generateAttendanceRecap'); // print recap kehadiran
     });
 });
 

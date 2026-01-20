@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Contracts\Repositories\AttendancePermissionRepository;
 use App\Enums\PermissionStatusEnum;
 use App\Enums\UploadDiskEnum;
+use Illuminate\Http\Request;
 use App\Traits\UploadTrait;
 
 class AttendancePermissionService
@@ -12,7 +13,7 @@ class AttendancePermissionService
     use UploadTrait;
 
     private AttendancePermissionRepository $attendancePermissionRepository;
-    
+
     public function __construct(AttendancePermissionRepository $attendancePermissionRepository)
     {
         $this->attendancePermissionRepository = $attendancePermissionRepository;
@@ -67,9 +68,9 @@ class AttendancePermissionService
         return $this->attendancePermissionRepository->show($id);
     }
 
-    public function counselorIndex()
+    public function counselorIndex(Request $request)
     {
-        return $this->attendancePermissionRepository->getAllForCounselor();
+        return $this->attendancePermissionRepository->getAllForCounselor($request);
     }
 
     public function getPending()

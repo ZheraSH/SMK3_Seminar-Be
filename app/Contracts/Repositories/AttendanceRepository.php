@@ -251,6 +251,57 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
             }])
             ->get();
     }
+    public function countTotalStatusGlobal(): array
+    {
+        return $this->model
+            ->selectRaw("
+                COUNT(CASE WHEN status = ? THEN 1 END) as hadir,
+                COUNT(CASE WHEN status = ? THEN 1 END) as terlambat,
+                COUNT(CASE WHEN status IN (?, ?) THEN 1 END) as izin,
+                COUNT(CASE WHEN status = ? THEN 1 END) as alpha,
+                COUNT(*) as total
+            ", [
+                AttendanceStatusEnum::PRESENT->value,
+                AttendanceStatusEnum::LATE->value,
+                AttendanceStatusEnum::LEAVE->value,
+                AttendanceStatusEnum::SICK->value,
+                AttendanceStatusEnum::ALPHA->value
+            ])
+            ->first()
+            ->toArray();
+    }
+
+    public function countTotalStatusMonthly(int $year): array
+    {
+        $data = $this->model
+            ->whereYear('date', $year)
+            ->selectRaw("
+                MONTH(date) as month,
+                COUNT(CASE WHEN status = ? THEN 1 END) as hadir,
+                COUNT(CASE WHEN status = ? THEN 1 END) as terlambat,
+                COUNT(CASE WHEN status IN (?, ?) THEN 1 END) as izin,
+                COUNT(CASE WHEN status = ? THEN 1 END) as alpha
+            ", [
+                AttendanceStatusEnum::PRESENT->value,
+                AttendanceStatusEnum::LATE->value,
+                AttendanceStatusEnum::LEAVE->value,
+                AttendanceStatusEnum::SICK->value,
+                AttendanceStatusEnum::ALPHA->value
+            ])
+            ->groupByRaw('MONTH(date)')
+            ->get()
+            ->keyBy('month');
+
+        return collect(range(1, 12))->map(function ($month) use ($data) {
+            return [
+                'month' => $month,
+                'hadir' => $data[$month]->hadir ?? 0,
+                'terlambat' => $data[$month]->terlambat ?? 0,
+                'izin' => $data[$month]->izin ?? 0,
+                'alpha' => $data[$month]->alpha ?? 0,
+            ];
+        })->values()->toArray();
+    }
     // Counselor Close
 
     // Homeroom Teacher
