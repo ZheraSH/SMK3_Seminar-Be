@@ -64,15 +64,19 @@ class EmployeeRepository extends BaseRepository implements EmployeeInterface
             ->when($request->search, function ($query) use ($request) {
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
-                    $q->whereHas('user', fn ($u) =>
+                    $q->whereHas(
+                        'user',
+                        fn($u) =>
                         $u->where('name', 'LIKE', "%{$search}%")
                     )
-                    ->orWhere('nip', 'LIKE', "%{$search}%");
+                        ->orWhere('nip', 'LIKE', "%{$search}%");
                 });
             })
             ->when($request->role, function ($query) use ($request) {
                 $roles = explode(',', $request->role);
-                $query->whereHas('user.roles', fn ($q) =>
+                $query->whereHas(
+                    'user.roles',
+                    fn($q) =>
                     $q->whereIn('name', $roles)
                 );
             })
@@ -83,5 +87,17 @@ class EmployeeRepository extends BaseRepository implements EmployeeInterface
     public function count(): int
     {
         return $this->model->count();
+    }
+
+    /**
+     * Update employee image
+     *
+     * @param string $employeeId
+     * @param string $imagePath
+     * @return bool
+     */
+    public function updateImage(string $employeeId, string $imagePath): bool
+    {
+        return $this->model->where('id', $employeeId)->update(['image' => $imagePath]);
     }
 }

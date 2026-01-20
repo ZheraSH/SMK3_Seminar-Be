@@ -66,33 +66,53 @@ class StudentRepository extends BaseRepository implements StudentInterface
             ->when($request->search, function ($query) use ($request) {
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
-                    $q->whereHas('user', fn ($u) =>
+                    $q->whereHas(
+                        'user',
+                        fn($u) =>
                         $u->where('name', 'LIKE', "%{$search}%")
                     )
-                    ->orWhere('nisn', 'LIKE', "%{$search}%")
-                    ->orWhereHas('classroomStudents.classroom', fn ($c) =>
-                        $c->where('name', 'LIKE', "%{$search}%")
-                    )
-                    ->orWhereHas('classroomStudents.classroom.major', fn ($m) =>
-                        $m->where('name', 'LIKE', "%{$search}%")
-                    )
-                    ->orWhereHas('classroomStudents.classroom.schoolYear', fn ($sy) =>
-                        $sy->where('name', 'LIKE', "%{$search}%")
-                    );
+                        ->orWhere('nisn', 'LIKE', "%{$search}%")
+                        ->orWhereHas(
+                            'classroomStudents.classroom',
+                            fn($c) =>
+                            $c->where('name', 'LIKE', "%{$search}%")
+                        )
+                        ->orWhereHas(
+                            'classroomStudents.classroom.major',
+                            fn($m) =>
+                            $m->where('name', 'LIKE', "%{$search}%")
+                        )
+                        ->orWhereHas(
+                            'classroomStudents.classroom.schoolYear',
+                            fn($sy) =>
+                            $sy->where('name', 'LIKE', "%{$search}%")
+                        );
                 });
             })
-            ->when($request->classroom, fn ($q) =>
-                $q->whereHas('classroomStudents.classroom', fn ($c) =>
+            ->when(
+                $request->classroom,
+                fn($q) =>
+                $q->whereHas(
+                    'classroomStudents.classroom',
+                    fn($c) =>
                     $c->whereIn('name', explode(',', $request->classroom))
                 )
             )
-            ->when($request->major, fn ($q) =>
-                $q->whereHas('classroomStudents.classroom.major', fn ($m) =>
+            ->when(
+                $request->major,
+                fn($q) =>
+                $q->whereHas(
+                    'classroomStudents.classroom.major',
+                    fn($m) =>
                     $m->whereIn('name', explode(',', $request->major))
                 )
             )
-            ->when($request->school_year, fn ($q) =>
-                $q->whereHas('classroomStudents.classroom.schoolYear', fn ($sy) =>
+            ->when(
+                $request->school_year,
+                fn($q) =>
+                $q->whereHas(
+                    'classroomStudents.classroom.schoolYear',
+                    fn($sy) =>
                     $sy->whereIn('name', explode(',', $request->school_year))
                 )
             )
@@ -116,14 +136,14 @@ class StudentRepository extends BaseRepository implements StudentInterface
             ->with([
                 'classroomStudents' => function ($q) {
                     $q->where('status', 'active')
-                      ->with([
-                          'classroom' => function ($c) {
-                              $c->with([
-                                  'major',
-                                  'schoolYear',
-                              ]);
-                          }
-                      ]);
+                        ->with([
+                            'classroom' => function ($c) {
+                                $c->with([
+                                    'major',
+                                    'schoolYear',
+                                ]);
+                            }
+                        ]);
                 }
             ])
             ->firstOrFail()
@@ -140,20 +160,20 @@ class StudentRepository extends BaseRepository implements StudentInterface
                 'user:id,name',
                 'classroomStudents' => function ($q) {
                     $q->where('status', 'active')
-                      ->with([
-                          'classroom' => function ($c) {
-                              $c->with([
-                                  'major',
-                                  'schoolYear',
-                                  'homeroomTeacher.user:id,name',
-                              ])
-                              ->withCount([
-                                  'classroomStudents as classroom_students_count' => function ($cs) {
-                                      $cs->where('status', 'active');
-                                  }
-                              ]);
-                          }
-                      ]);
+                        ->with([
+                            'classroom' => function ($c) {
+                                $c->with([
+                                    'major',
+                                    'schoolYear',
+                                    'homeroomTeacher.user:id,name',
+                                ])
+                                    ->withCount([
+                                        'classroomStudents as classroom_students_count' => function ($cs) {
+                                            $cs->where('status', 'active');
+                                        }
+                                    ]);
+                            }
+                        ]);
                 }
             ])
             ->findOrFail($studentId);
@@ -180,7 +200,19 @@ class StudentRepository extends BaseRepository implements StudentInterface
             'classroom'  => $classroom,
             'classmates' => $classmates
         ];
-    }    
+    }
+
+    /**
+     * Update student image
+     *
+     * @param string $studentId
+     * @param string $imagePath
+     * @return bool
+     */
+    public function updateImage(string $studentId, string $imagePath): bool
+    {
+        return $this->model->where('id', $studentId)->update(['image' => $imagePath]);
+    }
 
     //Student Close
 }

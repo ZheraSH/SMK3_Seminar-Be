@@ -42,6 +42,8 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', 'logout');
         Route::post('change-password', 'changePassword');
+        Route::post('change-email', 'changeEmail');
+        Route::post('change-photo', 'changePhoto');
         // Operator-only routes
         Route::post('reset-password', 'resetPassword')->middleware('role:school_operator');
     });
@@ -207,7 +209,7 @@ Route::middleware(['auth:sanctum', 'role:homeroom_teacher'])->prefix('homeroom-t
     // rekap kelas 
     Route::prefix('summary-class')->controller(HomeroomTeachersController::class)->group(function () {
         Route::get('header', 'getHeaderClass'); // classroom header
-        Route::get('students', 'getStudentAttendanceList'); // listnya student 
+        Route::get('students', 'getStudentAttendanceList'); // listnya student
         Route::get('recap', 'generateAttendanceRecap'); // print recap kehadiran
     });
 });

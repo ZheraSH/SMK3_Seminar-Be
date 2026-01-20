@@ -22,6 +22,7 @@ class StoreStudentRequest extends ApiRequest
             'email' => [
                 'required',
                 'email',
+                'regex:/^[a-zA-Z0-9._%+-]+@skaniga\.com$/',
                 Rule::unique(User::class, 'email'),
             ],
             'image' => 'nullable|mimes:png,jpeg,jpg|max:1024',
@@ -49,6 +50,7 @@ class StoreStudentRequest extends ApiRequest
             'name.required' => 'Nama tidak boleh kosong',
             'email.required' => 'Email tidak boleh kosong',
             'email.email' => 'Email tidak valid',
+            'email.regex' => 'Email harus menggunakan domain @skaniga.com',
             'email.unique' => 'Email sudah digunakan',
             'image.mimes' => 'Foto harus berekstensi png, jpg, atau jpeg',
             'image.max' => 'Ukuran foto maksimal 1MB',

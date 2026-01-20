@@ -27,6 +27,7 @@ class UpdateEmployeeRequest extends ApiRequest
             'email' => [
                 'required',
                 'email',
+                'regex:/^[a-zA-Z0-9._%+-]+@skaniga\.com$/',
                 Rule::unique(User::class, 'email')->ignore($userId),
             ],
             'image' => 'nullable|mimes:png,jpg,jpeg|max:2048',
@@ -148,6 +149,7 @@ class UpdateEmployeeRequest extends ApiRequest
             'name.required' => 'Nama tidak boleh kosong',
             'email.required' => 'Email tidak boleh kosong',
             'email.email' => 'Email tidak valid',
+            'email.regex' => 'Email harus menggunakan domain @skaniga.com',
             'email.unique' => 'Email sudah digunakan',
             'image.mimes' => 'Foto harus berekstensi png, jpg, atau jpeg',
             'image.max' => 'Ukuran foto maksimal 2MB',
