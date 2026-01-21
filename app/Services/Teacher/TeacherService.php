@@ -89,12 +89,15 @@ class TeacherService
             'lessonHour'
         ]);
 
+        $date = $this->getDateFromDayName($day);
+
         return $schedules
             ->unique('classroom_id')
             ->values()
             ->map(fn($s) => (object) [
                 'classroom' => $s->classroom,
-                'first_schedule' => $s
+                'first_schedule' => $s,
+                'date' => $date
             ]);
     }
 
@@ -166,10 +169,15 @@ class TeacherService
     {
         return DB::transaction(function () use ($data, $teacherId) {
             $results = [];
-            $currentTime = now()->format('H:i:s');
 
             foreach ($data['attendances'] as $attendanceData) {
                 $studentId = $attendanceData['student_id'];
+                $status = $attendanceData['status'];
+
+                // Validate Status
+                if (!AttendanceStatusEnum::tryFrom($status)) {
+                    throw new \Exception("Status absensi tidak valid: $status", 400);
+                }
 
                 $isLocked = $this->attendanceRepository->isAttendanceLocked(
                     $studentId,
@@ -183,6 +191,10 @@ class TeacherService
 
                 $classroomStudent = $this->classroomStudentsRepository->getByStudentAndClassroom($studentId, $data['classroom_id']);
 
+                if (!$classroomStudent) {
+                    continue;
+                }
+
                 $attendance = $this->attendanceRepository->updateOrCreate(
                     [
                         'student_id' => $studentId,
@@ -190,12 +202,12 @@ class TeacherService
                         'lesson_order' => $data['lesson_order']
                     ],
                     [
-                        'classroom_student_id' => $classroomStudent?->id,
+                        'classroom_student_id' => $classroomStudent->id,
                         'teacher_id' => $teacherId,
                         'lesson_schedule_id' => $data['lesson_schedule_id'],
                         'subject_id' => $data['subject_id'],
                         'attendance_type' => 'cross_check',
-                        'status' => $attendanceData['status'],
+                        'status' => $status,
                         'proof' => AttendanceProofEnum::CLASSROOM->value,
                         'is_final' => true,
                         'updated_at' => now()

@@ -5,11 +5,11 @@ namespace App\Http\Controllers\Api\Operator;
 use App\Http\Controllers\Controller;
 use App\Services\Operator\RfidTapService;
 use App\Helpers\ResponseHelper;
-use App\Http\Requests\TapRfidRequest;
+use App\Http\Requests\Operator\TapRfidRequest;
 use App\Http\Resources\TapResultResource;
 
 class RfidTapController extends Controller
-{   
+{
     private RfidTapService $rfidTapService;
 
     public function __construct(RfidTapService $rfidTapService)

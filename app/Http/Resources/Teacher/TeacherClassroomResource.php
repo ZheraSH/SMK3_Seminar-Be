@@ -25,6 +25,12 @@ class TeacherClassroomResource extends JsonResource
                 'id' => $classroom->homeroomTeacher->id,
                 'name' => $classroom->homeroomTeacher->user->name ?? null,
             ] : null,
+            'lesson' => [
+                'schedule_id' => $schedule->id,
+                'subject_id' => $schedule->subject_id,
+                'order' => $schedule->lessonHour->order,
+                'date' => $this->date,
+            ],
             'students' => [
                 'total' => $classroom->classroomStudents?->count() ?? 0,
             ],

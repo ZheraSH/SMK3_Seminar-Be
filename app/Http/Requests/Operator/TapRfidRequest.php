@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Operator;
+
+use App\Http\Requests\ApiRequest;
 
 class TapRfidRequest extends ApiRequest
 {
@@ -22,5 +24,14 @@ class TapRfidRequest extends ApiRequest
             'rfid.required' => 'Nomor RFID wajib diisi',
             'rfid.string' => 'Format RFID tidak valid',
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        if ($this->rfid) {
+            $this->merge([
+                'rfid' => trim($this->rfid),
+            ]);
+        }
     }
 }
