@@ -16,17 +16,33 @@ use Illuminate\Http\Request;
 class TeachersController extends Controller
 {
     private TeacherService $teacherService;
-    
+
     public function __construct(TeacherService $teacherService)
     {
         $this->teacherService = $teacherService;
     }
 
-    public function indexSchedule(Request $request): JsonResponse
+    public function getTodaySchedule(): JsonResponse
     {
         try {
             $teacherId = auth()->user()->employee->id;
-            $schedules = $this->teacherService->getDailyScheduleWithValidation($request, $teacherId);
+            $date = now()->format('Y-m-d');
+            $schedules = $this->teacherService->getDailySchedule($teacherId, $date);
+
+            return ResponseHelper::success(
+                TeacherScheduleResource::collection($schedules),
+                'Jadwal mengajar hari ini berhasil diambil'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
+        }
+    }
+
+    public function getScheduleByDay(string $day): JsonResponse
+    {
+        try {
+            $teacherId = auth()->user()->employee->id;
+            $schedules = $this->teacherService->getScheduleByDay($teacherId, $day);
 
             return ResponseHelper::success(
                 TeacherScheduleResource::collection($schedules),
@@ -37,13 +53,30 @@ class TeachersController extends Controller
         }
     }
 
-    public function indexScheduleClassrooms(Request $request, string $day): JsonResponse
+    public function getTodayClassrooms(): JsonResponse
     {
         try {
             $teacherId = auth()->user()->employee->id;
-    
-            $classrooms = $this->teacherService->getTeacherClassroomsByDay($teacherId, $day);
-    
+            $today = now()->locale('id');
+            $dayName = strtolower($today->dayName);
+
+            $classrooms = $this->teacherService->getTeacherClassroomsByDay($teacherId, $dayName);
+
+            return ResponseHelper::success(
+                TeacherClassroomResource::collection($classrooms),
+                'Daftar kelas mengajar hari ini berhasil diambil'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
+        }
+    }
+
+    public function getClassroomsByDay(string $day): JsonResponse
+    {
+        try {
+            $teacherId = auth()->user()->employee->id;
+            $classrooms = $this->teacherService->getClassroomsByDay($teacherId, $day);
+
             return ResponseHelper::success(
                 TeacherClassroomResource::collection($classrooms),
                 'Daftar kelas mengajar berhasil diambil'

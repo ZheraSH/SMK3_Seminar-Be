@@ -41,6 +41,7 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
     // Protected routes (require authentication)
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', 'logout');
+        Route::get('profile', 'profile');
         Route::post('change-password', 'changePassword');
         Route::post('change-email', 'changeEmail');
         Route::post('change-photo', 'changePhoto');
@@ -156,12 +157,14 @@ Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->group(fu
 */
 Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->group(function () {
     // Teacher Dashboard
-    // Route::prefix('dashboard')->controller(TeacherDashboardController::class)->group(function () {
-    // });
+    Route::prefix('dashboard')->controller(TeachersController::class)->group(function () {
+        Route::get('schedule-today', 'getTodaySchedule'); // Jadwal hari ini
+        Route::get('classrooms-today', 'getTodayClassrooms'); // Kelas hari ini
+    });
     // Teacher schedule
     Route::prefix('schedules')->controller(TeachersController::class)->group(function () {
-        Route::get('{day}', 'indexSchedule');
-        Route::get('classrooms/{day}', 'indexScheduleClassrooms');
+        Route::get('{day}', 'getScheduleByDay'); // Jadwal per hari (senin-jumat)
+        Route::get('classrooms/{day}', 'getClassroomsByDay'); // Kelas per hari (senin-jumat)
     });
     // Teacher attendance cross-check
     Route::prefix('attendances')->controller(TeachersController::class)->group(function () {

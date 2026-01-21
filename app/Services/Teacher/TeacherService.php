@@ -56,6 +56,22 @@ class TeacherService
         return $this->getDailySchedule($teacherId, $date);
     }
 
+    public function getScheduleByDay(string $teacherId, string $day): Collection
+    {
+        // Validate day parameter
+        $validDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+        $day = strtolower($day);
+
+        if (!in_array($day, $validDays)) {
+            throw new \Exception('Invalid day. Use: monday, tuesday, wednesday, thursday, or friday', 400);
+        }
+
+        // Get date for the specified day in current week
+        $date = $this->getDateFromDayName($day);
+
+        return $this->getDailySchedule($teacherId, $date);
+    }
+
     /* =====================================================
      |  ATTENDANCE CROSS-CHECK SECTION
      ===================================================== */
@@ -188,6 +204,26 @@ class TeacherService
     {
         $carbonDate = Carbon::parse($date)->locale('id');
         return strtolower($carbonDate->dayName);
+    }
+
+    private function getDateFromDayName(string $dayName): string
+    {
+        $dayMap = [
+            'monday' => Carbon::MONDAY,
+            'tuesday' => Carbon::TUESDAY,
+            'wednesday' => Carbon::WEDNESDAY,
+            'thursday' => Carbon::THURSDAY,
+            'friday' => Carbon::FRIDAY,
+        ];
+
+        $targetDay = $dayMap[$dayName];
+        $today = Carbon::now();
+
+        // Get the date for the specified day in current week (Monday-based week)
+        $startOfWeek = $today->copy()->startOfWeek(Carbon::MONDAY);
+        $targetDate = $startOfWeek->copy()->addDays($targetDay - 1);
+
+        return $targetDate->format('Y-m-d');
     }
 
     public function validateDate(?string $date, bool $required = true): string

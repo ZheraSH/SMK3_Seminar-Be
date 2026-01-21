@@ -114,4 +114,17 @@ class AuthController extends Controller
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
+
+    public function profile()
+    {
+        try {
+            $user = auth()->user()->fresh(['student', 'employee']);
+            return ResponseHelper::success(
+                new ProfileResource($user),
+                'Profil berhasil diambil'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
+        }
+    }
 }

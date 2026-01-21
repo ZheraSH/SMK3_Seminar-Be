@@ -16,9 +16,11 @@ class ProfileResource extends JsonResource
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
-            'role' => $user->roles->first()?->name,
             'photo' => $profile?->image ? asset('storage/' . $profile->image) : null,
             'profile_type' => $user->student ? 'student' : ($user->employee ? 'employee' : null),
+            'address' => $profile?->address,
+            'is_student' => $user->student !== null,
+            'is_employee' => $user->employee !== null,
         ];
     }
 }
