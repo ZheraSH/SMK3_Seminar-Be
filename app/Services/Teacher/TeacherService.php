@@ -98,6 +98,19 @@ class TeacherService
             ]);
     }
 
+    public function getClassroomsByDay(string $teacherId, string $day): Collection
+    {
+        // Validate day parameter
+        $validDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+        $day = strtolower($day);
+
+        if (!in_array($day, $validDays)) {
+            throw new \Exception('Invalid day. Use: monday, tuesday, wednesday, thursday, or friday', 400);
+        }
+
+        return $this->getTeacherClassroomsByDay($teacherId, $day);
+    }
+
     public function getCrossCheckData(string $teacherId, string $classroomId, string $date, int $lessonOrder, ?Request $request = null): object
     {
         $dayId = $this->getIndonesianDayFromDate($date);
