@@ -17,7 +17,8 @@ class StudentSeeder extends Seeder
     {
         $religion = Religion::where('name', 'Islam')->first();
 
-        for ($i = 1; $i <= 20; $i++) {
+        // Generate 270 students (~30 per class for 9 classes)
+        for ($i = 1; $i <= 270; $i++) {
             $gender = $i % 2 == 0 ? GenderEnum::MALE : GenderEnum::FEMALE;
 
             $name = $this->generateName($i, $gender->value);
@@ -29,7 +30,7 @@ class StudentSeeder extends Seeder
                 [
                     'id' => Str::uuid(),
                     'name' => $name,
-                    'slug' => Str::slug($name),
+                    'slug' => Str::slug($name) . '-' . $i,
                     'password' => Hash::make($nisn),
                     'email_verified_at' => now(),
                 ]

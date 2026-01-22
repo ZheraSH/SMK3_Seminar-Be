@@ -13,18 +13,18 @@ use Illuminate\Support\Str;
 
 class LessonScheduleSeeder extends Seeder
 {
-    private const MAX_SUBJECTS_PER_TEACHER = 3;
-    private const MAX_HOURS_PER_DAY = 6;
-    private const MIN_HOURS_PER_DAY = 2;
-    private const FILL_RATE = 0.85;
-    private const MAX_SAME_SUBJECT_PER_DAY = 2;
+    private const MAX_SUBJECTS_PER_TEACHER = 5;
+    private const MAX_HOURS_PER_DAY = 10;
+    private const MIN_HOURS_PER_DAY = 4;
+    private const FILL_RATE = 1.0;
+    private const MAX_SAME_SUBJECT_PER_DAY = 3;
 
     public function run(): void
     {
         $classrooms = Classroom::with('levelClass')->get();
         $subjects = Subject::all();
 
-        $teachers = Employee::whereHas('user.roles', function($q) {
+        $teachers = Employee::whereHas('user.roles', function ($q) {
             $q->where('name', 'teacher');
         })->with('user')->get();
 
@@ -68,11 +68,11 @@ class LessonScheduleSeeder extends Seeder
                     if (!$subject) continue;
 
                     $teacher = $this->findAvailableTeacher(
-                        $teachers, 
+                        $teachers,
                         $teacherStats,
-                        $subject->id, 
-                        $classroom->id, 
-                        $day, 
+                        $subject->id,
+                        $classroom->id,
+                        $day,
                         $lessonHour->id
                     );
 
@@ -94,7 +94,6 @@ class LessonScheduleSeeder extends Seeder
 
                         $this->updateTeacherStats($teacherStats, $teacher->id, $subject->id, $day);
                         $schedulesCreated++;
-
                     } catch (\Exception $e) {
                         continue;
                     }
@@ -126,7 +125,7 @@ class LessonScheduleSeeder extends Seeder
     private function findAvailableTeacher($teachers, &$teacherStats, $subjectId, $classroomId, $day, $lessonHourId)
     {
         $availableTeachers = [];
-        
+
         foreach ($teachers as $teacher) {
             $teacherId = $teacher->id;
             $stats = $teacherStats[$teacherId];
@@ -208,7 +207,7 @@ class LessonScheduleSeeder extends Seeder
             return null;
         }
 
-        uasort($availableTeachers, function($a, $b) {
+        uasort($availableTeachers, function ($a, $b) {
             if ($a['priority'] === $b['priority']) {
                 return $a['daily_hours'] <=> $b['daily_hours'];
             }
@@ -229,7 +228,7 @@ class LessonScheduleSeeder extends Seeder
         }
         $teacherStats[$teacherId]['daily_subjects'][$day][] = $subjectId;
 
-        $teacherStats[$teacherId]['daily_hours'][$day] = 
+        $teacherStats[$teacherId]['daily_hours'][$day] =
             ($teacherStats[$teacherId]['daily_hours'][$day] ?? 0) + 1;
 
         $teacherStats[$teacherId]['total_hours']++;
