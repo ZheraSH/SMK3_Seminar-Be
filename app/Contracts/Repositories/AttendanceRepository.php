@@ -156,8 +156,9 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
     public function getByClassroomAndDate(string $classroomId, string $date): Collection
     {
         return $this->model
-            ->whereHas('classroomStudent', function ($q) use ($classroomId) {
-                $q->where('classroom_id', $classroomId);
+            ->whereHas('student.classroomStudents', function ($q) use ($classroomId) {
+                $q->where('classroom_id', $classroomId)
+                    ->where('status', \App\Enums\StudentStatusEnum::ACTIVE->value);
             })
             ->whereDate('date', $date)
             ->get();
