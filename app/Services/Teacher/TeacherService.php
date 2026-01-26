@@ -133,7 +133,7 @@ class TeacherService
             $student = $classroomStudent->student;
             $existingAttendance = $this->attendanceRepository->getByStudentLesson($student->id, $date, $lessonOrder);
             $rfidAttendance = $this->attendanceRepository->getRFIDAttendanceByStudentAndDate($student->id, $date);
-            $currentStatus = $existingAttendance?->status?->value ?? AttendanceStatusEnum::ALPHA->value;
+            $currentStatus = $existingAttendance?->status?->value ?? null;
             $isLocked = $existingAttendance?->is_locked ?? false;
 
             return [

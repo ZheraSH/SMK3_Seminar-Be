@@ -70,6 +70,8 @@ class TeacherCrossCheckDataResource extends JsonResource
                 if ($student['current_status']) {
                     $statusEnum = \App\Enums\AttendanceStatusEnum::tryFrom($student['current_status']);
                     $statusLabel = $statusEnum?->label();
+                } else {
+                    $statusLabel = 'Belum Absen';
                 }
 
                 return [
