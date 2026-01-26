@@ -58,9 +58,9 @@ class RfidRepository extends BaseRepository implements RfidInterface
             ->with(['student.user'])
             ->when($request->search, function ($query) use ($request) {
                 $query->where('rfid', 'LIKE', '%' . $request->search . '%')
-                      ->orWhereHas('student.user', function ($q) use ($request) {
-                          $q->where('name', 'LIKE', '%' . $request->search . '%');
-                      });
+                    ->orWhereHas('student.user', function ($q) use ($request) {
+                        $q->where('name', 'LIKE', '%' . $request->search . '%');
+                    });
             })
             ->latest()
             ->paginate($pagination);
@@ -74,6 +74,7 @@ class RfidRepository extends BaseRepository implements RfidInterface
     public function getAvailableStudents(string $search = null, int $limit = 10): Collection
     {
         return Student::query()
+            ->where('status', \App\Enums\StudentStatusEnum::ACTIVE->value)
             ->whereDoesntHave('rfid')
             ->when($search, function ($query) use ($search) {
                 $query->whereHas('user', function ($u) use ($search) {
@@ -84,7 +85,7 @@ class RfidRepository extends BaseRepository implements RfidInterface
             ->orderByDesc('created_at')
             ->limit($limit)
             ->get();
-    }    
+    }
 
     public function getByRfidNumber(string $rfid): ?Rfid
     {
@@ -107,5 +108,5 @@ class RfidRepository extends BaseRepository implements RfidInterface
             ->where('rfid', $rfid)
             ->where('status', RfidStatusEnum::ACTIVE->value)
             ->first();
-    }    
+    }
 }
