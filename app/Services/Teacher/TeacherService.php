@@ -58,7 +58,6 @@ class TeacherService
 
     public function getScheduleByDay(string $teacherId, string $day): Collection
     {
-        // Validate day parameter
         $validDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
         $day = strtolower($day);
 
@@ -66,7 +65,6 @@ class TeacherService
             throw new \Exception('Invalid day. Use: monday, tuesday, wednesday, thursday, or friday', 400);
         }
 
-        // Get date for the specified day in current week
         $date = $this->getDateFromDayName($day);
 
         return $this->getDailySchedule($teacherId, $date);
@@ -103,7 +101,6 @@ class TeacherService
 
     public function getClassroomsByDay(string $teacherId, string $day): Collection
     {
-        // Validate day parameter
         $validDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
         $day = strtolower($day);
 
@@ -134,10 +131,10 @@ class TeacherService
 
         $students->getCollection()->transform(function ($classroomStudent) use ($date, $lessonOrder) {
             $student = $classroomStudent->student;
-
             $existingAttendance = $this->attendanceRepository->getByStudentLesson($student->id, $date, $lessonOrder);
-
             $rfidAttendance = $this->attendanceRepository->getRFIDAttendanceByStudentAndDate($student->id, $date);
+            $currentStatus = $existingAttendance?->status ?? AttendanceStatusEnum::ALPHA->value;
+            $isLocked = $existingAttendance?->is_locked ?? false;
 
             return [
                 'student_id' => $student->id,
@@ -149,8 +146,8 @@ class TeacherService
                     'checkout_time' => $rfidAttendance->checkout_time,
                     'status' => $rfidAttendance->status
                 ] : null,
-                'is_locked' => $existingAttendance?->is_locked ?? false,
-                'current_status' => $existingAttendance?->status ?? AttendanceStatusEnum::ALPHA->value
+                'is_locked' => $isLocked,
+                'current_status' => $currentStatus
             ];
         });
 
@@ -166,60 +163,58 @@ class TeacherService
     }
 
     public function submitCrossCheck(array $data, string $teacherId): array
-    {
-        return DB::transaction(function () use ($data, $teacherId) {
-            $results = [];
+{
+    return DB::transaction(function () use ($data, $teacherId) {
+        $results = [];
 
-            foreach ($data['attendances'] as $attendanceData) {
-                $studentId = $attendanceData['student_id'];
-                $status = $attendanceData['status'];
+        foreach ($data['attendances'] as $attendanceData) {
+            $studentId = $attendanceData['student_id'];
+            $status = $attendanceData['status'];
 
-                // Validate Status
-                if (!AttendanceStatusEnum::tryFrom($status)) {
-                    throw new \Exception("Status absensi tidak valid: $status", 400);
-                }
-
-                $isLocked = $this->attendanceRepository->isAttendanceLocked(
-                    $studentId,
-                    $data['date'],
-                    $data['lesson_order']
-                );
-
-                if ($isLocked) {
-                    continue;
-                }
-
-                $classroomStudent = $this->classroomStudentsRepository->getByStudentAndClassroom($studentId, $data['classroom_id']);
-
-                if (!$classroomStudent) {
-                    continue;
-                }
-
-                $attendance = $this->attendanceRepository->updateOrCreate(
-                    [
-                        'student_id' => $studentId,
-                        'date' => $data['date'],
-                        'lesson_order' => $data['lesson_order']
-                    ],
-                    [
-                        'classroom_student_id' => $classroomStudent->id,
-                        'teacher_id' => $teacherId,
-                        'lesson_schedule_id' => $data['lesson_schedule_id'],
-                        'subject_id' => $data['subject_id'],
-                        'attendance_type' => 'cross_check',
-                        'status' => $status,
-                        'proof' => AttendanceProofEnum::CLASSROOM->value,
-                        'is_final' => true,
-                        'updated_at' => now()
-                    ]
-                );
-
-                $results[] = $attendance;
+            if (!$studentId || $studentId === 'NaN' || $studentId === 'null') {
+                continue;
             }
 
-            return $results;
-        });
-    }
+            $isLocked = $this->attendanceRepository->isAttendanceLocked(
+                $studentId,
+                $data['date'],
+                $data['lesson_order']
+            );
+
+            if ($isLocked) continue;
+
+            $classroomStudent = $this->classroomStudentsRepository->getByStudentAndClassroom(
+                $studentId,
+                $data['classroom_id']
+            );
+
+            if (!$classroomStudent) continue;
+
+            $attendance = $this->attendanceRepository->updateOrCreate(
+                [
+                    'student_id'   => $studentId,
+                    'date'         => $data['date'],
+                    'lesson_order' => $data['lesson_order']
+                ],
+                [
+                    'classroom_student_id' => $classroomStudent->id,
+                    'teacher_id'           => $teacherId,
+                    'lesson_schedule_id'   => $data['lesson_schedule_id'],
+                    'subject_id'           => $data['subject_id'],
+                    'attendance_type'      => 'cross_check',
+                    'status'               => $status,
+                    'proof'                => AttendanceProofEnum::CLASSROOM->value,
+                    'is_final'             => true,
+                    'updated_at'           => now()
+                ]
+            );
+
+            $results[] = $attendance;
+        }
+
+        return $results;
+    });
+}
 
     /* =====================================================
      |  PRIVATE HELPERS
@@ -244,7 +239,6 @@ class TeacherService
         $targetDay = $dayMap[$dayName];
         $today = Carbon::now();
 
-        // Get the date for the specified day in current week (Monday-based week)
         $startOfWeek = $today->copy()->startOfWeek(Carbon::MONDAY);
         $targetDate = $startOfWeek->copy()->addDays($targetDay - 1);
 

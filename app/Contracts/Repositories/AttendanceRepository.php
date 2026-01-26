@@ -8,6 +8,7 @@ use App\Models\Attendance;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Enums\AttendanceProofEnum;
 
 class AttendanceRepository extends BaseRepository implements AttendanceInterface
 {
@@ -197,18 +198,29 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
             ->get();
     }
 
-    public function updateByPermission(string $studentId, array $dateRange, string $permissionId, string $status): int
+    public function lockAttendance(string $studentId, string $date, int $lessonOrder, string $status, string $permissionId, ?string $lessonScheduleId = null, ?string $subjectId = null, ?string $teacherId = null, ?string $classroomStudentId = null): Attendance
     {
-        return $this->model
-            ->where('student_id', $studentId)
-            ->whereBetween('date', $dateRange)
-            ->where('is_locked', false)
-            ->update([
-                'status' => $status,
-                'is_locked' => true,
-                'overridden_by_permission_id' => $permissionId,
-                'is_final' => true
-            ]);
+        $data = [
+            'status' => $status,
+            'is_locked' => true,
+            'overridden_by_permission_id' => $permissionId,
+            'is_final' => true,
+            'proof' => AttendanceProofEnum::PERMISSION->value
+        ];
+
+        if ($lessonScheduleId) $data['lesson_schedule_id'] = $lessonScheduleId;
+        if ($subjectId) $data['subject_id'] = $subjectId;
+        if ($teacherId) $data['teacher_id'] = $teacherId;
+        if ($classroomStudentId) $data['classroom_student_id'] = $classroomStudentId;
+
+        return $this->model->updateOrCreate(
+            [
+                'student_id' => $studentId,
+                'date' => $date,
+                'lesson_order' => $lessonOrder
+            ],
+            $data
+        );
     }
 
     public function isAttendanceLocked(string $studentId, string $date, int $lessonOrder): bool

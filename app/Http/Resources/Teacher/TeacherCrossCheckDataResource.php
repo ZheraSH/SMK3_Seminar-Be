@@ -66,14 +66,27 @@ class TeacherCrossCheckDataResource extends JsonResource
                 'can_resubmit' => $this->can_resubmit ?? true,
             ],
             'students' => array_map(function ($student) {
+                $statusLabel = null;
+                if ($student['current_status']) {
+                    $statusEnum = \App\Enums\AttendanceStatusEnum::tryFrom($student['current_status']);
+                    $statusLabel = $statusEnum?->label();
+                }
+
                 return [
-                    'id' => $student['student_id'] ?? null,
+                    'id' => (string) ($student['student_id'] ?? $student['id']),
                     'name' => $student['name'] ?? 'Tidak diketahui',
                     'nisn' => $student['nisn'] ?? null,
-                    'existing_attendance' => $student['existing_attendance'] ? [
-                        'id' => $student['existing_attendance']['id'] ?? null,
-                        'status' => $student['existing_attendance']['status'] ?? null,
-                        'status_label' => $student['existing_attendance']['status_label'] ?? null,
+                    'is_locked' => $student['is_locked'] ?? false,
+                    'attendance_status' => [
+                        'code' => $student['current_status'],
+                        'label' => $statusLabel,
+                        'is_final' => $student['existing_attendance']['is_final'] ?? false,
+                        'proof' => $student['existing_attendance']['proof'] ?? null,
+                    ],
+                    'arrival_info' => $student['rfid_info'] ? [
+                        'status' => $student['rfid_info']['status'],
+                        'checkin_time' => $student['rfid_info']['checkin_time'],
+                        'checkout_time' => $student['rfid_info']['checkout_time'],
                     ] : null,
                 ];
             }, $studentsData),

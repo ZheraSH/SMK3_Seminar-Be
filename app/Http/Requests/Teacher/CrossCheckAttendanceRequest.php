@@ -19,7 +19,7 @@ class CrossCheckAttendanceRequest extends ApiRequest
             'lesson_schedule_id' => 'required|exists:lesson_schedules,id',
             'subject_id' => 'required|exists:subjects,id',
             'date' => 'required|date|date_format:Y-m-d',
-            'lesson_order' => 'required|integer|min:2',
+            'lesson_order' => 'required|integer|min:1',
             'attendances' => 'required|array|min:1',
             'attendances.*.student_id' => 'required|exists:students,id',
             'attendances.*.status' => [

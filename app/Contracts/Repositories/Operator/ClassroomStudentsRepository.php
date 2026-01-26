@@ -239,4 +239,16 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
     }
 
     //Homeroom Teacher Close
+
+    //Counselor
+    public function getActiveStudentClassroom(string $studentId): ?ClassroomStudents
+    {
+        return $this->model
+            ->where('student_id', $studentId)
+            ->where('status', StudentStatusEnum::ACTIVE->value)
+            ->with(['classroom'])
+            ->latest()
+            ->first();
+    }
+    //Counselor Close
 }
