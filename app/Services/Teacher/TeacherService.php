@@ -151,6 +151,19 @@ class TeacherService
             ];
         });
 
+        $submissionRecord = $this->attendanceRepository->getSubmissionInfo($schedule->id, $date, $lessonOrder);
+        $hasSubmitted = (bool) $submissionRecord;
+        $submittedAt = $submissionRecord?->updated_at;
+
+        $canResubmit = true;
+
+        if ($hasSubmitted) {
+            $now = Carbon::now();
+            $startTime = Carbon::parse($date . ' ' . $schedule->lessonHour->start);
+            $endTime = Carbon::parse($date . ' ' . $schedule->lessonHour->end);
+            $canResubmit = $now->format('Y-m-d') === $date && $now->between($startTime, $endTime);
+        }
+
         return (object) [
             'lesson_schedule' => $schedule,
             'classroom' => $schedule->classroom,
@@ -158,7 +171,12 @@ class TeacherService
             'summary' => $this->getClassroomSummary($classroomId, $date),
             'date' => $date,
             'lesson_order' => $lessonOrder,
-            'classroom_id' => $classroomId
+            'classroom_id' => $classroomId,
+            'submission_status' => (object) [
+                'has_submitted' => $hasSubmitted,
+                'submitted_at' => $submittedAt,
+                'can_resubmit' => $canResubmit
+            ]
         ];
     }
 

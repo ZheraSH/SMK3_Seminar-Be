@@ -233,6 +233,17 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
             ->exists();
     }
 
+    public function getSubmissionInfo(string $lessonScheduleId, string $date, int $lessonOrder): ?Attendance
+    {
+        return $this->model
+            ->where('lesson_schedule_id', $lessonScheduleId)
+            ->whereDate('date', $date)
+            ->where('lesson_order', $lessonOrder)
+            ->where('attendance_type', 'cross_check')
+            ->orderByDesc('updated_at')
+            ->first();
+    }
+
     //Teacher Close
 
     // Counselor
