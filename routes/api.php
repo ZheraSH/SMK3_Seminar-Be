@@ -95,6 +95,7 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
         Route::get('students-available', 'getAvailableStudents'); // siswa belum/bisa pindah dengan search
         Route::post('students-add', 'store'); // tambahkan siswa ke classroom
         Route::delete('student-remove/{studentId}', 'destroy'); // hapus siswa dari classroom
+        Route::post('promote', 'promote'); // naik kelas
     });
     // Semesters
     Route::prefix('semesters')->controller(SemesterController::class)->group(function () {

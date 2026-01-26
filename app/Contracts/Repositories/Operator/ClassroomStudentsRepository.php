@@ -149,6 +149,40 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             ->update(['status' => StudentStatusEnum::INACTIVE->value]);
     }
 
+    public function promoteClass(string $oldClassroomId, string $newClassroomId): void
+    {
+        DB::transaction(function () use ($oldClassroomId, $newClassroomId) {
+            $activeStudents = $this->model
+                ->where('classroom_id', $oldClassroomId)
+                ->where('status', StudentStatusEnum::ACTIVE->value)
+                ->get();
+
+            if ($activeStudents->isEmpty()) {
+                return;
+            }
+
+            $timestamp = now();
+            $newRecords = [];
+
+            foreach ($activeStudents as $student) {
+                $student->update(['status' => StudentStatusEnum::INACTIVE->value]);
+
+                $newRecords[] = [
+                    'id' => (string) \Illuminate\Support\Str::uuid(),
+                    'classroom_id' => $newClassroomId,
+                    'student_id' => $student->student_id,
+                    'status' => StudentStatusEnum::ACTIVE->value,
+                    'created_at' => $timestamp,
+                    'updated_at' => $timestamp,
+                ];
+            }
+
+            if (!empty($newRecords)) {
+                $this->model->insert($newRecords);
+            }
+        });
+    }
+
     //Teacher
     public function getByClassroomForAttendance(string $classroomId, ?Request $request = null): LengthAwarePaginator
     {
@@ -173,6 +207,7 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
         }
 
         return $query->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
             ->paginate($request->limit ?? 20);
     }
 
@@ -250,5 +285,6 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             ->latest()
             ->first();
     }
+
     //Counselor Close
 }

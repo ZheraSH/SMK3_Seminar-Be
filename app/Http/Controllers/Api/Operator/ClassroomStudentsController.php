@@ -8,6 +8,7 @@ use App\Http\Resources\Operator\AvailableStudentResource;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Operator\AddStudentToClassroomRequest;
+use App\Http\Requests\Operator\PromoteClassRequest;
 use Illuminate\Http\Request;
 
 class ClassroomStudentsController extends Controller
@@ -70,6 +71,20 @@ class ClassroomStudentsController extends Controller
             return ResponseHelper::success(
                 ClassroomStudentsResource::collection($data),
                 'Siswa berhasil dihapus dari kelas'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
+        }
+    }
+
+    public function promote(PromoteClassRequest $request, string $classroomId)
+    {
+        try {
+            $this->classroomStudentsService->promoteClass($classroomId, $request->validated('new_classroom_id'));
+
+            return ResponseHelper::success(
+                null,
+                'Siswa berhasil dinaikkan ke kelas baru'
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);

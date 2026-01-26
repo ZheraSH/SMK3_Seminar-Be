@@ -44,4 +44,9 @@ class ClassroomStudentsService
         return $this->classroomStudentsRepository->getByClassroom($classroomId, new Request(['limit' => 1000]))
             ->getCollection();
     }
+
+    public function promoteClass(string $currentClassroomId, string $newClassroomId): void
+    {
+        $this->classroomStudentsRepository->promoteClass($currentClassroomId, $newClassroomId);
+    }
 }
