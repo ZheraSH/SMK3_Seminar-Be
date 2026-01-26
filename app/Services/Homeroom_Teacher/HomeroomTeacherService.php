@@ -3,7 +3,6 @@
 namespace App\Services\Homeroom_Teacher;
 
 use App\Contracts\Repositories\AttendanceRepository;
-use App\Contracts\Repositories\AttendancePermissionRepository;
 use App\Contracts\Repositories\Operator\ClassroomStudentsRepository;
 use App\Contracts\Repositories\Operator\ClassroomRepository;
 use App\Enums\AttendanceStatusEnum;
@@ -13,17 +12,15 @@ use Carbon\Carbon;
 
 class HomeroomTeacherService
 {
-    protected ClassroomRepository $classroomRepository;
-    protected ClassroomStudentsRepository $classroomStudentsRepository;
-    protected AttendanceRepository $attendanceRepository;
-    protected AttendancePermissionRepository $attendancePermissionRepository;
+    private ClassroomRepository $classroomRepository;
+    private ClassroomStudentsRepository $classroomStudentsRepository;
+    private AttendanceRepository $attendanceRepository;
 
-    public function __construct(ClassroomRepository $classroomRepository, ClassroomStudentsRepository $classroomStudentsRepository, AttendanceRepository $attendanceRepository, AttendancePermissionRepository $attendancePermissionRepository)
+    public function __construct(ClassroomRepository $classroomRepository, ClassroomStudentsRepository $classroomStudentsRepository, AttendanceRepository $attendanceRepository)
     {
         $this->classroomRepository = $classroomRepository;
         $this->classroomStudentsRepository = $classroomStudentsRepository;
         $this->attendanceRepository = $attendanceRepository;
-        $this->attendancePermissionRepository = $attendancePermissionRepository;
     }
 
     public function getTeacherClassroom(User $teacher): ?array
@@ -82,13 +79,10 @@ class HomeroomTeacherService
             ->getByClassroomAndDate($classroom['id'], $date)
             ->where('lesson_order', 1);
 
-        $permissions = $this->getApprovedPermissions($classroom['id'], $date);
-
         $counters = $this->countAttendance(
             $classroom['id'],
             $date,
-            $attendances,
-            $permissions
+            $attendances
         );
 
         $attended = $counters['present']
@@ -124,13 +118,10 @@ class HomeroomTeacherService
                 ->getByClassroomAndDate($classroom['id'], $date)
                 ->where('lesson_order', 1);
 
-            $permissions = $this->getApprovedPermissions($classroom['id'], $date);
-
             $count = $this->countAttendance(
                 $classroom['id'],
                 $date,
-                $attendances,
-                $permissions
+                $attendances
             );
 
             $daily[] = [
@@ -169,10 +160,8 @@ class HomeroomTeacherService
             ->getByClassroomAndDate($classroom['id'], $date)
             ->where('lesson_order', 1);
 
-        $permissions = $this->getApprovedPermissions($classroom['id'], $date);
-
         $students = $studentsPaginated->map(
-            fn($cs) => $this->mapStudentAttendance($cs, $date, $attendances, $permissions)
+            fn($cs) => $this->mapStudentAttendance($cs, $date, $attendances)
         )->filter();
 
         if ($status) {
@@ -208,7 +197,7 @@ class HomeroomTeacherService
         );
     }
 
-    private function countAttendance(string $classroomId, string $date, $attendances, $permissions): array
+    private function countAttendance(string $classroomId, string $date, $attendances): array
     {
         $counters = [
             'present' => 0,
@@ -223,11 +212,6 @@ class HomeroomTeacherService
             ->pluck('student_id');
 
         foreach ($students as $studentId) {
-            if ($permissions->contains('student_id', $studentId)) {
-                $counters['permission']++;
-                continue;
-            }
-
             $attendance = $attendances->firstWhere('student_id', $studentId);
 
             if (!$attendance) {
@@ -239,6 +223,7 @@ class HomeroomTeacherService
                 AttendanceStatusEnum::PRESENT->value => $counters['present']++,
                 AttendanceStatusEnum::LATE->value => $counters['late']++,
                 AttendanceStatusEnum::SICK->value => $counters['sick']++,
+                AttendanceStatusEnum::LEAVE->value => $counters['permission']++,
                 default => $counters['alpha']++,
             };
         }
@@ -246,7 +231,7 @@ class HomeroomTeacherService
         return $counters;
     }
 
-    private function mapStudentAttendance($cs, string $date, $attendances, $permissions): ?array
+    private function mapStudentAttendance($cs, string $date, $attendances): ?array
     {
         if (!$cs->student || !$cs->student->user) {
             return null;
@@ -258,40 +243,15 @@ class HomeroomTeacherService
             ? asset('storage/' . $cs->student->image)
             : null;
 
-        if ($permissions->contains('student_id', $studentId)) {
-            return [
-                'student_image' => $studentImage,
-                'student_name' => $cs->student->user->name,
-                'nisn' => $cs->student->nisn,
-                'status' => 'permission',
-                'date' => $date,
-            ];
-        }
-
         $attendance = $attendances->firstWhere('student_id', $studentId);
 
         return [
             'student_image' => $studentImage,
             'student_name' => $cs->student->user->name,
             'nisn' => $cs->student->nisn,
-            'status' => $attendance?->status ?? 'alpha',
+            'status' => $attendance?->status->value ?? 'alpha',
             'date' => $date,
         ];
-    }
-
-    private function getApprovedPermissions(string $classroomId, string $date)
-    {
-        $date = Carbon::parse($date);
-
-        return \App\Models\AttendancePermission::where('status', 'approved')
-            ->whereDate('start_date', '<=', $date)
-            ->whereDate('end_date', '>=', $date)
-            ->whereHas(
-                'student.classroomStudents',
-                fn($q) =>
-                $q->where('classroom_id', $classroomId)
-            )
-            ->get();
     }
 
     public function generateAttendanceRecap(User $teacher, ?string $date = null): array
@@ -305,16 +265,14 @@ class HomeroomTeacherService
             ->getByClassroomAndDate($classroom['id'], $date)
             ->where('lesson_order', 1);
 
-        $permissions = $this->getApprovedPermissions($classroom['id'], $date);
         $students = $studentsCollection->map(
-            fn($cs) => $this->mapStudentAttendance($cs, $date, $attendances, $permissions)
+            fn($cs) => $this->mapStudentAttendance($cs, $date, $attendances)
         )->filter()->values();
 
         $counters = $this->countAttendance(
             $classroom['id'],
             $date,
-            $attendances,
-            $permissions
+            $attendances
         );
 
         return [
