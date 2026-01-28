@@ -2,7 +2,7 @@
 
 namespace App\Services\Operator;
 
-use App\Contracts\Repositories\Operator\SchoolYearRepository; 
+use App\Contracts\Repositories\Operator\SchoolYearRepository;
 use Illuminate\Support\Facades\DB;
 
 class SchoolYearService
@@ -36,8 +36,20 @@ class SchoolYearService
                 $end = $start + 1;
             }
 
+            $newName = "{$start}/{$end}";
+
+            $trashed = \App\Models\SchoolYear::withTrashed()
+                ->where('name', $newName)
+                ->first();
+
+            if ($trashed) {
+                $trashed->restore();
+                $trashed->update(['active' => true]);
+                return $trashed;
+            }
+
             return $this->schoolYearRepository->store([
-                'name' => "{$start}/{$end}",
+                'name' => $newName,
                 'active' => true
             ]);
         });
