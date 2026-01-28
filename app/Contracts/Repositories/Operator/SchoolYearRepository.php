@@ -38,9 +38,15 @@ class SchoolYearRepository extends BaseRepository implements SchoolYearInterface
         return $this->show($id)->delete();
     }
 
-    public function paginate(): mixed
+    public function paginate($request = null): mixed
     {
-        return $this->model->latest()->paginate(12);
+        $query = $this->model->latest();
+
+        if ($request?->search) {
+            $query->where('name', 'like', "%{$request->search}%");
+        }
+
+        return $query->paginate($request->limit ?? 12);
     }
 
     public function active(): mixed
