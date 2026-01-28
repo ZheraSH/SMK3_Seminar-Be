@@ -56,7 +56,7 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
 |--------------------------------------------------------------------------
 | Semua endpoint yang hanya boleh diakses operator sekolah
 */
-// Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
+Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
     //Dashboard
     Route::prefix('dashboard')->controller(OperatorDashboardController::class)->group(function () {
         Route::get('counters', 'getCounter'); //total siswa/guru/kelas/attendance
@@ -126,7 +126,7 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
     Route::apiResource('rfids', RfidController::class);
     // RFID Tap (perlu Master card)
     Route::post('rfid-tap', [RfidTapController::class, 'tap']);
-// });
+});
 
 /*
 |--------------------------------------------------------------------------

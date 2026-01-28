@@ -23,17 +23,17 @@ class DatabaseSeeder extends Seeder
             LevelClassSeeder::class,
             SubjectSeeder::class,
             //Data Dummy
-            EmployeeSeeder::class, //Data dummy
-            StudentSeeder::class, //Data dummy
-            SchoolYearSeeder::class, //Data dummy
-            ClassroomSeeder::class, //Data dummy
-            ClassroomStudentSeeder::class, //Data dummy
-            LessonHourSeeder::class, //Data dummy
-            LessonScheduleSeeder::class, //Data dummy
-            AttendanceRuleSeeder::class, //Data dummy
-            RfidSeeder::class, //Data Dummy
-            AttendanceSeeder::class, //Data dummy
-            AttendancePermissionSeeder::class, //Data dummy
+            // EmployeeSeeder::class, //Data dummy
+            // StudentSeeder::class, //Data dummy
+            // SchoolYearSeeder::class, //Data dummy
+            // ClassroomSeeder::class, //Data dummy
+            // ClassroomStudentSeeder::class, //Data dummy
+            // LessonHourSeeder::class, //Data dummy
+            // LessonScheduleSeeder::class, //Data dummy
+            // AttendanceRuleSeeder::class, //Data dummy
+            // RfidSeeder::class, //Data Dummy
+            // AttendanceSeeder::class, //Data dummy
+            // AttendancePermissionSeeder::class, //Data dummy
         ]);
     }
 }
