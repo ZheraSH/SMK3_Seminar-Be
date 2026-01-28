@@ -59,8 +59,9 @@ class HomeroomTeachersController extends Controller
         try {
             $teacher = $request->user();
             $date = $request->input('date', now()->format('Y-m-d'));
+            $status = $request->input('status');
 
-            $recap = $this->service->generateAttendanceRecap($teacher, $date);
+            $recap = $this->service->generateAttendanceRecap($teacher, $date, $status);
 
             if (class_exists(\Maatwebsite\Excel\Facades\Excel::class)) {
                 $export = new \App\Exports\AttendanceRecapExport($recap);

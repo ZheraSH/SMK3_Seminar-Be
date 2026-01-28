@@ -254,7 +254,7 @@ class HomeroomTeacherService
         ];
     }
 
-    public function generateAttendanceRecap(User $teacher, ?string $date = null): array
+    public function generateAttendanceRecap(User $teacher, ?string $date = null, ?string $status = null): array
     {
         $date = $date ?? Carbon::now()->format('Y-m-d');
         $classroom = $this->requireClassroom($teacher);
@@ -267,7 +267,13 @@ class HomeroomTeacherService
 
         $students = $studentsCollection->map(
             fn($cs) => $this->mapStudentAttendance($cs, $date, $attendances)
-        )->filter()->values();
+        )->filter();
+
+        if ($status) {
+            $students = $students->filter(fn($student) => $student && $student['status'] === $status);
+        }
+
+        $students = $students->values();
 
         $counters = $this->countAttendance(
             $classroom['id'],
