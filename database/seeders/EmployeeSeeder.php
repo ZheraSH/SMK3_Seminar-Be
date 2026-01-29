@@ -191,9 +191,9 @@ class EmployeeSeeder extends Seeder
 
     private function generateName(int $index, string $gender): string
     {
-        $maleFirstNames = ['Tegar', 'Dimas', 'Firman', 'Sbastian', 'Valen', 'Ramzi', 'Gunawan', 'Nidal', 'Azadi', 'Jaka'];
-        $femaleFirstNames = ['Rofiatul', 'Rohmah', 'Inka', 'Putri', 'Ica', 'Riang', 'Nining', 'Niendy', 'Indah'];
-        $lastNames = ['Dedy', 'Abdillah', 'Pratama', 'Kusuma', 'Sunandar', 'Iskandar', 'Meifirdo', 'Atmaja'];
+        $maleFirstNames = ['Shaleh', 'Sbastian', 'Firman', 'Tegar', 'Dude', 'Ghiyats', 'Haikal', 'Zhera'];
+        $femaleFirstNames = ['Ica', 'Riang', 'Sidiya', 'Nindy', 'Nana', 'Alex', 'Zehra', 'Sakura'];
+        $lastNames = ['Nuh', 'Putri', 'Candra', 'Mai', 'Miku', 'Moh', 'Kuromi', 'Shinozaki'];
 
         $firstName = $gender === GenderEnum::MALE->value
             ? $maleFirstNames[($index - 1) % count($maleFirstNames)]

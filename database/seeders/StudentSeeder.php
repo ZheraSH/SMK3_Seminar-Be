@@ -62,9 +62,9 @@ class StudentSeeder extends Seeder
 
     private function generateName(int $index, string $gender): string
     {
-        $maleNames = ['Nando', 'Saiful', 'Fairouz', 'Dimas', 'Angga', 'Hilman', 'King', 'Ega', 'Zherash', 'Shinozaki'];
-        $femaleNames = ['Dwi', 'Vita', 'Tokisaki', 'Night', 'Rani', 'Kurumi', 'Alexia', 'Rara', 'Ai', 'Lovita'];
-        $lastNames = ['Hamzi', 'Islami', 'Cairigio', 'Nayaka', 'Ramadhan', 'Rahmawati', 'Tirta'];
+        $maleNames = ['Ega', 'Nando', 'Saiful', 'Hilman', 'Jaka', 'Angga', 'Fairouz', 'Valen'];
+        $femaleNames = ['Dwi', 'Vita', 'Kurumi', 'Silvia', 'Novi', 'Tokisaki', 'Rem', 'Ram'];
+        $lastNames = ['Hamzi', 'Islami', 'Cairigio', 'Nayaka', 'Ramadhan', 'Rahmawati', 'Abdilah', 'Lovita'];
 
         $firstName = $gender === GenderEnum::MALE->value
             ? $maleNames[($index - 1) % count($maleNames)]

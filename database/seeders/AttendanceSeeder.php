@@ -44,6 +44,8 @@ class AttendanceSeeder extends Seeder
             $this->command->info("Seeding for Date: {$currentDate} ({$dayName})");
 
             foreach ($students as $student) {
+                $rfidRecord = DB::table('rfids')->where('student_id', $student->id)->first();
+
                 // Determine student behavior
                 $rand = rand(1, 100);
                 $scenario = match (true) {
@@ -76,7 +78,7 @@ class AttendanceSeeder extends Seeder
                         'id' => Str::uuid()->toString(),
                         'student_id' => $student->id,
                         'classroom_student_id' => null,
-                        'rfid_id' => null,
+                        'rfid_id' => $rfidRecord?->id,
                         'date' => $currentDate,
                         'checkin_time' => $checkIn,
                         'checkout_time' => $checkOut,
