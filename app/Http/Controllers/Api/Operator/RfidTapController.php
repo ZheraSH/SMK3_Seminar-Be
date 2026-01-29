@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Operator;
 
+use App\Enums\TapStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Services\Operator\RfidTapService;
 use App\Helpers\ResponseHelper;
@@ -21,7 +22,7 @@ class RfidTapController extends Controller
     {
         try {
             $result = $this->rfidTapService->processTap($request);
-            $status = ($result['status'] ?? 'invalid') === \App\Enums\TapStatusEnum::VALID->value ? 200 : 400;
+            $status = ($result['status'] ?? 'invalid') === TapStatusEnum::VALID->value ? 200 : 400;
             return ResponseHelper::success(new TapResultResource($result), $result['message'] ?? 'OK', $status);
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);

@@ -20,6 +20,7 @@ use App\Contracts\Interfaces\Operator\AttendanceRuleInterface;
 use App\Contracts\Interfaces\Operator\RfidInterface;
 use App\Contracts\Interfaces\AttendanceInterface;
 use App\Contracts\Interfaces\AttendancePermissionInterface;
+use App\Contracts\Interfaces\Operator\MastercardInterface;
 use App\Contracts\Repositories\UserRepository;
 use App\Contracts\Repositories\Operator\RoleRepository;
 use App\Contracts\Repositories\Operator\SchoolRepository;
@@ -38,6 +39,7 @@ use App\Contracts\Repositories\Operator\AttendanceRuleRepository;
 use App\Contracts\Repositories\Operator\RfidRepository;
 use App\Contracts\Repositories\AttendanceRepository;
 use App\Contracts\Repositories\AttendancePermissionRepository;
+use App\Contracts\Repositories\Operator\MastercardRepository;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -61,6 +63,7 @@ class AppServiceProvider extends ServiceProvider
         RfidInterface::class => RfidRepository::class,
         AttendanceInterface::class => AttendanceRepository::class,
         AttendancePermissionInterface::class => AttendancePermissionRepository::class,
+        MastercardInterface::class => MastercardRepository::class,
     ];
 
     public function register(): void

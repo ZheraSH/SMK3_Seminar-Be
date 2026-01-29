@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\Operator\LessonSchedulesController;
 use App\Http\Controllers\Api\Operator\AttendanceRuleController;
 use App\Http\Controllers\Api\Operator\RfidController;
 use App\Http\Controllers\Api\Operator\RfidTapController;
+use App\Http\Controllers\Api\Operator\MastercardController;
 use App\Http\Controllers\Api\Operator\OperatorDashboardController;
 use App\Http\Controllers\Api\Student\StudentsController;
 use App\Http\Controllers\Api\Student\StudentDashboardController;
@@ -126,6 +127,10 @@ Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
     Route::apiResource('rfids', RfidController::class);
     // RFID Tap (perlu Master card)
     Route::post('rfid-tap', [RfidTapController::class, 'tap']);
+
+    // Mastercard Management
+    Route::post('mastercards/check', [MastercardController::class, 'check']);
+    Route::apiResource('mastercards', MastercardController::class);
 });
 
 /*
@@ -188,9 +193,9 @@ Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->grou
     });
     //attendance
     Route::prefix('attendance')->controller(CounselorsController::class)->group(function () {
-    Route::get('monitoring-global', 'attendanceMonitoringGlobal'); // Monitoring Kehadiran Siswa Global
-    Route::get('statistic-global', 'attendanceGlobalStats'); // Statistik Global
-    Route::get('statistic-monthly', 'attendanceMonthlyStats'); // Statistik Bulanan
+        Route::get('monitoring-global', 'attendanceMonitoringGlobal'); // Monitoring Kehadiran Siswa Global
+        Route::get('statistic-global', 'attendanceGlobalStats'); // Statistik Global
+        Route::get('statistic-monthly', 'attendanceMonthlyStats'); // Statistik Bulanan
     });
     // validasi izin
     Route::prefix('attendance-permissions')->controller(CounselorsController::class)->group(function () {
