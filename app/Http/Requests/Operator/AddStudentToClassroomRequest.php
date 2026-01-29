@@ -15,7 +15,21 @@ class AddStudentToClassroomRequest extends ApiRequest
     {
         return [
             'student_ids' => 'required|array|min:1',
-            'student_ids.*' => 'required|exists:students,id',
+            'student_ids.*' => [
+                'required',
+                'exists:students,id',
+                function ($attribute, $value, $fail) {
+                    $exists = \Illuminate\Support\Facades\DB::table('classroom_students')
+                        ->where('student_id', $value)
+                        ->where('status', \App\Enums\StudentStatusEnum::ACTIVE->value)
+                        ->whereNull('deleted_at')
+                        ->exists();
+
+                    if ($exists) {
+                        $fail('Siswa dengan ID ' . $value . ' sudah terdaftar di kelas lain yang aktif.');
+                    }
+                }
+            ],
         ];
     }
 

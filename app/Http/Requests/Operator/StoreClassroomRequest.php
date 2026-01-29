@@ -53,7 +53,21 @@ class StoreClassroomRequest extends ApiRequest
             'major_id' => 'required|exists:majors,id',
             'level_class_id' => 'required|exists:level_classes,id',
             'school_year_id' => 'required|exists:school_years,id',
-            'homeroom_teacher_id' => 'required|exists:employees,id',
+            'homeroom_teacher_id' => [
+                'required',
+                'exists:employees,id',
+                function ($attribute, $value, $fail) {
+                    $exists = DB::table('classrooms')
+                        ->where('homeroom_teacher_id', $value)
+                        ->where('school_year_id', $this->school_year_id)
+                        ->whereNull('deleted_at')
+                        ->exists();
+
+                    if ($exists) {
+                        $fail('Guru ini sudah menjadi wali kelas di kelas lain pada tahun ajaran ini.');
+                    }
+                }
+            ],
         ];
     }
 

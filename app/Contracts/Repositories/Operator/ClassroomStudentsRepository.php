@@ -104,9 +104,8 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
     {
         $query = Student::query()
             ->where('status', StudentStatusEnum::ACTIVE->value)
-            ->whereDoesntHave('classroomStudents', function ($q) use ($classroomId) {
-                $q->where('classroom_id', $classroomId)
-                    ->where('status', StudentStatusEnum::ACTIVE->value);
+            ->whereDoesntHave('classroomStudents', function ($q) {
+                $q->where('status', StudentStatusEnum::ACTIVE->value);
             })
             ->with('user:id,name');
 
