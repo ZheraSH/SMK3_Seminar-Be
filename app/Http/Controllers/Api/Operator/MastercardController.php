@@ -30,7 +30,7 @@ class MastercardController extends Controller
                 'List mastercard berhasil diambil'
             );
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage());
+            return ResponseHelper::notFound('List mastercard gagal diambil');
         }
     }
 
