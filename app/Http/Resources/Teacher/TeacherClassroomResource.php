@@ -27,6 +27,7 @@ class TeacherClassroomResource extends JsonResource
             ] : null,
             'lesson' => [
                 'order' => $schedule->lessonHour?->order,
+                'order_display' => $schedule->lesson_order_display ?? $schedule->lessonHour?->order,
                 'date' => $this->date,
             ],
             'has_cross_checked' => (bool) ($schedule->has_cross_checked ?? false),
