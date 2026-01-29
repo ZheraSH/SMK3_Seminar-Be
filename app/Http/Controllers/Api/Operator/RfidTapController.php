@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\Operator\RfidTapService;
 use App\Helpers\ResponseHelper;
 use App\Http\Requests\Operator\TapRfidRequest;
-use App\Http\Resources\TapResultResource;
+use App\Http\Resources\Operator\TapResultResource;
 
 class RfidTapController extends Controller
 {
