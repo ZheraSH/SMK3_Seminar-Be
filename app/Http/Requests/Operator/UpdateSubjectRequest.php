@@ -18,7 +18,7 @@ class UpdateSubjectRequest extends ApiRequest
             'name' => [
                 'required',
                 'string',
-                'max:255',
+                'max:20',
                 Rule::unique('subjects', 'name')
                     ->ignore($this->route('id'))
                     ->whereNull('deleted_at'),
@@ -31,7 +31,7 @@ class UpdateSubjectRequest extends ApiRequest
         return [
             'name.required' => 'Nama mapel tidak boleh kosong.',
             'name.string' => 'Nama mapel harus berupa teks',
-            'name.max' => 'Nama mapel tidak boleh lebih dari 100 karakter.',
+            'name.max' => 'Nama mapel tidak boleh lebih dari 20 karakter.',
             'name.unique' => 'Nama mapel sudah digunakan.',
         ];
     }

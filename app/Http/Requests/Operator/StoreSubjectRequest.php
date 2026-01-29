@@ -18,7 +18,7 @@ class StoreSubjectRequest extends ApiRequest
             'name' => [
                 'required',
                 'string',
-                'max:255',
+                'max:20',
                 Rule::unique('subjects', 'name')
                     ->whereNull('deleted_at'),
             ],
@@ -30,6 +30,7 @@ class StoreSubjectRequest extends ApiRequest
         return [
             'name.required' => 'Nama mapel tidak boleh kosong.',
             'name.unique' => 'Nama mapel sudah terdaftar.',
+            'name.max' => 'Nama mapel tidak boleh lebih dari 20 karakter.',
             'name.string' => 'Nama mapel harus berupa teks',
         ];
     }
