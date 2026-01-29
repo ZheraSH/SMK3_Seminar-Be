@@ -10,6 +10,7 @@ use App\Enums\AttendanceStatusEnum;
 use App\Enums\DayEnum;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -30,8 +31,10 @@ class TeacherService
      |  SCHEDULE SECTION
      ===================================================== */
 
-    public function getDailySchedule(string $teacherId, string $date): Collection
+    public function getTodaySchedule(User $user, Request $request): Collection
     {
+        $teacherId = $user->employee->id;
+        $date = now()->format('Y-m-d');
         $dayId = $this->getIndonesianDayFromDate($date);
         $day = DayEnum::translate($dayId);
 
@@ -50,14 +53,9 @@ class TeacherService
         return $schedules;
     }
 
-    public function getDailyScheduleWithValidation(Request $request, string $teacherId): Collection
+    public function getScheduleByDay(User $user, Request $request, string $day): Collection
     {
-        $date = $this->validateDate($request->date, false);
-        return $this->getDailySchedule($teacherId, $date);
-    }
-
-    public function getScheduleByDay(string $teacherId, string $day): Collection
-    {
+        $teacherId = $user->employee->id;
         $validDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
         $day = strtolower($day);
 
@@ -67,7 +65,22 @@ class TeacherService
 
         $date = $this->getDateFromDayName($day);
 
-        return $this->getDailySchedule($teacherId, $date);
+        $dayId = $this->getIndonesianDayFromDate($date);
+        $dayCode = DayEnum::translate($dayId);
+
+        $schedules = $this->lessonScheduleRepository->getByTeacherAndDayWithLessonHour($teacherId, $dayCode);
+
+        foreach ($schedules as $schedule) {
+            $hasCrossCheck = $this->attendanceRepository
+                ->getByScheduleAndDate($schedule->id, $date)
+                ->where('attendance_type', 'cross_check')
+                ->isNotEmpty();
+
+            $schedule->has_cross_checked = $hasCrossCheck;
+            $schedule->can_cross_check = $schedule->lessonHour->order >= 1;
+        }
+
+        return $schedules;
     }
 
     /* =====================================================
@@ -92,15 +105,35 @@ class TeacherService
         return $schedules
             ->unique('classroom_id')
             ->values()
-            ->map(fn($s) => (object) [
-                'classroom' => $s->classroom,
-                'first_schedule' => $s,
-                'date' => $date
-            ]);
+            ->map(function ($s) use ($date) {
+                $hasCrossCheck = $this->attendanceRepository
+                    ->getByScheduleAndDate($s->id, $date)
+                    ->where('attendance_type', 'cross_check')
+                    ->isNotEmpty();
+
+                $s->has_cross_checked = $hasCrossCheck;
+                $s->can_cross_check = $s->lessonHour?->order >= 1;
+
+                return (object) [
+                    'classroom' => $s->classroom,
+                    'first_schedule' => $s,
+                    'date' => $date
+                ];
+            });
     }
 
-    public function getClassroomsByDay(string $teacherId, string $day): Collection
+    public function getTodayClassrooms(User $user, Request $request): Collection
     {
+        $teacherId = $user->employee->id;
+        $today = now()->locale('id');
+        $dayName = strtolower($today->dayName);
+
+        return $this->getTeacherClassroomsByDay($teacherId, $dayName);
+    }
+
+    public function getClassroomsByDay(User $user, Request $request, string $day): Collection
+    {
+        $teacherId = $user->employee->id;
         $validDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
         $day = strtolower($day);
 
@@ -111,8 +144,13 @@ class TeacherService
         return $this->getTeacherClassroomsByDay($teacherId, $day);
     }
 
-    public function getCrossCheckData(string $teacherId, string $classroomId, string $date, int $lessonOrder, ?Request $request = null): object
+    public function getCrossCheckData(User $user, Request $request): object
     {
+        $teacherId = $user->employee->id;
+        $classroomId = $request->input('classroom_id');
+        $date = $request->input('date');
+        $lessonOrder = $request->input('lesson_order');
+
         $dayId = $this->getIndonesianDayFromDate($date);
         $day = DayEnum::translate($dayId);
 
@@ -127,7 +165,7 @@ class TeacherService
             throw new \Exception('Jadwal mengajar tidak ditemukan', 404);
         }
 
-        $students = $this->classroomStudentsRepository->getByClassroomForAttendance($classroomId, $request);
+        $students = $this->classroomStudentsRepository->getByClassroomForAttendance((string)$classroomId, $request);
 
         $students->getCollection()->transform(function ($classroomStudent) use ($date, $lessonOrder) {
             $student = $classroomStudent->student;
@@ -180,8 +218,11 @@ class TeacherService
         ];
     }
 
-    public function submitCrossCheck(array $data, string $teacherId): array
+    public function submitCrossCheck(User $user, Request $request): array
     {
+        $teacherId = $user->employee->id;
+        $data = $request->validated();
+
         return DB::transaction(function () use ($data, $teacherId) {
             $results = [];
 

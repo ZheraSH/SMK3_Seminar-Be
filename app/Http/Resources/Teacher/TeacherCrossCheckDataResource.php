@@ -61,9 +61,9 @@ class TeacherCrossCheckDataResource extends JsonResource
                 ] : null,
             ] : null,
             'submission_status' => [
-                'has_submitted' => $this->has_submitted ?? false,
-                'submitted_at' => $this->submitted_at ?? null,
-                'can_resubmit' => $this->can_resubmit ?? true,
+                'has_submitted' => $this->submission_status->has_submitted ?? false,
+                'submitted_at' => $this->submission_status->submitted_at ?? null,
+                'can_resubmit' => $this->submission_status->can_resubmit ?? true,
             ],
             'students' => array_map(function ($student) {
                 $statusLabel = null;

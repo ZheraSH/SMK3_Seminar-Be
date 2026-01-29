@@ -22,12 +22,10 @@ class TeachersController extends Controller
         $this->teacherService = $teacherService;
     }
 
-    public function getTodaySchedule(): JsonResponse
+    public function getTodaySchedule(Request $request): JsonResponse
     {
         try {
-            $teacherId = auth()->user()->employee->id;
-            $date = now()->format('Y-m-d');
-            $schedules = $this->teacherService->getDailySchedule($teacherId, $date);
+            $schedules = $this->teacherService->getTodaySchedule($request->user(), $request);
 
             return ResponseHelper::success(
                 TeacherScheduleResource::collection($schedules),
@@ -38,11 +36,10 @@ class TeachersController extends Controller
         }
     }
 
-    public function getScheduleByDay(string $day): JsonResponse
+    public function getScheduleByDay(Request $request, string $day): JsonResponse
     {
         try {
-            $teacherId = auth()->user()->employee->id;
-            $schedules = $this->teacherService->getScheduleByDay($teacherId, $day);
+            $schedules = $this->teacherService->getScheduleByDay($request->user(), $request, $day);
 
             return ResponseHelper::success(
                 TeacherScheduleResource::collection($schedules),
@@ -53,14 +50,10 @@ class TeachersController extends Controller
         }
     }
 
-    public function getTodayClassrooms(): JsonResponse
+    public function getTodayClassrooms(Request $request): JsonResponse
     {
         try {
-            $teacherId = auth()->user()->employee->id;
-            $today = now()->locale('id');
-            $dayName = strtolower($today->dayName);
-
-            $classrooms = $this->teacherService->getTeacherClassroomsByDay($teacherId, $dayName);
+            $classrooms = $this->teacherService->getTodayClassrooms($request->user(), $request);
 
             return ResponseHelper::success(
                 TeacherClassroomResource::collection($classrooms),
@@ -71,11 +64,10 @@ class TeachersController extends Controller
         }
     }
 
-    public function getClassroomsByDay(string $day): JsonResponse
+    public function getClassroomsByDay(Request $request, string $day): JsonResponse
     {
         try {
-            $teacherId = auth()->user()->employee->id;
-            $classrooms = $this->teacherService->getClassroomsByDay($teacherId, $day);
+            $classrooms = $this->teacherService->getClassroomsByDay($request->user(), $request, $day);
 
             return ResponseHelper::success(
                 TeacherClassroomResource::collection($classrooms),
@@ -89,15 +81,7 @@ class TeachersController extends Controller
     public function getAttendanceForm(GetCrossCheckDataRequest $request): JsonResponse
     {
         try {
-            $teacherId = auth()->user()->employee->id;
-
-            $data = $this->teacherService->getCrossCheckData(
-                $teacherId,
-                $request->validated('classroom_id'),
-                $request->validated('date'),
-                $request->validated('lesson_order'),
-                $request
-            );
+            $data = $this->teacherService->getCrossCheckData($request->user(), $request);
 
             return ResponseHelper::success(
                 new TeacherCrossCheckDataResource($data),
@@ -111,9 +95,7 @@ class TeachersController extends Controller
     public function submitAttendance(CrossCheckAttendanceRequest $request): JsonResponse
     {
         try {
-            $teacherId = auth()->user()->employee->id;
-
-            $result = $this->teacherService->submitCrossCheck($request->validated(), $teacherId);
+            $result = $this->teacherService->submitCrossCheck($request->user(), $request);
 
             return ResponseHelper::success(
                 $result,
