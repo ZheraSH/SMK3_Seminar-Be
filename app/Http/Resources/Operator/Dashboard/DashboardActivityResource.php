@@ -15,6 +15,7 @@ class DashboardActivityResource extends JsonResource
             'student_name' => $this->name,
             'classroom' => $this->classroom,
             'status' => $this->status,
+            'status_label' => \App\Enums\AttendanceStatusEnum::from($this->status)->label(),
             'checkin_time' => $this->checkin_time
                 ? Carbon::parse($this->checkin_time)->format('H:i')
                 : null,

@@ -183,6 +183,14 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
         });
     }
 
+    public function getActiveStudentIds(string $classroomId): mixed
+    {
+        return $this->model
+            ->where('classroom_id', $classroomId)
+            ->where('status', StudentStatusEnum::ACTIVE->value)
+            ->pluck('student_id');
+    }
+
     //Teacher
     public function getByClassroomForAttendance(string $classroomId, ?Request $request = null): LengthAwarePaginator
     {
@@ -233,7 +241,7 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
 
     //Homeroom Teacher
 
-    public function getByClassroomForDailyAttendance(string $classroomId, ?string $search = null, int $perPage = 10): LengthAwarePaginator
+    public function getByClassroomForDailyAttendance(string $classroomId, ?string $date = null, ?string $search = null, ?string $status = null, int $perPage = 10): LengthAwarePaginator
     {
         $query = $this->model
             ->where('classroom_id', $classroomId)
@@ -249,11 +257,28 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             });
         }
 
+        if ($status && $date) {
+            if ($status === 'alpha') {
+                $query->whereDoesntHave('attendances', function ($q) use ($date) {
+                    $q->whereDate('date', $date)
+                        ->where('lesson_order', 1)
+                        ->where('is_final', true);
+                });
+            } else {
+                $query->whereHas('attendances', function ($q) use ($date, $status) {
+                    $q->whereDate('date', $date)
+                        ->where('lesson_order', 1)
+                        ->where('status', $status)
+                        ->where('is_final', true);
+                });
+            }
+        }
+
         return $query->orderBy('created_at', 'desc')
             ->paginate($perPage);
     }
 
-    public function getAllByClassroomForAttendanceRecap(string $classroomId, ?string $search = null): Collection
+    public function getAllByClassroomForAttendanceRecap(string $classroomId, ?string $date = null, ?string $search = null, ?string $status = null): Collection
     {
         $query = $this->model
             ->where('classroom_id', $classroomId)
@@ -267,6 +292,21 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
                         $userQuery->where('name', 'like', "%{$search}%");
                     });
             });
+        }
+
+        if ($status && $date) {
+            if ($status === 'alpha') {
+                $query->whereDoesntHave('student.attendances', function ($q) use ($date) {
+                    $q->whereDate('date', $date)
+                        ->where('lesson_order', 1);
+                });
+            } else {
+                $query->whereHas('student.attendances', function ($q) use ($date, $status) {
+                    $q->whereDate('date', $date)
+                        ->where('lesson_order', 1)
+                        ->where('status', $status);
+                });
+            }
         }
 
         return $query->orderBy('created_at', 'desc')
@@ -284,6 +324,42 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             ->with(['classroom'])
             ->latest()
             ->first();
+    }
+
+    public function getGlobalDailyAttendance(?string $date = null, ?string $search = null, ?string $status = null, int $perPage = 10): LengthAwarePaginator
+    {
+        $query = $this->model
+            ->where('status', StudentStatusEnum::ACTIVE->value)
+            ->with(['student.user', 'classroom']);
+
+        if ($search) {
+            $query->whereHas('student', function ($q) use ($search) {
+                $q->where('nisn', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($status && $date) {
+            if ($status === 'alpha') {
+                $query->whereDoesntHave('student.attendances', function ($q) use ($date) {
+                    $q->whereDate('date', $date)
+                        ->where('attendance_type', 'rfid')
+                        ->where('is_final', true);
+                });
+            } else {
+                $query->whereHas('student.attendances', function ($q) use ($date, $status) {
+                    $q->whereDate('date', $date)
+                        ->where('attendance_type', 'rfid')
+                        ->where('status', $status)
+                        ->where('is_final', true);
+                });
+            }
+        }
+
+        return $query->orderBy('created_at', 'desc')
+            ->paginate($perPage);
     }
 
     //Counselor Close

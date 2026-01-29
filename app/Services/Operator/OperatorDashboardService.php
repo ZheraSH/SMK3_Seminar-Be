@@ -7,29 +7,22 @@ use App\Contracts\Repositories\Operator\EmployeeRepository;
 use App\Contracts\Repositories\Operator\ClassroomRepository;
 use App\Contracts\Repositories\Operator\MajorRepository;
 use App\Contracts\Repositories\AttendanceRepository;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
 class OperatorDashboardService
 {
     private StudentRepository $studentRepository;
     private EmployeeRepository $employeeRepository;
     private ClassroomRepository $classroomRepository;
-    private AttendanceRepository $attendanceRepository;
     private MajorRepository $majorRepository;
+    private AttendanceRepository $attendanceRepository;
 
-    public function __construct(
-        StudentRepository $studentRepository,
-        EmployeeRepository $employeeRepository,
-        ClassroomRepository $classroomRepository,
-        AttendanceRepository $attendanceRepository,
-        MajorRepository $majorRepository
-    ) {
+    public function __construct(StudentRepository $studentRepository, EmployeeRepository $employeeRepository, ClassroomRepository $classroomRepository, MajorRepository $majorRepository, AttendanceRepository $attendanceRepository)
+    {
         $this->studentRepository = $studentRepository;
         $this->employeeRepository = $employeeRepository;
         $this->classroomRepository = $classroomRepository;
-        $this->attendanceRepository = $attendanceRepository;
         $this->majorRepository = $majorRepository;
+        $this->attendanceRepository = $attendanceRepository;
     }
 
     public function getMaster(): array
@@ -49,44 +42,24 @@ class OperatorDashboardService
 
     public function getRfidActivities(int $limit = 10)
     {
-        return DB::table('attendances')
-            ->join('students', 'attendances.student_id', '=', 'students.id')
-            ->join('users', 'students.user_id', '=', 'users.id')
-            ->leftJoin('classroom_students', 'students.id', '=', 'classroom_students.student_id')
-            ->leftJoin('classrooms', 'classroom_students.classroom_id', '=', 'classrooms.id')
-            ->whereDate('attendances.date', now())
-            ->whereNotNull('attendances.rfid_id')
-            ->orderByDesc('attendances.checkin_time')
-            ->limit($limit)
-            ->get([
-                'attendances.id',
-                'users.name',
-                'classrooms.name as classroom',
-                'attendances.status',
-                'attendances.checkin_time',
-            ]);
+        // Delegate query to repository
+        return $this->attendanceRepository->getRecentRfidActivities($limit);
     }
 
     public function getTodayAttendanceSummary(): array
     {
         $totalStudents = $this->studentRepository->count();
 
-        $data = DB::table('attendances')
-            ->whereDate('date', now())
-            ->selectRaw('
-                 SUM(status = "present")    as present,
-                 SUM(status = "late")       as late,
-                 SUM(status = "permission") as permission,
-                 SUM(status = "absent")     as absent
-             ')
-            ->first();
+        // Delegate query to repository
+        $data = $this->attendanceRepository->getTodayAttendanceSummary();
 
+        // Service handles business logic: formatting response
         return [
             'total_students' => $totalStudents,
             'present' => (int) $data->present,
             'late' => (int) $data->late,
             'permission' => (int) $data->permission,
-            'absent' => (int) $data->absent,
+            'absent' => (int) $data->alpha,
         ];
     }
 
@@ -94,25 +67,21 @@ class OperatorDashboardService
     {
         $totalStudents = $this->studentRepository->count();
 
-        return DB::table('attendances')
-            ->selectRaw('
-                 MONTH(date) as month,
-                 COUNT(*) as total_records,
-                 SUM(status IN ("present", "late")) as total_present
-             ')
-            ->whereYear('date', now()->year)
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get()
-            ->map(function ($row) use ($totalStudents) {
-                $maxAttendance = $totalStudents * Carbon::create()->month($row->month)->daysInMonth;
+        // Delegate query to repository
+        $monthlyData = $this->attendanceRepository->getMonthlyAttendanceChart(now()->year);
 
-                return [
-                    'month' => $row->month,
-                    'percentage' => $maxAttendance
-                        ? round(($row->total_present / $maxAttendance) * 100, 2)
-                        : 0,
-                ];
-            });
+        // Service handles business logic: calculation and formatting
+        return $monthlyData->map(function ($row) use ($totalStudents) {
+            // Estimate school days (rough: ~20 days per month)
+            $schoolDays = $row->total_days_with_attendance ?: 20;
+            $maxPossible = $totalStudents * $schoolDays;
+
+            return [
+                'month' => $row->month,
+                'percentage' => $maxPossible
+                    ? round(($row->total_present / $maxPossible) * 100, 2)
+                    : 0,
+            ];
+        });
     }
 }

@@ -68,4 +68,12 @@ class SchoolYearRepository extends BaseRepository implements SchoolYearInterface
     {
         return $this->model->query()->update(['active' => false]);
     }
+
+    public function findByNameWithTrashed(string $name): ?SchoolYear
+    {
+        return $this->model
+            ->withTrashed()
+            ->where('name', $name)
+            ->first();
+    }
 }

@@ -9,6 +9,7 @@ use App\Models\Attendance;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Enums\AttendanceProofEnum;
+use Illuminate\Support\Facades\DB;
 
 class AttendanceRepository extends BaseRepository implements AttendanceInterface
 {
@@ -75,6 +76,7 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
         return $this->model
             ->where('student_id', $studentId)
             ->where('attendance_type', 'rfid')
+            ->final()
             ->selectRaw('
                 date,
                 MIN(checkin_time) as checkin_time,
@@ -91,6 +93,7 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
         return $this->model
             ->where('student_id', $studentId)
             ->where('attendance_type', 'rfid')
+            ->final()
             ->selectRaw("
                 SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as hadir,
                 SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as telat,
@@ -110,6 +113,7 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
             ->where('student_id', $studentId)
             ->where('attendance_type', 'rfid')
             ->whereYear('date', $year)
+            ->final()
             ->selectRaw("
                 MONTH(date) as month,
                 SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as hadir,
@@ -162,6 +166,7 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
                     ->where('status', \App\Enums\StudentStatusEnum::ACTIVE->value);
             })
             ->whereDate('date', $date)
+            ->final()
             ->get();
     }
 
@@ -251,6 +256,8 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
     {
         return $this->model
             ->whereDate('date', $date)
+            ->where('attendance_type', 'rfid')
+            ->final()
             ->selectRaw("
                 COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as hadir,
                 COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as telat,
@@ -272,6 +279,7 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
     {
         return $this->model
             ->where('status', AttendanceStatusEnum::ALPHA->value)
+            ->final()
             ->selectRaw('student_id, COUNT(*) as total_alpha')
             ->groupBy('student_id')
             ->having('total_alpha', '>=', $threshold)
@@ -284,7 +292,9 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
     }
     public function countTotalStatusGlobal(): array
     {
-        return $this->model
+        $data = $this->model->query()
+            ->where('attendance_type', 'rfid')
+            ->final()
             ->selectRaw("
                 COUNT(CASE WHEN status = ? THEN 1 END) as hadir,
                 COUNT(CASE WHEN status = ? THEN 1 END) as terlambat,
@@ -298,14 +308,40 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
                 AttendanceStatusEnum::SICK->value,
                 AttendanceStatusEnum::ALPHA->value
             ])
-            ->first()
-            ->toArray();
+            ->first();
+
+        return $data ? $data->toArray() : [
+            'hadir' => 0,
+            'terlambat' => 0,
+            'izin' => 0,
+            'alpha' => 0,
+            'total' => 0
+        ];
+    }
+
+    public function getMonthlyAttendanceSummaryPerStudent(int $month, int $year): Collection
+    {
+        return $this->model->query()
+            ->whereMonth('date', $month)
+            ->whereYear('date', $year)
+            ->where('attendance_type', 'rfid')
+            ->final()
+            ->select('student_id')
+            ->selectRaw("SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as hadir", [AttendanceStatusEnum::PRESENT->value])
+            ->selectRaw("SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as telat", [AttendanceStatusEnum::LATE->value])
+            ->selectRaw("SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as izin", [AttendanceStatusEnum::LEAVE->value])
+            ->selectRaw("SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as sakit", [AttendanceStatusEnum::SICK->value])
+            ->selectRaw("SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as alpha", [AttendanceStatusEnum::ALPHA->value])
+            ->groupBy('student_id')
+            ->get();
     }
 
     public function countTotalStatusMonthly(int $year): array
     {
-        $data = $this->model
+        $data = $this->model->query()
             ->whereYear('date', $year)
+            ->where('attendance_type', 'rfid')
+            ->final()
             ->selectRaw("
                 MONTH(date) as month,
                 COUNT(CASE WHEN status = ? THEN 1 END) as hadir,
@@ -341,6 +377,7 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
         return $this->model
             ->whereDate('date', $date)
             ->where('attendance_type', 'rfid')
+            ->final()
             ->whereHas('student.classroomStudents', function ($q) use ($classroomId) {
                 $q->where('classroom_id', $classroomId)
                     ->where('status', 'active');
@@ -350,4 +387,75 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
             ->get();
     }
     // Homeroom Teacher Close
+
+    // Operator
+    public function getRecentRfidActivities(int $limit = 10)
+    {
+        return DB::table('attendances')
+            ->join('students', 'attendances.student_id', '=', 'students.id')
+            ->join('users', 'students.user_id', '=', 'users.id')
+            ->leftJoin('classroom_students', function ($join) {
+                $join->on('students.id', '=', 'classroom_students.student_id')
+                    ->where('classroom_students.status', '=', 'active');
+            })
+            ->leftJoin('classrooms', 'classroom_students.classroom_id', '=', 'classrooms.id')
+            ->whereDate('attendances.date', now())
+            ->where('attendances.attendance_type', 'rfid')
+            ->where('attendances.is_final', true)
+            ->groupBy('attendances.student_id', 'users.name', 'classrooms.name', 'attendances.status', 'attendances.checkin_time')
+            ->orderByDesc('attendances.checkin_time')
+            ->limit($limit)
+            ->get([
+                DB::raw('MAX(attendances.id) as id'),
+                'users.name',
+                'classrooms.name as classroom',
+                'attendances.status',
+                'attendances.checkin_time',
+            ]);
+    }
+
+    public function getTodayAttendanceSummary()
+    {
+        // For today's summary, we rely on the primary RFID record per student
+        return DB::table('attendances')
+            ->whereDate('date', now())
+            ->where('attendance_type', 'rfid')
+            ->where('is_final', true)
+            ->selectRaw('
+                 COUNT(CASE WHEN status = ? THEN 1 END) as present,
+                 COUNT(CASE WHEN status = ? THEN 1 END) as late,
+                 COUNT(CASE WHEN status IN (?, ?) THEN 1 END) as permission,
+                 COUNT(CASE WHEN status = ? THEN 1 END) as alpha
+             ', [
+                AttendanceStatusEnum::PRESENT->value,
+                AttendanceStatusEnum::LATE->value,
+                AttendanceStatusEnum::SICK->value,
+                AttendanceStatusEnum::LEAVE->value,
+                AttendanceStatusEnum::ALPHA->value,
+            ])
+            ->first();
+    }
+
+    public function getMonthlyAttendanceChart(int $year)
+    {
+        return DB::table('attendances')
+            ->selectRaw('
+                 MONTH(date) as month,
+                 COUNT(DISTINCT CASE WHEN status IN (?, ?) THEN DATE(date) END) as total_days_with_attendance,
+                 COUNT(DISTINCT CASE WHEN status IN (?, ?) THEN CONCAT(student_id, DATE(date)) END) as total_present
+             ', [
+                AttendanceStatusEnum::PRESENT->value,
+                AttendanceStatusEnum::LATE->value,
+                AttendanceStatusEnum::PRESENT->value,
+                AttendanceStatusEnum::LATE->value,
+            ])
+            ->whereYear('date', $year)
+            ->where('attendance_type', 'rfid')
+            ->where('is_final', true)
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+    }
+
+    //Operator Close
 }

@@ -38,9 +38,7 @@ class SchoolYearService
 
             $newName = "{$start}/{$end}";
 
-            $trashed = \App\Models\SchoolYear::withTrashed()
-                ->where('name', $newName)
-                ->first();
+            $trashed = $this->schoolYearRepository->findByNameWithTrashed($newName);
 
             if ($trashed) {
                 $trashed->restore();
