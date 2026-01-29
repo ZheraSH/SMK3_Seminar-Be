@@ -15,14 +15,14 @@ class AttendanceRuleRepository extends BaseRepository implements AttendanceRuleI
 
     public function get(): mixed
     {
-        return $this->model->query()->get();
+        return $this->model->query()->latest()->get();
     }
 
     public function store(array $data): mixed
     {
         return $this->model->query()->create($data);
     }
-    
+
     public function show(mixed $id): mixed
     {
         return $this->model->query()->findOrFail($id);

@@ -19,7 +19,7 @@ class SubjectRepository extends BaseRepository implements SubjectInterface
 
     public function get(): mixed
     {
-        return $this->model->query()->get();
+        return $this->model->query()->latest()->get();
     }
 
     public function store(array $data): mixed

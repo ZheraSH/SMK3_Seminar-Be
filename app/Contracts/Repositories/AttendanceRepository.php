@@ -20,7 +20,7 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
 
     public function get(): Collection
     {
-        return $this->model->query()->get();
+        return $this->model->query()->latest()->get();
     }
 
     public function store(array $data): Attendance
@@ -55,7 +55,7 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
 
     public function paginate($perPage = 15): LengthAwarePaginator
     {
-        return $this->model->paginate($perPage);
+        return $this->model->latest()->paginate($perPage);
     }
 
     public function search($request): Collection
@@ -67,6 +67,7 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
     {
         return $this->model->query()
             ->whereDate('date', $date)
+            ->latest()
             ->get();
     }
 

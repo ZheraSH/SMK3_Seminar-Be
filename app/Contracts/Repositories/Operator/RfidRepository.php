@@ -22,6 +22,7 @@ class RfidRepository extends BaseRepository implements RfidInterface
     {
         return $this->model->query()
             ->with(['student.user'])
+            ->latest()
             ->get();
     }
 

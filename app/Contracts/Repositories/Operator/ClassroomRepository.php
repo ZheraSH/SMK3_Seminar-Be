@@ -102,7 +102,7 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
                 fn($q) =>
                 $q->whereHas('schoolYear', fn($s) => $s->where('name', $request->school_year))
             )
-            ->orderBy('name')
+            ->latest()
             ->paginate($pagination);
     }
 

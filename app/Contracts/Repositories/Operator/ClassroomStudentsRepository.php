@@ -33,7 +33,7 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
 
     public function get(): mixed
     {
-        return $this->baseQuery()->get();
+        return $this->baseQuery()->latest()->get();
     }
 
     public function store(array $data): ClassroomStudents

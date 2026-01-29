@@ -15,7 +15,7 @@ class SchoolYearRepository extends BaseRepository implements SchoolYearInterface
 
     public function get(): mixed
     {
-        return $this->model->all();
+        return $this->model->query()->latest()->get();
     }
 
     public function show(mixed $id): mixed

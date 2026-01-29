@@ -15,7 +15,7 @@ class RoleRepository extends BaseRepository implements RoleInterface
 
     public function get(): mixed
     {
-        return $this->model->query()->get();
+        return $this->model->query()->latest()->get();
     }
 
     public function store(array $data): mixed
