@@ -10,26 +10,18 @@ use Illuminate\Support\Str;
 
 class RfidSeeder extends Seeder
 {
-    private const RFID_PERCENTAGE = 50;
+    private const RFID_PERCENTAGE = 100;
 
     public function run(): void
     {
-        $studentsQuery = Student::query()
-            ->whereDoesntHave('rfid');
+        $students = Student::query()
+            ->whereDoesntHave('rfid')
+            ->get();
 
-        $totalStudents = $studentsQuery->count();
-
-        if ($totalStudents === 0) {
+        if ($students->count() === 0) {
             $this->command->warn('Tidak ada student tanpa RFID');
             return;
         }
-
-        $rfidCount = (int) ceil($totalStudents * self::RFID_PERCENTAGE / 100);
-
-        $students = $studentsQuery
-            ->inRandomOrder()
-            ->limit($rfidCount)
-            ->get();
 
         foreach ($students as $student) {
             Rfid::create([
@@ -44,7 +36,7 @@ class RfidSeeder extends Seeder
     private function generateUniqueRfid(): string
     {
         do {
-            $rfidNumber = 'RF' . random_int(100000000, 999999999);
+            $rfidNumber = (string) random_int(1000000000, 9999999999);
         } while (
             Rfid::where('rfid', $rfidNumber)->exists()
         );

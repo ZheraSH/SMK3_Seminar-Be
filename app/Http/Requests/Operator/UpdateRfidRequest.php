@@ -19,7 +19,8 @@ class UpdateRfidRequest extends ApiRequest
 
         return [
             'rfid' => [
-                'sometimes|string|max:255',
+                'sometimes',
+                'digits:10',
                 Rule::unique('rfids')->ignore($rfidId)
             ],
             'student_id' => 'sometimes|exists:students,id',
@@ -31,6 +32,7 @@ class UpdateRfidRequest extends ApiRequest
     {
         return [
             'rfid.required' => 'Nomor RFID wajib diisi',
+            'rfid.digits' => 'Nomor RFID harus berupa 10 digit angka',
             'rfid.unique' => 'Nomor RFID sudah terdaftar',
             'student_id.exists' => 'Siswa yang dipilih tidak valid',
             'status.in' => 'Status harus active atau inactive',
