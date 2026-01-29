@@ -7,6 +7,7 @@ use App\Contracts\Repositories\Operator\ClassroomStudentsRepository;
 use App\Contracts\Repositories\Operator\ClassroomRepository;
 use App\Enums\AttendanceStatusEnum;
 use App\Enums\RoleEnum;
+use Illuminate\Http\Request;
 use App\Models\User;
 use Carbon\Carbon;
 
@@ -75,9 +76,10 @@ class HomeroomTeacherService
             return $this->emptyDailySummary($classroom);
         }
 
+        // Use RFID attendance for daily summary (most accurate for daily presence)
         $attendances = $this->attendanceRepository
             ->getByClassroomAndDate($classroom['id'], $date)
-            ->where('lesson_order', 1);
+            ->where('attendance_type', 'rfid');
 
         $counters = $this->countAttendance(
             $classroom['id'],
@@ -114,9 +116,10 @@ class HomeroomTeacherService
         while ($start->lte($end)) {
             $date = $start->format('Y-m-d');
 
+            // Use RFID attendance for weekly statistics (consistent with daily summary)
             $attendances = $this->attendanceRepository
                 ->getByClassroomAndDate($classroom['id'], $date)
-                ->where('lesson_order', 1);
+                ->where('attendance_type', 'rfid');
 
             $count = $this->countAttendance(
                 $classroom['id'],
@@ -149,24 +152,25 @@ class HomeroomTeacherService
         ];
     }
 
-    public function getDailyAttendance(User $teacher, string $date, ?string $search = null, ?string $status = null, int $perPage = 10)
+    public function getDailyAttendance(User $teacher, Request $request)
     {
         $classroom = $this->requireClassroom($teacher);
+        $date = $request->input('date', now()->format('Y-m-d'));
+        $search = $request->input('search');
+        $status = $request->input('status');
+        $perPage = $request->input('per_page', 10);
 
         $studentsPaginated = $this->classroomStudentsRepository
-            ->getByClassroomForDailyAttendance($classroom['id'], $search, $perPage);
+            ->getByClassroomForDailyAttendance($classroom['id'], $date, $search, $status, $perPage);
 
+        // Use RFID attendance for daily attendance list
         $attendances = $this->attendanceRepository
             ->getByClassroomAndDate($classroom['id'], $date)
-            ->where('lesson_order', 1);
+            ->where('attendance_type', 'rfid');
 
         $students = $studentsPaginated->map(
             fn($cs) => $this->mapStudentAttendance($cs, $date, $attendances)
-        )->filter();
-
-        if ($status) {
-            $students = $students->filter(fn($student) => $student && $student['status'] === $status);
-        }
+        );
 
         return [
             'students' => $students->values(),
@@ -207,9 +211,7 @@ class HomeroomTeacherService
             'alpha' => 0,
         ];
 
-        $students = \App\Models\ClassroomStudents::where('classroom_id', $classroomId)
-            ->where('status', 'active')
-            ->pluck('student_id');
+        $students = $this->classroomStudentsRepository->getActiveStudentIds($classroomId);
 
         foreach ($students as $studentId) {
             $attendance = $attendances->firstWhere('student_id', $studentId);
@@ -220,10 +222,10 @@ class HomeroomTeacherService
             }
 
             match ($attendance->status) {
-                AttendanceStatusEnum::PRESENT->value => $counters['present']++,
-                AttendanceStatusEnum::LATE->value => $counters['late']++,
-                AttendanceStatusEnum::SICK->value => $counters['sick']++,
-                AttendanceStatusEnum::LEAVE->value => $counters['permission']++,
+                AttendanceStatusEnum::PRESENT => $counters['present']++,
+                AttendanceStatusEnum::LATE => $counters['late']++,
+                AttendanceStatusEnum::SICK => $counters['sick']++,
+                AttendanceStatusEnum::LEAVE => $counters['permission']++,
                 default => $counters['alpha']++,
             };
         }
@@ -254,26 +256,22 @@ class HomeroomTeacherService
         ];
     }
 
-    public function generateAttendanceRecap(User $teacher, ?string $date = null, ?string $status = null): array
+    public function generateAttendanceRecap(User $teacher, Request $request): array
     {
-        $date = $date ?? Carbon::now()->format('Y-m-d');
+        $date = $request->input('date', now()->format('Y-m-d'));
+        $status = $request->input('status');
         $classroom = $this->requireClassroom($teacher);
+
         $studentsCollection = $this->classroomStudentsRepository
-            ->getAllByClassroomForAttendanceRecap($classroom['id']);
+            ->getAllByClassroomForAttendanceRecap($classroom['id'], $date, null, $status);
 
         $attendances = $this->attendanceRepository
             ->getByClassroomAndDate($classroom['id'], $date)
-            ->where('lesson_order', 1);
+            ->where('attendance_type', 'rfid');
 
         $students = $studentsCollection->map(
             fn($cs) => $this->mapStudentAttendance($cs, $date, $attendances)
-        )->filter();
-
-        if ($status) {
-            $students = $students->filter(fn($student) => $student && $student['status'] === $status);
-        }
-
-        $students = $students->values();
+        )->filter()->values();
 
         $counters = $this->countAttendance(
             $classroom['id'],

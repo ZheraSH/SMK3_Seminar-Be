@@ -37,13 +37,7 @@ class HomeroomTeachersController extends Controller
     public function getStudentAttendanceList(StudentAttendanceListRequest $request)
     {
         try {
-            $teacher = $request->user();
-            $date = $request->input('date', now()->format('Y-m-d'));
-            $search = $request->input('search');
-            $status = $request->input('status');
-            $perPage = $request->input('per_page', 10);
-
-            $data = $this->service->getDailyAttendance($teacher, $date, $search, $status, $perPage);
+            $data = $this->service->getDailyAttendance($request->user(), $request);
 
             return ResponseHelper::success([
                 'students' => StudentAttendanceListResource::collection($data['students']),
@@ -57,11 +51,8 @@ class HomeroomTeachersController extends Controller
     public function generateAttendanceRecap(Request $request)
     {
         try {
-            $teacher = $request->user();
             $date = $request->input('date', now()->format('Y-m-d'));
-            $status = $request->input('status');
-
-            $recap = $this->service->generateAttendanceRecap($teacher, $date, $status);
+            $recap = $this->service->generateAttendanceRecap($request->user(), $request);
 
             if (class_exists(\Maatwebsite\Excel\Facades\Excel::class)) {
                 $export = new \App\Exports\AttendanceRecapExport($recap);
