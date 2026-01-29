@@ -186,9 +186,12 @@ Route::middleware(['auth:sanctum', 'role:counselor'])->prefix('counselor')->grou
         Route::get('attendance-counts', 'index');
         Route::get('high-alpha-students', 'highAlphaStudents');
     });
-    Route::get('attendance-monitoring-global', [CounselorsController::class, 'attendanceMonitoringGlobal']); // Monitoring Kehadiran Siswa Global
-    Route::get('attendance-statistic-global', [CounselorsController::class, 'attendanceGlobalStats']); // Statistik Global
-    Route::get('attendance-statistic-monthly', [CounselorsController::class, 'attendanceMonthlyStats']); // Statistik Bulanan
+    //attendance
+    Route::prefix('attendance')->controller(CounselorsController::class)->group(function () {
+    Route::get('monitoring-global', 'attendanceMonitoringGlobal'); // Monitoring Kehadiran Siswa Global
+    Route::get('statistic-global', 'attendanceGlobalStats'); // Statistik Global
+    Route::get('statistic-monthly', 'attendanceMonthlyStats'); // Statistik Bulanan
+    });
     // validasi izin
     Route::prefix('attendance-permissions')->controller(CounselorsController::class)->group(function () {
         Route::get('pending', 'pending'); // list izin yg belum divalidasi

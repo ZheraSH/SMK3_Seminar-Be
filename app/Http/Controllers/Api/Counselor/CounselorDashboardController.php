@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Api\Counselor;
 use App\Http\Controllers\Controller;
 use App\Services\Counselor\CounselorDashboardService;
 use App\Helpers\ResponseHelper;
-use App\Http\Resources\Counselor\CounselorAttendanceCountResource;
-use App\Http\Resources\Counselor\CounselorHighAlphaStudentResource;
+use App\Http\Resources\Counselor\Dashboard\CounselorAttendanceCountResource;
+use App\Http\Resources\Counselor\Dashboard\CounselorHighAlphaStudentResource;
 use Illuminate\Http\Request;
 
 class CounselorDashboardController extends Controller
@@ -18,10 +18,10 @@ class CounselorDashboardController extends Controller
         $this->service = $service;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $data = $this->service->getAttendanceCounts();
+            $data = $this->service->getAttendanceCounts($request->user(), $request);
             return ResponseHelper::success(
                 new CounselorAttendanceCountResource($data),
                 'Statistic attendance'
@@ -34,8 +34,7 @@ class CounselorDashboardController extends Controller
     public function highAlphaStudents(Request $request)
     {
         try {
-            $limit = $request->input('limit', 10);
-            $data = $this->service->getHighAlphaStudents($limit);
+            $data = $this->service->getHighAlphaStudents($request->user(), $request);
             return ResponseHelper::success(
                 CounselorHighAlphaStudentResource::collection($data),
                 'Students with high alpha'

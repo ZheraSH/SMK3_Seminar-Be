@@ -53,34 +53,47 @@ class AttendanceSeeder extends Seeder
                     default => 'alpha'
                 };
 
-                // A. Create RFID Attendance
+                $status = match ($scenario) {
+                    'present' => AttendanceStatusEnum::PRESENT->value,
+                    'late' => AttendanceStatusEnum::LATE->value,
+                    'sick' => AttendanceStatusEnum::SICK->value,
+                    default => AttendanceStatusEnum::ALPHA->value
+                };
+
+                $checkIn = null;
+                $checkOut = null;
+                $proof = AttendanceProofEnum::RFID->value;
+
                 if (in_array($scenario, ['present', 'late'])) {
                     $checkIn = $scenario === 'late' ? '07:15:00' : '06:45:00';
-                    try {
-                        DB::table('attendances')->insert([
-                            'id' => Str::uuid()->toString(),
-                            'student_id' => $student->id,
-                            'classroom_student_id' => null,
-                            'rfid_id' => null,
-                            'date' => $currentDate,
-                            'checkin_time' => $checkIn,
-                            'checkout_time' => '15:00:00',
-                            'lesson_order' => 1,
-                            'attendance_type' => 'rfid',
-                            'status' => $scenario === 'late' ? AttendanceStatusEnum::LATE->value : AttendanceStatusEnum::PRESENT->value,
-                            'proof' => 'manual',
-                            'is_locked' => 0,
-                            'is_final' => 0,
-                            'overridden_by_permission_id' => null,
-                            'created_at' => now()->toDateTimeString(),
-                            'updated_at' => now()->toDateTimeString(),
-                        ]);
-                    } catch (\Exception $e) {
-                        $this->command->error("RFID Insert Error for Student {$student->id}: " . $e->getMessage());
-                    }
+                    $checkOut = '15:00:00';
+                } elseif ($scenario === 'sick') {
+                    $proof = AttendanceProofEnum::PERMISSION->value;
                 }
 
-                // B. Create CrossCheck Attendance
+                try {
+                    DB::table('attendances')->insert([
+                        'id' => Str::uuid()->toString(),
+                        'student_id' => $student->id,
+                        'classroom_student_id' => null,
+                        'rfid_id' => null,
+                        'date' => $currentDate,
+                        'checkin_time' => $checkIn,
+                        'checkout_time' => $checkOut,
+                        'lesson_order' => 1,
+                        'attendance_type' => 'rfid',
+                        'status' => $status,
+                        'proof' => $proof,
+                        'is_locked' => $scenario === 'sick' ? 1 : 0,
+                        'is_final' => 1,
+                        'overridden_by_permission_id' => null,
+                        'created_at' => now()->toDateTimeString(),
+                        'updated_at' => now()->toDateTimeString(),
+                    ]);
+                } catch (\Exception $e) {
+                    $this->command->error("RFID/Daily Status Insert Error for Student {$student->id}: " . $e->getMessage());
+                }
+
                 $classroomStudent = $student->classroomStudents->first();
                 $classroom = $classroomStudent?->classroom;
 
@@ -95,7 +108,7 @@ class AttendanceSeeder extends Seeder
                     });
 
                 foreach ($schedules as $schedule) {
-                    $lessonOrder = $schedule->lessonHour?->order ?? 1; // Fallback or strict
+                    $lessonOrder = $schedule->lessonHour?->order ?? 1;
 
                     $status = AttendanceStatusEnum::ALPHA->value;
                     $isLocked = 0;

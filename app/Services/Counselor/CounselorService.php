@@ -7,6 +7,8 @@ use App\Contracts\Repositories\Operator\LessonScheduleRepository;
 use App\Contracts\Repositories\Operator\ClassroomStudentsRepository;
 use App\Enums\AttendanceStatusEnum;
 use App\Enums\PermissionTypeEnum;
+use Illuminate\Http\Request;
+use App\Models\User;
 use Carbon\Carbon;
 
 class CounselorService
@@ -15,7 +17,8 @@ class CounselorService
     private LessonScheduleRepository $lessonScheduleRepository;
     private ClassroomStudentsRepository $classroomStudentsRepository;
 
-    public function __construct(AttendanceRepository $attendanceRepository, LessonScheduleRepository $lessonScheduleRepository, ClassroomStudentsRepository $classroomStudentsRepository) {
+    public function __construct(AttendanceRepository $attendanceRepository, LessonScheduleRepository $lessonScheduleRepository, ClassroomStudentsRepository $classroomStudentsRepository)
+    {
         $this->attendanceRepository = $attendanceRepository;
         $this->lessonScheduleRepository = $lessonScheduleRepository;
         $this->classroomStudentsRepository = $classroomStudentsRepository;
@@ -89,8 +92,52 @@ class CounselorService
         ];
     }
 
-    public function getMonthlyAttendanceStats(int $year): array
+    public function getMonthlyAttendanceStats(Request $request): array
     {
-        return $this->attendanceRepository->countTotalStatusMonthly($year);
+        $year = $request->input('year', Carbon::now()->year);
+        return $this->attendanceRepository->countTotalStatusMonthly((int) $year);
+    }
+
+    public function getGlobalDailyAttendance(Request $request): array
+    {
+        $date = $request->input('date', now()->format('Y-m-d'));
+        $search = $request->input('search');
+        $status = $request->input('status');
+        $perPage = $request->input('per_page', 10);
+
+        $carbonDate = Carbon::parse($date);
+        $month = $carbonDate->month;
+        $year = $carbonDate->year;
+
+        $studentsPaginated = $this->classroomStudentsRepository
+            ->getGlobalDailyAttendance($date, $search, $status, $perPage);
+
+        $monthlySummaries = $this->attendanceRepository
+            ->getMonthlyAttendanceSummaryPerStudent($month, $year)
+            ->keyBy('student_id');
+
+        $students = $studentsPaginated->map(function ($cs) use ($monthlySummaries) {
+            $studentId = $cs->student_id;
+            $summary = $monthlySummaries->get($studentId);
+
+            return [
+                'student_name' => $cs->student->user->name,
+                'classroom' => $cs->classroom->name,
+                'hadir' => (int) (($summary?->hadir ?? 0) + ($summary?->telat ?? 0)),
+                'izin' => (int) ($summary?->izin ?? 0),
+                'sakit' => (int) ($summary?->sakit ?? 0),
+                'alpha' => (int) ($summary?->alpha ?? 0),
+            ];
+        });
+
+        return [
+            'students' => $students,
+            'pagination' => [
+                'current_page' => $studentsPaginated->currentPage(),
+                'per_page' => $studentsPaginated->perPage(),
+                'total' => $studentsPaginated->total(),
+                'last_page' => $studentsPaginated->lastPage(),
+            ],
+        ];
     }
 }

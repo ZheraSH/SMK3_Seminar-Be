@@ -8,6 +8,7 @@ use App\Traits\Models\BelongsToReligion;
 use App\Traits\Models\HasOneRfid;
 use App\Traits\Models\BelongsToUser;
 use App\Traits\Models\StudentHasManyClassroomStudents;
+use App\Traits\Models\StudentHasManyAttendances;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -18,11 +19,11 @@ class Student extends Model
 
     use HasFactory, HasUuids, BelongsToUser,
     BelongsToReligion, StudentHasManyClassroomStudents,
-    HasOneRfid, SoftDeletes;
+    StudentHasManyAttendances, HasOneRfid, SoftDeletes;
 
     public $incrementing = false;
     protected $keyType = 'string';
-    protected $primaryKey = 'id';    
+    protected $primaryKey = 'id';
     protected $table = 'students';
     protected $fillable = [
         'user_id',

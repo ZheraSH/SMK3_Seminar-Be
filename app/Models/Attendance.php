@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Attendance extends Model
 {
-    use HasFactory, HasUuids, BelongsToStudent, 
+    use HasFactory, HasUuids, BelongsToStudent,
     BelongsToSubject, BelongsToTeacher,
     BelongsToLessonSchedule, BelongsToClassroomStudents,
     BelongsToRfid, BelongsToAttendancePermission, SoftDeletes;
@@ -59,6 +59,11 @@ class Attendance extends Model
     public function scopeToday($query)
     {
         return $query->whereDate('date', today());
+    }
+
+    public function scopeFinal($query)
+    {
+        return $query->where('is_final', true);
     }
 
     public function scopeByStudent($query, $studentId)

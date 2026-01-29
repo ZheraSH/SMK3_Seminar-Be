@@ -12,8 +12,8 @@ class SchoolYearSeeder extends Seeder
     {
         $schoolYears = [
             ['name' => '2023/2024', 'active' => false],
-            ['name' => '2024/2025', 'active' => true],
-            ['name' => '2025/2026', 'active' => false],
+            ['name' => '2024/2025', 'active' => false],
+            ['name' => '2025/2026', 'active' => true],
         ];
 
         foreach ($schoolYears as $schoolYear) {

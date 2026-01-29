@@ -7,9 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\AttendancePermissionResource;
 use App\Http\Resources\Counselor\AttendanceGlobalResource;
 use App\Http\Resources\Counselor\AttendanceMonthlyResource;
+use App\Http\Resources\Counselor\AttendanceMonitoringResource;
 use App\Services\AttendancePermissionService;
 use App\Services\Counselor\CounselorService;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class CounselorsController extends Controller
@@ -25,7 +25,7 @@ class CounselorsController extends Controller
     public function index(Request $request)
     {
         try {
-            $data = $this->attendancePermissionService->counselorIndex($request);
+            $data = $this->attendancePermissionService->counselorIndex($request->user(), $request);
 
             return ResponseHelper::pagination(
                 $data,
@@ -51,10 +51,10 @@ class CounselorsController extends Controller
         }
     }
 
-    public function pending()
+    public function pending(Request $request)
     {
         try {
-            $data = $this->attendancePermissionService->getPending();
+            $data = $this->attendancePermissionService->getPending($request->user(), $request);
 
             return ResponseHelper::pagination(
                 $data,
@@ -66,10 +66,10 @@ class CounselorsController extends Controller
         }
     }
 
-    public function approve(string $id)
+    public function approve(string $id, Request $request)
     {
         try {
-            $data = $this->attendancePermissionService->approve($id, auth()->user()->employee->id);
+            $data = $this->attendancePermissionService->approve($id, $request->user());
 
             return ResponseHelper::success(
                 new AttendancePermissionResource($data),
@@ -80,11 +80,10 @@ class CounselorsController extends Controller
         }
     }
 
-    public function reject(string $id)
+    public function reject(string $id, Request $request)
     {
         try {
-            $counselorId = auth()->user()->employee->id;
-            $data = $this->attendancePermissionService->reject($id, $counselorId);
+            $data = $this->attendancePermissionService->reject($id, $request->user());
 
             return ResponseHelper::success(
                 new AttendancePermissionResource($data),
@@ -92,6 +91,20 @@ class CounselorsController extends Controller
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
+        }
+    }
+
+    public function attendanceMonitoringGlobal(Request $request)
+    {
+        try {
+            $data = $this->counselorService->getGlobalDailyAttendance($request);
+
+            return ResponseHelper::success([
+                'students' => AttendanceMonitoringResource::collection($data['students']),
+                'pagination' => $data['pagination'],
+            ], 'Monitoring kehadiran global berhasil diambil');
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 500);
         }
     }
 
@@ -109,11 +122,10 @@ class CounselorsController extends Controller
         }
     }
 
-    public function attendanceMonthlyStats()
+    public function attendanceMonthlyStats(Request $request)
     {
         try {
-            $year = request('year', Carbon::now()->year);
-            $data = $this->counselorService->getMonthlyAttendanceStats((int) $year);
+            $data = $this->counselorService->getMonthlyAttendanceStats($request);
 
             return ResponseHelper::success(
                 AttendanceMonthlyResource::collection($data),
