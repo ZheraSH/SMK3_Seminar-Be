@@ -7,6 +7,7 @@ use App\Services\Student\StudentDashboardService;
 use App\Http\Resources\Student\Dashboard\StudentAttendanceSummaryResource;
 use App\Http\Resources\Student\Dashboard\StudentAttendanceMonthlyResource;
 use App\Helpers\ResponseHelper;
+use Illuminate\Http\Request;
 
 class StudentDashboardController extends Controller
 {
@@ -17,12 +18,10 @@ class StudentDashboardController extends Controller
         $this->studentDashboardService = $studentDashboardService;
     }
 
-    public function attendanceSummary()
+    public function attendanceSummary(Request $request)
     {
         try {
-            $studentId = auth()->user()->student->id;
-
-            $data = $this->studentDashboardService->getAttendanceSummary($studentId);
+            $data = $this->studentDashboardService->getAttendanceSummary($request->user(), $request);
 
             return ResponseHelper::success(
                 new StudentAttendanceSummaryResource($data),
@@ -33,12 +32,10 @@ class StudentDashboardController extends Controller
         }
     }
 
-    public function attendanceMonthly()
+    public function attendanceMonthly(Request $request)
     {
         try {
-            $studentId = auth()->user()->student->id;
-
-            $data = $this->studentDashboardService->getMonthlyAttendance($studentId);
+            $data = $this->studentDashboardService->getMonthlyAttendance($request->user(), $request);
 
             return ResponseHelper::success(
                 StudentAttendanceMonthlyResource::collection($data),

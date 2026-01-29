@@ -30,12 +30,11 @@ class StudentsController extends Controller
     public function index(Request $request)
     {
         try {
-            $studentId = auth()->user()->student->id;
-            $data = $this->attendancePermissionService->studentIndex($studentId, $request->query('status'));
+            $data = $this->attendancePermissionService->studentIndex($request->user(), $request);
 
             return ResponseHelper::pagination(
-                $data, 
-                AttendancePermissionResource::class, 
+                $data,
+                AttendancePermissionResource::class,
                 'Data izin berhasil diambil'
             );
         } catch (\Throwable $th) {
@@ -46,7 +45,7 @@ class StudentsController extends Controller
     public function store(StoreAttendancePermissionRequest $request)
     {
         try {
-            $data = $this->attendancePermissionService->store($request);
+            $data = $this->attendancePermissionService->store($request->user(), $request);
 
             return ResponseHelper::success(
                 new AttendancePermissionDetailResource($data),
@@ -56,7 +55,7 @@ class StudentsController extends Controller
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
-    }    
+    }
 
     public function show(string $id)
     {
@@ -71,11 +70,10 @@ class StudentsController extends Controller
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 404);
         }
     }
-    public function destroy(string $id)
+    public function destroy(string $id, Request $request)
     {
         try {
-            $studentId = auth()->user()->student->id;
-            $this->attendancePermissionService->delete($id, $studentId);
+            $this->attendancePermissionService->delete($id, $request->user());
 
             return ResponseHelper::success(
                 null,
@@ -89,12 +87,13 @@ class StudentsController extends Controller
     public function pending(Request $request)
     {
         try {
-            $studentId = auth()->user()->student->id;
-            $data = $this->attendancePermissionService->studentIndex($studentId, PermissionStatusEnum::PENDING->value);
+            // Modify request temporarily for specific filter
+            $request->merge(['status' => PermissionStatusEnum::PENDING->value]);
+            $data = $this->attendancePermissionService->studentIndex($request->user(), $request);
 
             return ResponseHelper::pagination(
-                $data, 
-                AttendancePermissionPendingResource::class, 
+                $data,
+                AttendancePermissionPendingResource::class,
                 'Data izin pending berhasil diambil'
             );
         } catch (\Throwable $th) {
@@ -102,12 +101,10 @@ class StudentsController extends Controller
         }
     }
 
-    public function getStudentClassroom()
+    public function getStudentClassroom(Request $request)
     {
         try {
-            $studentId = auth()->user()->student->id;
-
-            $data = $this->studentService->getClassroomInfo($studentId);
+            $data = $this->studentService->getClassroomInfo($request->user(), $request);
 
             return ResponseHelper::success(
                 new StudentClassroomInfoResource($data),
@@ -118,28 +115,25 @@ class StudentsController extends Controller
         }
     }
 
-    public function getStudentHistory()
+    public function getStudentHistory(Request $request)
     {
         try {
-            $studentId = auth()->user()->student->id;
+            $data = $this->studentService->getStudentHistory($request->user(), $request);
 
-            $data = $this->studentService->getStudentHistory($studentId);
-
-            return ResponseHelper::pagination($data,
-            StudentAttendanceHistoryResource::class,
-            'Riwayat absensi berhasil diambil'
+            return ResponseHelper::pagination(
+                $data,
+                StudentAttendanceHistoryResource::class,
+                'Riwayat absensi berhasil diambil'
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), 500);
         }
     }
 
-    public function getStudentSchedule(string $day)
+    public function getStudentSchedule(Request $request, string $day)
     {
         try {
-            $studentId = auth()->user()->student->id;
-
-            $data = $this->studentService->getStudentScheduleByDay($studentId, $day);
+            $data = $this->studentService->getStudentScheduleByDay($request->user(), $request, $day);
 
             return ResponseHelper::success(
                 new StudentLessonScheduleResource($data),

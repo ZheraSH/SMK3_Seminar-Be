@@ -6,6 +6,8 @@ use App\Contracts\Repositories\AttendanceRepository;
 use App\Contracts\Repositories\Operator\LessonScheduleRepository;
 use App\Contracts\Repositories\Operator\StudentRepository;
 use App\Enums\DayEnum;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Carbon\Carbon;
 
 class StudentService
@@ -21,18 +23,21 @@ class StudentService
         $this->lessonScheduleRepository = $lessonScheduleRepository;
     }
 
-    public function getClassroomInfo(string $studentId): array
+    public function getClassroomInfo(User $user, Request $request): array
     {
+        $studentId = $user->student->id;
         return $this->studentRepository->getClassroomInfo($studentId, 12);
     }
 
-    public function getStudentHistory($studentId)
+    public function getStudentHistory(User $user, Request $request)
     {
+        $studentId = $user->student->id;
         return $this->attendanceRepository->getStudentHistory($studentId, 10);
     }
 
-    public function getStudentScheduleByDay(string $studentId, ?string $day = null): array
+    public function getStudentScheduleByDay(User $user, Request $request, ?string $day = null): array
     {
+        $studentId = $user->student->id;
         $classroom = $this->studentRepository->getStudentActiveClassroom($studentId);
 
         if (!$day) {
