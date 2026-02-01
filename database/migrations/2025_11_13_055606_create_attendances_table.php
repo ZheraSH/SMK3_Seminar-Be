@@ -35,6 +35,12 @@ return new class extends Migration
             $table->index(['date', 'status']);
             $table->index(['classroom_student_id', 'date', 'lesson_order']);
             $table->index(['teacher_id', 'date']);
+
+            $table->boolean('is_locked')->default(false);
+            $table->boolean('is_final')->default(false);
+            $table->uuid('overridden_by_permission_id')->nullable();
+
+            $table->foreign('overridden_by_permission_id')->references('id')->on('attendance_permissions')->nullOnDelete();
         });
     }
 
