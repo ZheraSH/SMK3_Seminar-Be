@@ -10,14 +10,11 @@ class SchoolLogoResource extends JsonResource
 {
     use ResolvesImageUrlTrait;
 
-    /**
-     * Transform the resource into an array.
-     * Resource khusus untuk public endpoint - hanya mengirim logo
-     */
     public function toArray(Request $request): array
     {
         return [
             'logo' => $this->resolveImageUrl($this->logo),
+            'name' => $this->name,
         ];
     }
 }

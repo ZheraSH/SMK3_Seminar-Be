@@ -10,6 +10,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class SchoolResource extends JsonResource
 {
     use ResolvesImageUrlTrait, HasEnumLabelsTrait;
+
     public function toArray(Request $request): array
     {
         return [
