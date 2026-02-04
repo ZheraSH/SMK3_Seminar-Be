@@ -13,9 +13,7 @@ return new class extends Migration
     {
         Schema::create('mastercards', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('name');
-            $table->string('email');
-            $table->string('rfid')->unique();
+            $table->string('rfid', 10)->unique();
             $table->timestamps();
             $table->softDeletes();
         });

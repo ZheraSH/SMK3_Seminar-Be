@@ -16,8 +16,6 @@ class Mastercard extends Model
     protected $primaryKey = 'id';
     protected $table = 'mastercards';
     protected $fillable = [
-        'name',
-        'email',
         'rfid',
     ];
 }

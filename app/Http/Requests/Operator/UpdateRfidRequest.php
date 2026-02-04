@@ -5,6 +5,7 @@ namespace App\Http\Requests\Operator;
 use Illuminate\Validation\Rule;
 use App\Enums\RfidStatusEnum;
 use App\Http\Requests\ApiRequest;
+use App\Rules\ValidRfidNumber;
 
 class UpdateRfidRequest extends ApiRequest
 {
@@ -21,7 +22,8 @@ class UpdateRfidRequest extends ApiRequest
             'rfid' => [
                 'sometimes',
                 'digits:10',
-                Rule::unique('rfids')->ignore($rfidId)
+                Rule::unique('rfids')->ignore($rfidId),
+                new ValidRfidNumber(),
             ],
             'student_id' => 'sometimes|exists:students,id',
             'status' => 'sometimes|in:' . implode(',', RfidStatusEnum::values()),

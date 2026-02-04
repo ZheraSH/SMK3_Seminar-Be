@@ -43,9 +43,7 @@ class MastercardRepository extends BaseRepository implements MastercardInterface
     {
         return $this->model->query()
             ->when($request->search, function ($query) use ($request) {
-                $query->where('name', 'like', "%{$request->search}%")
-                    ->orWhere('email', 'like', "%{$request->search}%")
-                    ->orWhere('rfid', 'like', "%{$request->search}%");
+                $query->where('rfid', 'like', "%{$request->search}%");
             })
             ->latest()
             ->paginate($pagination);

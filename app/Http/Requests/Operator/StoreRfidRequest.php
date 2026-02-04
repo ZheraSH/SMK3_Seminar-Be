@@ -4,6 +4,7 @@ namespace App\Http\Requests\Operator;
 
 use App\Enums\RfidStatusEnum;
 use App\Http\Requests\ApiRequest;
+use App\Rules\ValidRfidNumber;
 
 class StoreRfidRequest extends ApiRequest
 {
@@ -15,7 +16,12 @@ class StoreRfidRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'rfid' => ['required', 'digits:10', 'unique:rfids,rfid'],
+            'rfid' => [
+                'required',
+                'digits:10',
+                'unique:rfids,rfid',
+                new ValidRfidNumber(),
+            ],
             'student_id' => 'required|exists:students,id',
             'status' => 'sometimes|in:' . implode(',', RfidStatusEnum::values()),
         ];

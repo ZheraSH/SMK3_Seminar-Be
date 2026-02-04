@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Operator;
 
+use App\Rules\ValidRfidNumber;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreMastercardRequest extends FormRequest
@@ -22,9 +23,26 @@ class StoreMastercardRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:mastercards,email',
-            'rfid' => 'required|string|unique:mastercards,rfid',
+            'rfid' => [
+                'required',
+                'digits:10',
+                'unique:mastercards,rfid',
+                new ValidRfidNumber(),
+            ],
+        ];
+    }
+
+    /**
+     * Get custom validation messages.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'rfid.required' => 'Nomor RFID wajib diisi',
+            'rfid.digits' => 'Nomor RFID harus berupa 10 digit angka',
+            'rfid.unique' => 'Nomor RFID sudah terdaftar',
         ];
     }
 }
