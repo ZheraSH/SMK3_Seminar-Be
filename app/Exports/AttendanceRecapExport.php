@@ -6,7 +6,7 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+
 use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -17,7 +17,7 @@ use PhpOffice\PhpSpreadsheet\Style\Font;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 use Illuminate\Support\Collection;
 
-class AttendanceRecapExport implements FromCollection, WithTitle, WithStyles, WithEvents, ShouldAutoSize, WithCustomStartCell
+class AttendanceRecapExport implements FromCollection, WithTitle, WithStyles, WithEvents, WithCustomStartCell
 {
     protected array $recapData;
 
@@ -422,20 +422,13 @@ class AttendanceRecapExport implements FromCollection, WithTitle, WithStyles, Wi
                 $colLetter = chr(65 + $col);
                 $cellRef = "{$colLetter}{$row}";
 
-                $alignment = Alignment::HORIZONTAL_LEFT;
-                if ($col == 0) {
-                    $alignment = Alignment::HORIZONTAL_CENTER;
-                } elseif ($col == 3) {
-                    $alignment = Alignment::HORIZONTAL_CENTER;
-                }
-
                 $sheet->getStyle($cellRef)->applyFromArray([
                     'font' => [
                         'size' => 10,
                         'color' => ['rgb' => self::COLOR_TEXT_DARK]
                     ],
                     'alignment' => [
-                        'horizontal' => $alignment,
+                        'horizontal' => Alignment::HORIZONTAL_LEFT,
                         'vertical' => Alignment::VERTICAL_CENTER,
                         'wrapText' => true,
                     ],
@@ -464,10 +457,27 @@ class AttendanceRecapExport implements FromCollection, WithTitle, WithStyles, Wi
 
     private function optimizeColumnWidths(Worksheet $sheet): void
     {
-        $sheet->getColumnDimension('A')->setWidth(8);
+        $sheet->getColumnDimension('A')->setWidth(12);
         $sheet->getColumnDimension('B')->setWidth(15);
-        $sheet->getColumnDimension('C')->setWidth(30);
-        $sheet->getColumnDimension('D')->setWidth(18);
+
+        // Dynamic width for Column C (Student Name)
+        $maxNameLength = 0;
+        foreach ($this->recapData['students'] ?? [] as $student) {
+            $nameLength = strlen($student['student_name'] ?? '');
+            if ($nameLength > $maxNameLength) {
+                $maxNameLength = $nameLength;
+            }
+        }
+
+        $widthC = 20; // Default
+        if ($maxNameLength > 30) {
+            $widthC = 30;
+        } elseif ($maxNameLength > 20) {
+            $widthC = 25;
+        }
+
+        $sheet->getColumnDimension('C')->setWidth($widthC);
+        $sheet->getColumnDimension('D')->setWidth(19);
     }
 
     private function configurePrintSettings(Worksheet $sheet): void
