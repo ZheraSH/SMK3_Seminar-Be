@@ -60,7 +60,7 @@ class AttendancePermissionRepository extends BaseRepository implements Attendanc
         return $this->show($id)->delete();
     }
 
-    public function getWithConditionalPagination(string $studentId): LengthAwarePaginator
+    public function getWithConditionalPagination(string $studentId, Request $request = null): LengthAwarePaginator
     {
         $hasPending = $this->model
             ->where('student_id', $studentId)
@@ -71,6 +71,12 @@ class AttendancePermissionRepository extends BaseRepository implements Attendanc
 
         $query = $this->baseQuery()
             ->where('student_id', $studentId)
+            ->when($request && $request->start_date, function ($q) use ($request) {
+                $q->whereDate('permission_date', '>=', $request->start_date);
+            })
+            ->when($request && $request->end_date, function ($q) use ($request) {
+                $q->whereDate('permission_date', '<=', $request->end_date);
+            })
             ->latest();
 
         if ($hasPending) {
@@ -80,11 +86,17 @@ class AttendancePermissionRepository extends BaseRepository implements Attendanc
         return $query->paginate($perPage);
     }
 
-    public function getByStatus(string $studentId, string $status): LengthAwarePaginator
+    public function getByStatus(string $studentId, string $status, Request $request = null): LengthAwarePaginator
     {
         return $this->baseQuery()
             ->where('student_id', $studentId)
             ->where('status', $status)
+            ->when($request && $request->start_date, function ($q) use ($request) {
+                $q->whereDate('permission_date', '>=', $request->start_date);
+            })
+            ->when($request && $request->end_date, function ($q) use ($request) {
+                $q->whereDate('permission_date', '<=', $request->end_date);
+            })
             ->latest()
             ->paginate($status === 'pending' ? 3 : 5);
     }
@@ -106,15 +118,20 @@ class AttendancePermissionRepository extends BaseRepository implements Attendanc
                     $q->where('name', 'LIKE', "%{$search}%");
                 });
             })
-            ->when($request->classroom || $request->filter, function ($query) use ($request) {
-                $classroomParam = $request->classroom ?? $request->filter;
-                $classrooms = explode(',', $classroomParam);
+            ->when($request->classroom, function ($query) use ($request) {
+                $classrooms = explode(',', $request->classroom);
                 $query->whereHas('student.classroomStudents', function ($q) use ($classrooms) {
                     $q->where('status', StudentStatusEnum::ACTIVE->value)
                         ->whereHas('classroom', function ($c) use ($classrooms) {
                             $c->whereIn('name', $classrooms);
                         });
                 });
+            })
+            ->when($request->type, function ($query) use ($request) {
+                $query->where('type', $request->type);
+            })
+            ->when($request->status, function ($query) use ($request) {
+                $query->where('status', $request->status);
             })
             ->latest()
             ->paginate(10);

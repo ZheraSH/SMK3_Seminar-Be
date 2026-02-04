@@ -28,11 +28,12 @@ class AttendancePermissionService
         if ($status) {
             return $this->attendancePermissionRepository->getByStatus(
                 $studentId,
-                PermissionStatusEnum::from($status)->value
+                PermissionStatusEnum::from($status)->value,
+                $request
             );
         }
 
-        return $this->attendancePermissionRepository->getWithConditionalPagination($studentId);
+        return $this->attendancePermissionRepository->getWithConditionalPagination($studentId, $request);
     }
 
     public function store(User $user, Request $request)
@@ -65,7 +66,7 @@ class AttendancePermissionService
             throw new \Exception('Izin yang sudah diproses tidak dapat dihapus');
         }
 
-        return $this->attendancePermissionRepository->delete($permission);
+        return $this->attendancePermissionRepository->delete($permission->id);
     }
 
     public function show(string $id)
