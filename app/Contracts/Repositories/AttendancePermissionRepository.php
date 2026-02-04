@@ -72,10 +72,10 @@ class AttendancePermissionRepository extends BaseRepository implements Attendanc
         $query = $this->baseQuery()
             ->where('student_id', $studentId)
             ->when($request && $request->start_date, function ($q) use ($request) {
-                $q->whereDate('permission_date', '>=', $request->start_date);
+                $q->whereDate('start_date', '>=', $request->start_date);
             })
             ->when($request && $request->end_date, function ($q) use ($request) {
-                $q->whereDate('permission_date', '<=', $request->end_date);
+                $q->whereDate('end_date', '<=', $request->end_date);
             })
             ->latest();
 
@@ -92,10 +92,10 @@ class AttendancePermissionRepository extends BaseRepository implements Attendanc
             ->where('student_id', $studentId)
             ->where('status', $status)
             ->when($request && $request->start_date, function ($q) use ($request) {
-                $q->whereDate('permission_date', '>=', $request->start_date);
+                $q->whereDate('start_date', '>=', $request->start_date);
             })
             ->when($request && $request->end_date, function ($q) use ($request) {
-                $q->whereDate('permission_date', '<=', $request->end_date);
+                $q->whereDate('end_date', '<=', $request->end_date);
             })
             ->latest()
             ->paginate($status === 'pending' ? 3 : 5);
