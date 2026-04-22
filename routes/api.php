@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Operator\RoleController;
-use App\Http\Controllers\APi\Operator\SchoolController;
+use App\Http\Controllers\Api\Operator\SchoolController;
 use App\Http\Controllers\Api\Operator\ReligionController;
 use App\Http\Controllers\Api\Operator\EmployeeController;
 use App\Http\Controllers\Api\Operator\StudentController;
