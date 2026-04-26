@@ -133,13 +133,15 @@ Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
     Route::prefix('rfids')->controller(RfidController::class)->group(function () {
         Route::get('students-available', 'getAvailableStudents'); // list siswa yg belum punya kartu RFID
     });
+
+    });
+
     Route::apiResource('rfids', RfidController::class);
     // RFID Tap (perlu Master card)
     Route::post('rfid-tap', [RfidTapController::class, 'tap']);
     // Mastercard Management
     Route::post('mastercards/check', [MastercardController::class, 'check']);
     Route::apiResource('mastercards', MastercardController::class);
-});
 
 /*
 |--------------------------------------------------------------------------
@@ -226,7 +228,7 @@ Route::middleware(['auth:sanctum', 'role:homeroom_teacher'])->prefix('homeroom-t
         Route::get('attendance-counts', 'indexStats');
         Route::get('rfid-logs', 'rfidLogs');
     });
-    // rekap kelas 
+    // rekap kelas
     Route::prefix('summary-class')->controller(HomeroomTeachersController::class)->group(function () {
         Route::get('header', 'getHeaderClass'); // classroom header
         Route::get('students', 'getStudentAttendanceList'); // listnya student
