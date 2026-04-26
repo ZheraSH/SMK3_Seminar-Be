@@ -12,7 +12,7 @@ class ClassroomStudentsResource extends JsonResource
     {
         return [
             'id' => $this->student->id,
-            'image' => $this->resolveImageUrl($this->image),
+            'image' => $this->resolveImageUrl($this->student?->image),
             'name' => $this->student->user->name,
             'nisn' => $this->student->nisn,
             'gender' => $this->student->gender,

@@ -76,7 +76,7 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
             ->where('status', StudentStatusEnum::ACTIVE->value)
             ->with([
                 'student' => function ($q) {
-                    $q->select('id', 'nisn', 'gender', 'user_id')
+                    $q->select('id', 'nisn', 'gender', 'user_id', 'image')
                         ->with([
                             'user:id,name',
                             'rfid:id,student_id,rfid'
