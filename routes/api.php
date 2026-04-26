@@ -38,6 +38,12 @@ use Illuminate\Support\Facades\Route;
 
 // Public School Logo - Accessible by anyone (no authentication required)
 Route::get('school-logo', [SchoolController::class, 'publicLogo']);
+Route::apiResource('rfids', RfidController::class)->only('index');
+// RFID Tap (perlu Master card)
+Route::post('rfid-tap', [RfidTapController::class, 'tap']);
+// Mastercard Management
+Route::post('mastercards/check', [MastercardController::class, 'check']);
+Route::apiResource('mastercards', MastercardController::class);
 
 /*
 |--------------------------------------------------------------------------
@@ -133,15 +139,8 @@ Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
     Route::prefix('rfids')->controller(RfidController::class)->group(function () {
         Route::get('students-available', 'getAvailableStudents'); // list siswa yg belum punya kartu RFID
     });
-
+    Route::apiResource('rfids', RfidController::class)->except('index');
     });
-
-    Route::apiResource('rfids', RfidController::class);
-    // RFID Tap (perlu Master card)
-    Route::post('rfid-tap', [RfidTapController::class, 'tap']);
-    // Mastercard Management
-    Route::post('mastercards/check', [MastercardController::class, 'check']);
-    Route::apiResource('mastercards', MastercardController::class);
 
 /*
 |--------------------------------------------------------------------------
