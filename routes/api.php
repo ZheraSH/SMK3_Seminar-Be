@@ -110,6 +110,7 @@ Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
         Route::get('students', 'index'); // list siswa di classroom (paginate dengan search)
         Route::get('students-available', 'getAvailableStudents'); // siswa belum/bisa pindah dengan search
         Route::post('students-add', 'store'); // tambahkan siswa ke classroom
+        Route::post('students-import', 'import'); // import siswa dari Excel ke classroom
         Route::delete('student-remove/{studentId}', 'destroy'); // hapus siswa dari classroom
         // Route::post('promote', 'promote'); // naik kelas
     });

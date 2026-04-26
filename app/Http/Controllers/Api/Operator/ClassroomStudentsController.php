@@ -8,6 +8,7 @@ use App\Http\Resources\Operator\AvailableStudentResource;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Operator\AddStudentToClassroomRequest;
+use App\Http\Requests\Operator\ImportClassroomStudentRequest;
 use App\Http\Requests\Operator\PromoteClassRequest;
 use Illuminate\Http\Request;
 
@@ -85,6 +86,25 @@ class ClassroomStudentsController extends Controller
             return ResponseHelper::success(
                 null,
                 'Siswa berhasil dinaikkan ke kelas baru'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
+        }
+    }
+
+    public function import(ImportClassroomStudentRequest $request, string $classroomId)
+    {
+        try {
+            $result = $this->classroomStudentsService->importStudents($classroomId, $request->file('file'));
+
+            return ResponseHelper::success(
+                [
+                    'imported_count' => $result['imported_count'],
+                    'error_count'    => count($result['errors']),
+                    'errors'         => $result['errors'],
+                ],
+                "Berhasil mengimport {$result['imported_count']} siswa ke kelas.",
+                201
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
