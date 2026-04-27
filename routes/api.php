@@ -38,9 +38,11 @@ use Illuminate\Support\Facades\Route;
 
 // Public School Logo - Accessible by anyone (no authentication required)
 Route::get('school-logo', [SchoolController::class, 'publicLogo']);
-Route::apiResource('rfids', RfidController::class)->only('index');
-// RFID Tap (perlu Master card)
-Route::post('rfid-tap', [RfidTapController::class, 'tap']);
+Route::prefix('attendance')->group(function () {
+    Route::apiResource('rfids', RfidController::class)->only('index');
+    Route::get('hours', [AttendanceRuleController::class, 'index']);
+    Route::post('/', [RfidTapController::class, 'tap']);
+});
 // Mastercard Management
 Route::post('mastercards/check', [MastercardController::class, 'check']);
 Route::apiResource('mastercards', MastercardController::class);

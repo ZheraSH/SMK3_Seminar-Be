@@ -18,6 +18,20 @@ class AttendanceRuleController extends Controller
         $this->attendanceRuleService = $attendanceRuleService;
     }
 
+    public function index()
+    {
+        try {
+            $data = $this->attendanceRuleService->index();
+
+            return ResponseHelper::success(
+                AttendanceRuleResource::collection($data),
+                'Data List aturan kehadiran berhasil diambil'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::notFound('List data aturan kehadiran gagal diambil');
+        }
+    }
+
     public function store(StoreAttendanceRuleRequest $request)
     {
         try {
