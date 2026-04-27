@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Counselor;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AttendancePermissionResource;
+use App\Http\Resources\AttendancePermissionDetailResource;
 use App\Http\Resources\Counselor\AttendanceGlobalResource;
 use App\Http\Resources\Counselor\AttendanceMonthlyResource;
 use App\Http\Resources\Counselor\AttendanceMonitoringResource;
@@ -43,7 +44,7 @@ class CounselorsController extends Controller
             $data = $this->attendancePermissionService->show($id);
 
             return ResponseHelper::success(
-                new AttendancePermissionResource($data),
+                new AttendancePermissionDetailResource($data),
                 'Detail izin berhasil diambil'
             );
         } catch (\Throwable $th) {

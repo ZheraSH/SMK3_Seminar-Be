@@ -38,6 +38,12 @@ use Illuminate\Support\Facades\Route;
 
 // Public School Logo - Accessible by anyone (no authentication required)
 Route::get('school-logo', [SchoolController::class, 'publicLogo']);
+Route::apiResource('rfids', RfidController::class)->only('index');
+// RFID Tap (perlu Master card)
+Route::post('rfid-tap', [RfidTapController::class, 'tap']);
+// Mastercard Management
+Route::post('mastercards/check', [MastercardController::class, 'check']);
+Route::apiResource('mastercards', MastercardController::class);
 
 /*
 |--------------------------------------------------------------------------
@@ -104,6 +110,7 @@ Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
         Route::get('students', 'index'); // list siswa di classroom (paginate dengan search)
         Route::get('students-available', 'getAvailableStudents'); // siswa belum/bisa pindah dengan search
         Route::post('students-add', 'store'); // tambahkan siswa ke classroom
+        Route::post('students-import', 'import'); // import siswa dari Excel ke classroom
         Route::delete('student-remove/{studentId}', 'destroy'); // hapus siswa dari classroom
         // Route::post('promote', 'promote'); // naik kelas
     });
@@ -133,15 +140,8 @@ Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
     Route::prefix('rfids')->controller(RfidController::class)->group(function () {
         Route::get('students-available', 'getAvailableStudents'); // list siswa yg belum punya kartu RFID
     });
-
+    Route::apiResource('rfids', RfidController::class)->except('index');
     });
-
-    Route::apiResource('rfids', RfidController::class);
-    // RFID Tap (perlu Master card)
-    Route::post('rfid-tap', [RfidTapController::class, 'tap']);
-    // Mastercard Management
-    Route::post('mastercards/check', [MastercardController::class, 'check']);
-    Route::apiResource('mastercards', MastercardController::class);
 
 /*
 |--------------------------------------------------------------------------

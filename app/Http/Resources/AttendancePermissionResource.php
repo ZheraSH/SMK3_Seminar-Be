@@ -4,11 +4,12 @@ namespace App\Http\Resources;
 
 use App\Enums\StudentStatusEnum;
 use App\Traits\Resources\HasEnumLabelsTrait;
+use App\Traits\Resources\ResolvesImageUrlTrait;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class AttendancePermissionResource extends JsonResource
 {
-    use HasEnumLabelsTrait;
+    use HasEnumLabelsTrait, ResolvesImageUrlTrait;
 
     public function toArray($request)
     {
@@ -17,6 +18,7 @@ class AttendancePermissionResource extends JsonResource
             'student' => [
                 'id' => $this->student->id,
                 'name' => $this->student->user?->name,
+                'image' => $this->student->image ? $this->resolveImageUrl($this->student->image) : null,
             ],
             'classroom' => $this->getActiveClassroomData(),
             'type' => [

@@ -19,6 +19,7 @@ class AttendancePermissionDetailResource extends JsonResource
             'student' => [
                 'id' => $this->student->id,
                 'name' => $this->student->user?->name,
+                'image' => $this->student->image ? $this->resolveImageUrl($this->student->image) : null,
             ],
             'classroom' => $this->getActiveClassroomData(),
             'type' => [
