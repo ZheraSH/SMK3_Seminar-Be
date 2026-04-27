@@ -48,6 +48,26 @@ class RfidRepository extends BaseRepository implements RfidInterface
         return $this->show($id)->delete();
     }
 
+    public function unassignStudent(mixed $id): Rfid
+    {
+        $rfid = $this->show($id);
+        $rfid->update([
+            'student_id' => null,
+            'status'     => RfidStatusEnum::INACTIVE->value,
+        ]);
+        return $rfid->fresh();
+    }
+
+    public function assignStudent(mixed $id, string $studentId): Rfid
+    {
+        $rfid = $this->show($id);
+        $rfid->update([
+            'student_id' => $studentId,
+            'status'     => RfidStatusEnum::ACTIVE->value,
+        ]);
+        return $rfid->fresh(['student.user']);
+    }
+
     public function paginate(): LengthAwarePaginator
     {
         return $this->model->query()->with(['student.user'])->latest()->paginate(10);
@@ -92,6 +112,14 @@ class RfidRepository extends BaseRepository implements RfidInterface
     {
         return $this->model->query()
             ->where('rfid', $rfid)
+            ->first();
+    }
+
+    public function getUnassignedByRfidNumber(string $rfid): ?Rfid
+    {
+        return $this->model->query()
+            ->where('rfid', $rfid)
+            ->whereNull('student_id')
             ->first();
     }
 

@@ -2,10 +2,7 @@
 
 namespace App\Http\Requests\Operator;
 
-use Illuminate\Validation\Rule;
-use App\Enums\RfidStatusEnum;
 use App\Http\Requests\ApiRequest;
-use App\Rules\ValidRfidNumber;
 
 class UpdateRfidRequest extends ApiRequest
 {
@@ -16,28 +13,16 @@ class UpdateRfidRequest extends ApiRequest
 
     public function rules(): array
     {
-        $rfidId = $this->route('rfid')?->id;
-
         return [
-            'rfid' => [
-                'sometimes',
-                'digits:10',
-                Rule::unique('rfids')->ignore($rfidId),
-                new ValidRfidNumber(),
-            ],
-            'student_id' => 'sometimes|exists:students,id',
-            'status' => 'sometimes|in:' . implode(',', RfidStatusEnum::values()),
+            'student_id' => 'required|exists:students,id',
         ];
     }
 
     public function messages(): array
     {
         return [
-            'rfid.required' => 'Nomor RFID wajib diisi',
-            'rfid.digits' => 'Nomor RFID harus berupa 10 digit angka',
-            'rfid.unique' => 'Nomor RFID sudah terdaftar',
-            'student_id.exists' => 'Siswa yang dipilih tidak valid',
-            'status.in' => 'Status harus active atau inactive',
+            'student_id.required' => 'Siswa wajib dipilih',
+            'student_id.exists'   => 'Siswa yang dipilih tidak valid',
         ];
     }
 }

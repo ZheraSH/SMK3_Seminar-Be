@@ -18,7 +18,8 @@ class StoreRfidRequest extends ApiRequest
         return [
             'rfid' => [
                 'required',
-                'digits:10',
+                'min:7',
+                'max:15',
                 'unique:rfids,rfid',
                 new ValidRfidNumber(),
             ],
@@ -32,7 +33,8 @@ class StoreRfidRequest extends ApiRequest
         return [
             'rfid.required' => 'Nomor RFID wajib diisi',
             'rfid.unique' => 'Nomor RFID sudah terdaftar',
-            'rfid.max' => 'Nomor RFID Maximal angka 10',
+            'rfid.min' => 'Nomor RFID minimal 7 karakter',
+            'rfid.max' => 'Nomor RFID maksimal 15 karakter',
             'student_id.required' => 'Siswa wajib dipilih',
             'student_id.exists' => 'Siswa yang dipilih tidak valid',
             'status.in' => 'Status harus active atau inactive',

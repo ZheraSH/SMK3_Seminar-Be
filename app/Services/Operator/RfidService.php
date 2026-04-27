@@ -45,29 +45,26 @@ class RfidService
 
     public function update(string $id, UpdateRfidRequest $request): Rfid
     {
-        $rfid = $this->rfidRepository->show($id);
-        $data = $request->validated();
+        return DB::transaction(function () use ($id, $request) {
+            $rfid = $this->rfidRepository->show($id);
+            $data = $request->validated();
 
-        if (!isset($data['status'])) {
-            throw new \Exception('Status RFID wajib diisi');
-        }
+            if (!is_null($rfid->student_id)) {
+                throw new \Exception('RFID ini sudah memiliki pengguna');
+            }
+            if ($this->rfidRepository->getByStudentId($data['student_id'])) {
+                throw new \Exception('Siswa sudah memiliki kartu RFID');
+            }
 
-        if (!in_array($data['status'], RfidStatusEnum::values())) {
-            throw new \Exception('Status RFID tidak valid');
-        }
-
-        $this->rfidRepository->update($rfid->id, [
-            'status' => $data['status'],
-        ]);
-
-        return $this->rfidRepository->show($rfid->id);
+            return $this->rfidRepository->assignStudent($rfid->id, $data['student_id']);
+        });
     }
 
-    public function delete(string $id): bool
+    public function delete(string $id): Rfid
     {
         return DB::transaction(function () use ($id) {
             $rfid = $this->rfidRepository->show($id);
-            return $this->rfidRepository->delete($rfid->id);
+            return $this->rfidRepository->unassignStudent($rfid->id);
         });
     }
 
