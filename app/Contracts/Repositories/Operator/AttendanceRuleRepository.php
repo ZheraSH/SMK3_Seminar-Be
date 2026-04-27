@@ -15,7 +15,7 @@ class AttendanceRuleRepository extends BaseRepository implements AttendanceRuleI
 
     public function get(): mixed
     {
-        return $this->model->query()->latest()->get();
+        return $this->model->query()->orderBy('day')->get();
     }
 
     public function store(array $data): mixed

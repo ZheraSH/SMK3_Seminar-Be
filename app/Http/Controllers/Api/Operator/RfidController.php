@@ -58,7 +58,7 @@ class RfidController extends Controller
 
             return ResponseHelper::success(
                 new RfidResource($data),
-                'Data RFID berhasil diperbarui'
+                'Data Siswa berhasil ditetapkan ke RFID'
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
@@ -68,11 +68,11 @@ class RfidController extends Controller
     public function destroy(Rfid $rfid)
     {
         try {
-            $this->rfidService->delete($rfid->id);
+            $data = $this->rfidService->delete($rfid->id);
 
             return ResponseHelper::success(
-                null,
-                'Data RFID berhasil dihapus'
+                new RfidResource($data),
+                'Data Pengguna RFID berhasil dihapus, nomor RFID tetap tersimpan'
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);

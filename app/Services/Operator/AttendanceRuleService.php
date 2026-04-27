@@ -17,6 +17,10 @@ class AttendanceRuleService
     {
         $this->attendanceRuleRepository = $attendanceRuleRepository;
     }
+    public function index()
+    {
+        return $this->attendanceRuleRepository->get();
+    }
 
     public function store(StoreAttendanceRuleRequest $request): AttendanceRule
     {

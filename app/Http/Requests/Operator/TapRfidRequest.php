@@ -14,7 +14,7 @@ class TapRfidRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'rfid' => 'required|digits:10',
+            'rfid' => 'required|min:7|max:15',
         ];
     }
 
@@ -22,7 +22,8 @@ class TapRfidRequest extends ApiRequest
     {
         return [
             'rfid.required' => 'Nomor RFID wajib diisi',
-            'rfid.digits' => 'Nomor RFID harus berupa 10 digit angka',
+            'rfid.min' => 'Nomor RFID minimal 7 karakter',
+            'rfid.max' => 'Nomor RFID maksimal 15 karakter',
         ];
     }
 
