@@ -4,13 +4,10 @@ namespace App\Helpers;
 
 class ResponseHelper
 {
-    public static function success($data = null, string $message = 'Success', int $code = 200)
+    public static function success($data = null, $message = 'Success', $code = 200, $statusValue = true)
     {
-        $validCodes = [200, 201, 202];
-        $code = in_array($code, $validCodes) ? $code : 200;
-        
         return response()->json([
-            'status' => true,
+            'status' => $statusValue,
             'message' => $message,
             'data' => $data,
             'errors' => null
@@ -48,7 +45,7 @@ class ResponseHelper
     public static function pagination($data, $resourceClass, string $message = 'Success', int $code = 200)
     {
         $code = in_array($code, [200, 201]) ? $code : 200;
-        
+
         return response()->json([
             'status' => true,
             'message' => $message,
