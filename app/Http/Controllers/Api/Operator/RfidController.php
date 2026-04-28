@@ -24,7 +24,7 @@ class RfidController extends Controller
     public function index(Request $request)
     {
         try {
-            $data = $this->rfidService->getWithFilter($request);
+            $data = $this->rfidService->index($request);
             
             return ResponseHelper::pagination(
                 $data, 
