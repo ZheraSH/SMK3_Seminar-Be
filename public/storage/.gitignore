@@ -1,0 +1,4 @@
+/public/*
+!/public/storage/
+!/public/storage/**
+!/public/index.php
