@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Operator\StoreRfidRequest;
 use App\Http\Requests\Operator\UpdateRfidRequest;
 use App\Http\Resources\Operator\RfidResource;
+use App\Http\Resources\Operator\RfidAllCardResource;
 use App\Http\Resources\Operator\AvailableStudentResource;
 use App\Services\Operator\RfidService;
 use App\Models\Rfid;
@@ -25,10 +26,10 @@ class RfidController extends Controller
     {
         try {
             $data = $this->rfidService->index($request);
-            
+
             return ResponseHelper::pagination(
-                $data, 
-                RfidResource::class, 
+                $data,
+                RfidResource::class,
                 'List data RFID berhasil diambil'
             );
         } catch (\Throwable $th) {
@@ -90,6 +91,19 @@ class RfidController extends Controller
             );
         } catch (\Throwable $th) {
             return ResponseHelper::notFound('Data siswa yang tersedia berhasil diambil');
+        }
+    }
+
+    public function allCard(Request $request)
+    {
+        try {
+            $data = $this->rfidService->allCard($request);
+            return ResponseHelper::success(
+                RfidAllCardResource::collection($data),
+                'List data all RFID berhasil diambil'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::notFound('List data all RFID gagal diambil');
         }
     }
 }
