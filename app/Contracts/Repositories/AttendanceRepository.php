@@ -43,9 +43,29 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
         return $this->model->findOrFail($id)->update($data);
     }
 
-    public function updateOrCreate(array $attributes, array $values): Attendance
+    public function updateOrInsert(array $attributes, array $data): mixed
     {
-        return $this->model->query()->updateOrCreate($attributes, $values);
+        $query = $this->model->query();
+
+        foreach ($attributes as $key => $value) {
+            if ($key === 'created_at' || $key === 'updated_at') {
+                $query->whereDate($key, $value);
+            } else {
+                $query->where($key, $value);
+            }
+        }
+
+        $record = $query->first();
+
+        if ($record) {
+            $record->update($data);
+            return $record;
+        }
+
+        unset($attributes['created_at'], $attributes['updated_at']);
+
+        return $this->model->query()
+            ->create($data);
     }
 
     public function delete($id): bool
