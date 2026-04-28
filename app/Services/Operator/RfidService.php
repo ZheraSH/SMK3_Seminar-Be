@@ -11,6 +11,7 @@ use App\Enums\RfidStatusEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class RfidService
@@ -24,19 +25,22 @@ class RfidService
 
     public function index(Request $request): LengthAwarePaginator
     {
+        return $this->rfidRepository->search($request);
+    }
+
+    public function allCard(Request $request): Collection
+    {
         $students = Rfid::with('student.user')
             ->whereNotNull('student_id')
             ->get()
             ->map(function ($rfid) {
                 $student = $rfid->student;
-                $name = optional(optional($student)->user)->name;
                 return (object) [
-                    'id'        => $student->id ?? null,
+                    'id'        => optional($student)->id,
                     'rfid'      => $rfid->rfid,
-                    'classroom' => $student->classroom ?? null,
-                    'name'      => $name,
+                    'classroom' => optional($student)->classroom,
+                    'name'      => optional(optional($student)->user)->name,
                     'type'      => 'student',
-                    'status'    => $rfid->status,
                 ];
             });
 
@@ -47,32 +51,12 @@ class RfidService
                 'classroom' => null,
                 'name'      => null,
                 'type'      => 'mastercard',
-                'status'    => RfidStatusEnum::ACTIVE,
             ];
         });
 
         $all = $students->concat($mastercards);
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $all = $all->filter(function ($item) use ($search) {
-                return str_contains(strtolower($item->name ?? ''), strtolower($search))
-                    || str_contains($item->rfid, $search)
-                    || str_contains($item->type, $search);
-            });
-        }
-
-        $perPage = $request->get('per_page', 15);
-        $page = $request->get('page', 1);
-        $paginated = new LengthAwarePaginator(
-            $all->forPage($page, $perPage)->values(),
-            $all->count(),
-            $perPage,
-            $page,
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
-
-        return $paginated;
+        return $all->values();
     }
 
     public function store(StoreRfidRequest $request): Rfid

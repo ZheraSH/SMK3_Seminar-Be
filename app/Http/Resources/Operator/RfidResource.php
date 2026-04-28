@@ -8,6 +8,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class RfidResource extends JsonResource
 {
     use HasEnumLabelsTrait;
+
     public function toArray($request)
     {
         return [
@@ -17,9 +18,10 @@ class RfidResource extends JsonResource
                 'value' => $this->getEnumValue($this->status),
                 'label' => $this->getEnumLabel($this->status),
             ],
-            'classroom' => $this->classroom,
-            'name' => $this->name,
-            'type' => $this->type,
+            'student' => $this->relationLoaded('student') ? [
+                'id' => $this->student->id,
+                'name' => $this->student->user->name,
+            ] : null,
         ];
     }
 }

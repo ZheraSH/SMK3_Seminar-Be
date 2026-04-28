@@ -90,7 +90,7 @@ class MastercardController extends Controller
             $isValid = $this->mastercardService->checkRfid($request->rfid);
 
             if ($isValid) {
-                return ResponseHelper::success(null, 'Mastercard valid');
+                return ResponseHelper::success(null, 'Mastercard valid', 200, 'success');
             } else {
                 return ResponseHelper::error('Mastercard tidak valid atau tidak ditemukan', 400);
             }
