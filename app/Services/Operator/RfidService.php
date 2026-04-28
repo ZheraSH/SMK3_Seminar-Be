@@ -6,6 +6,7 @@ use App\Contracts\Repositories\Operator\RfidRepository;
 use App\Http\Requests\Operator\StoreRfidRequest;
 use App\Http\Requests\Operator\UpdateRfidRequest;
 use App\Models\Rfid;
+use App\Models\Mastercard;
 use App\Enums\RfidStatusEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -19,6 +20,59 @@ class RfidService
     public function __construct(RfidRepository $rfidRepository)
     {
         $this->rfidRepository = $rfidRepository;
+    }
+
+    public function index(Request $request): LengthAwarePaginator
+    {
+        $students = Rfid::with('student.user')
+            ->whereNotNull('student_id')
+            ->get()
+            ->map(function ($rfid) {
+                $student = $rfid->student;
+                $name = optional(optional($student)->user)->name;
+                return (object) [
+                    'id'        => $student->id ?? null,
+                    'rfid'      => $rfid->rfid,
+                    'classroom' => $student->classroom ?? null,
+                    'name'      => $name,
+                    'type'      => 'student',
+                    'status'    => $rfid->status,
+                ];
+            });
+
+        $mastercards = Mastercard::all()->map(function ($card) {
+            return (object) [
+                'id'        => $card->id,
+                'rfid'      => $card->rfid,
+                'classroom' => null,
+                'name'      => null,
+                'type'      => 'mastercard',
+                'status'    => RfidStatusEnum::ACTIVE,
+            ];
+        });
+
+        $all = $students->concat($mastercards);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $all = $all->filter(function ($item) use ($search) {
+                return str_contains(strtolower($item->name ?? ''), strtolower($search))
+                    || str_contains($item->rfid, $search)
+                    || str_contains($item->type, $search);
+            });
+        }
+
+        $perPage = $request->get('per_page', 15);
+        $page = $request->get('page', 1);
+        $paginated = new LengthAwarePaginator(
+            $all->forPage($page, $perPage)->values(),
+            $all->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return $paginated;
     }
 
     public function store(StoreRfidRequest $request): Rfid
@@ -66,11 +120,6 @@ class RfidService
             $rfid = $this->rfidRepository->show($id);
             return $this->rfidRepository->unassignStudent($rfid->id);
         });
-    }
-
-    public function getWithFilter(Request $request): LengthAwarePaginator
-    {
-        return $this->rfidRepository->search($request);
     }
 
     public function getAvailableStudents(Request $request)

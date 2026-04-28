@@ -10,8 +10,6 @@ class RfidResource extends JsonResource
     use HasEnumLabelsTrait;
     public function toArray($request)
     {
-        $student = $this->whenLoaded('student');
-
         return [
             'id' => $this->id,
             'rfid' => $this->rfid,
@@ -19,10 +17,9 @@ class RfidResource extends JsonResource
                 'value' => $this->getEnumValue($this->status),
                 'label' => $this->getEnumLabel($this->status),
             ],
-            'student' => $student ? [
-                'id' => $this->student->id,
-                'name' => $this->student->user->name,
-            ] : null,
+            'classroom' => $this->classroom,
+            'name' => $this->name,
+            'type' => $this->type,
         ];
     }
 }
