@@ -54,12 +54,22 @@ class ClassroomStudentsService
 
     public function importStudents(string $classroomId, mixed $file): array
     {
-        $import = new ClassroomStudentImport($classroomId);
-        Excel::import($import, $file);
 
-        return [
-            'imported_count' => $import->importedCount,
-            'errors'         => $import->errors,
-        ];
+        $storedPath = $file->store('imports/tmp', 'local');
+        $fullPath   = storage_path('app/' . $storedPath);
+
+        try {
+            $import = new ClassroomStudentImport($classroomId);
+            Excel::import($import, $fullPath);
+
+            return [
+                'imported_count' => $import->importedCount,
+                'errors'         => $import->getErrors(),
+            ];
+        } finally {
+            if (file_exists($fullPath)) {
+                unlink($fullPath);
+            }
+        }
     }
 }
