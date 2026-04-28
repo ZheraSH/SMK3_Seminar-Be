@@ -4,6 +4,7 @@ namespace App\Http\Requests\Operator;
 
 use App\Rules\ValidRfidNumber;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreMastercardRequest extends FormRequest
 {
@@ -26,7 +27,7 @@ class StoreMastercardRequest extends FormRequest
             'rfid' => [
                 'required',
                 'digits:10',
-                'unique:mastercards,rfid',
+                Rule::unique('mastercards', 'rfid')->whereNull('deleted_at'),
                 new ValidRfidNumber(),
             ],
         ];

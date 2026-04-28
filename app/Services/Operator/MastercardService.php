@@ -24,6 +24,14 @@ class MastercardService
     public function store(StoreMastercardRequest $request)
     {
         $data = $request->validated();
+        
+        $trashed = $this->mastercardRepository->findTrashedByRfid($data['rfid']);
+        
+        if ($trashed) {
+            $this->mastercardRepository->restore($trashed->id);
+            return $this->mastercardRepository->show($trashed->id);
+        }
+
         return $this->mastercardRepository->store($data);
     }
 

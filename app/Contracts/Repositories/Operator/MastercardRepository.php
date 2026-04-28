@@ -53,4 +53,14 @@ class MastercardRepository extends BaseRepository implements MastercardInterface
     {
         return $this->model->where('rfid', $rfid)->first();
     }
+
+    public function findTrashedByRfid(string $rfid): ?Mastercard
+    {
+        return $this->model->withTrashed()->where('rfid', $rfid)->first();
+    }
+
+    public function restore(mixed $id): bool
+    {
+        return $this->model->withTrashed()->findOrFail($id)->restore();
+    }
 }
