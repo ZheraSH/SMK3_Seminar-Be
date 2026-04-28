@@ -8,6 +8,7 @@ use App\Http\Requests\Operator\UpdateAttendanceRuleByDayRequest;
 use App\Http\Resources\Operator\AttendanceRuleResource;
 use App\Services\Operator\AttendanceRuleService;
 use App\Helpers\ResponseHelper;
+use App\Http\Resources\Operator\AttendanceRuleAllResource;
 
 class AttendanceRuleController extends Controller
 {
@@ -24,7 +25,7 @@ class AttendanceRuleController extends Controller
             $data = $this->attendanceRuleService->index();
 
             return ResponseHelper::success(
-                AttendanceRuleResource::collection($data),
+                AttendanceRuleAllResource::collection($data),
                 'Data List aturan kehadiran berhasil diambil'
             );
         } catch (\Throwable $th) {
