@@ -18,7 +18,7 @@ class RfidResource extends JsonResource
                 'value' => $this->getEnumValue($this->status),
                 'label' => $this->getEnumLabel($this->status),
             ],
-            'student' => $this->relationLoaded('student') ? [
+            'student' => $this->relationLoaded('student') && $this->student ? [
                 'id' => $this->student->id,
                 'name' => $this->student->user->name,
             ] : null,
