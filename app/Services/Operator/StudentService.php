@@ -9,6 +9,7 @@ use App\Http\Requests\Operator\UpdateStudentRequest;
 use App\Enums\RoleEnum;
 use App\Enums\StudentStatusEnum;
 use App\Enums\UploadDiskEnum;
+use App\Enums\GenderEnum;
 use App\Models\Student;
 use App\Traits\UploadTrait;
 use Illuminate\Support\Facades\Hash;
@@ -36,6 +37,8 @@ class StudentService
 
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
             $data['image'] = $this->upload(UploadDiskEnum::STUDENT->value, $request->file('image'));
+        } else {
+            $data['image'] = ($data['gender'] === GenderEnum::MALE->value) ? 'default_image/student-boy.png' : 'default_image/student-girl.png';
         }
 
         $userData = [

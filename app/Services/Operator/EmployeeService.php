@@ -8,6 +8,7 @@ use App\Http\Requests\Operator\StoreEmployeeRequest;
 use App\Http\Requests\Operator\UpdateEmployeeRequest;
 use App\Enums\RoleEnum;
 use App\Enums\UploadDiskEnum;
+use App\Enums\GenderEnum;
 use App\Traits\UploadTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -39,6 +40,8 @@ class EmployeeService
                     UploadDiskEnum::TEACHER->value,
                     $request->file('image')
                 );
+            } else {
+                $data['image'] = ($data['gender'] === GenderEnum::MALE->value) ? 'default_image/teacher-boy.png' : 'default_image/teacher-girl.png';
             }
 
             $user = $this->userRepository->store([
