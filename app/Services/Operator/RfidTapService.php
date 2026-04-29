@@ -32,20 +32,20 @@ class RfidTapService
         $this->lessonScheduleRepository = $lessonScheduleRepository;
     }
 
-    public function processBulkUpload(array $attendances): array
+    public function processBulkUpload(array $attendances, string $date): array
     {
         $saved   = 0;
         $skipped = 0;
         $details = [];
 
-        $ruleCache = [];
+        $day       = strtolower(Carbon::parse($date)->englishDayOfWeek);
+        $rule      = $this->attendanceRuleRepository->getByDay($day);
 
         foreach ($attendances as $item) {
-            $rfidNumber   = $item['rfid']          ?? null;
-            $checkinRaw   = $item['checkin_time']  ?? null;
-            $checkoutRaw  = $item['checkout_time'] ?? null;
+            $rfidNumber = $item['rfid'] ?? null;
+            $timeRaw    = $item['time'] ?? null;
 
-            if (!$rfidNumber || (!$checkinRaw && !$checkoutRaw)) {
+            if (!$rfidNumber || !$timeRaw) {
                 $skipped++;
                 $details[] = ['rfid' => $rfidNumber, 'status' => 'skipped', 'reason' => 'Data tidak lengkap'];
                 continue;
@@ -65,23 +65,21 @@ class RfidTapService
                 continue;
             }
 
-            $checkinCarbon  = $checkinRaw  ? Carbon::parse($checkinRaw)->timezone('Asia/Jakarta')  : null;
-            $checkoutCarbon = $checkoutRaw ? Carbon::parse($checkoutRaw)->timezone('Asia/Jakarta') : null;
+            // Gabungkan date + time menjadi Carbon
+            $tapTime = Carbon::createFromFormat('Y-m-d H:i:s', $date . ' ' . $timeRaw, 'Asia/Jakarta');
 
-            $dateCarbon = $checkinCarbon ?? $checkoutCarbon;
-            $dateStr    = $dateCarbon->toDateString();
-            $day        = strtolower($dateCarbon->englishDayOfWeek);
-
-            $ruleCache[$day] ??= $this->attendanceRuleRepository->getByDay($day);
-            $rule = $ruleCache[$day];
-
-            $status = AttendanceStatusEnum::ALPHA->value;
-            if ($checkinCarbon && $rule && !$rule->is_holiday) {
-                $expected = TapHelper::parseRuleTimeToCarbon($rule->checkin_start);
-                $status   = $expected
-                    ? TapHelper::calculateAttendanceStatus($checkinCarbon, $expected)
-                    : AttendanceStatusEnum::PRESENT->value;
+            if (!$rule || $rule->is_holiday) {
+                $skipped++;
+                $details[] = ['rfid' => $rfidNumber, 'status' => 'skipped', 'reason' => 'Tidak ada aturan absensi atau hari libur'];
+                continue;
             }
+
+            $checkinEnd    = TapHelper::parseRuleTimeToCarbon($rule->checkin_end);
+            $checkoutStart = TapHelper::parseRuleTimeToCarbon($rule->checkout_start);
+            $checkinStart  = TapHelper::parseRuleTimeToCarbon($rule->checkin_start);
+
+            // Tentukan apakah tap ini checkin atau checkout
+            $isCheckout    = $checkoutStart && $tapTime->greaterThanOrEqualTo($checkoutStart);
 
             $student->loadMissing('classroomStudents');
             $activeClassroom = $student->classroomStudents
@@ -89,38 +87,56 @@ class RfidTapService
                 ->first();
 
             try {
-                $record = $this->attendanceRepository->getRFIDAttendanceByStudentAndDate($student->id, $dateStr);
+                $record = $this->attendanceRepository->getRFIDAttendanceByStudentAndDate($student->id, $date);
 
-                $attendanceData = [
-                    'student_id'           => $student->id,
-                    'rfid_id'              => $rfid->id,
-                    'classroom_student_id' => $activeClassroom?->id,
-                    'date'                 => $dateStr,
-                    'checkin_time'         => $checkinCarbon?->toTimeString(),
-                    'checkout_time'        => $checkoutCarbon?->toTimeString(),
-                    'lesson_order'         => 1,
-                    'attendance_type'      => 'rfid',
-                    'status'               => $status,
-                    'proof'                => AttendanceProofEnum::RFID->value,
-                    'is_final'             => true,
-                    'is_locked'            => false,
-                ];
-
-                if ($record) {
-                    $this->attendanceRepository->update($record->id, array_filter($attendanceData, fn($v) => $v !== null));
+                if ($isCheckout) {
+                    // Update checkout
+                    if ($record) {
+                        $this->attendanceRepository->update($record->id, [
+                            'checkout_time' => $tapTime->toTimeString(),
+                        ]);
+                    }
+                    $result = $record ? 'checkout_updated' : 'checkout_skipped_no_checkin';
+                    $status = $record?->status ?? null;
                 } else {
-                    $this->attendanceRepository->store($attendanceData);
+                    // Hitung status checkin
+                    $status = AttendanceStatusEnum::PRESENT->value;
+                    if ($checkinStart) {
+                        $status = TapHelper::calculateAttendanceStatus($tapTime, $checkinStart);
+                    }
+
+                    $attendanceData = [
+                        'student_id'           => $student->id,
+                        'rfid_id'              => $rfid->id,
+                        'classroom_student_id' => $activeClassroom?->id,
+                        'date'                 => $date,
+                        'checkin_time'         => $tapTime->toTimeString(),
+                        'lesson_order'         => 1,
+                        'attendance_type'      => 'rfid',
+                        'status'               => $status,
+                        'proof'                => AttendanceProofEnum::RFID->value,
+                        'is_final'             => true,
+                        'is_locked'            => false,
+                    ];
+
+                    if ($record) {
+                        $this->attendanceRepository->update($record->id, $attendanceData);
+                        $result = 'upload_updated';
+                    } else {
+                        $this->attendanceRepository->store($attendanceData);
+                        $result = 'upload_created';
+                    }
                 }
 
                 $saved++;
                 $details[] = [
                     'rfid'         => $rfidNumber,
                     'student_name' => $student->user->name ?? null,
-                    'date'         => $dateStr,
-                    'checkin_time' => $checkinCarbon?->format('H:i:s'),
-                    'checkout_time'=> $checkoutCarbon?->format('H:i:s'),
+                    'date'         => $date,
+                    'time'         => $tapTime->format('H:i:s'),
+                    'type'         => $isCheckout ? 'checkout' : 'checkin',
                     'status'       => $status,
-                    'result'       => $record ? 'updated' : 'created',
+                    'result'       => $result,
                 ];
             } catch (\Throwable $e) {
                 $skipped++;

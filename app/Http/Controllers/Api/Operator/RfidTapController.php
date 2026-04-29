@@ -35,7 +35,10 @@ class RfidTapController extends Controller
     public function add(LogStudentTapRequest $request): JsonResponse
     {
         try {
-            $result = $this->rfidTapService->processBulkUpload($request->validated('attendances'));
+            $result = $this->rfidTapService->processBulkUpload(
+                $request->validated('attendances'),
+                $request->validated('date')
+            );
             return (new LogStudentTapResource($result))->response()->setStatusCode(200);
         } catch (\Throwable $e) {
             return ResponseHelper::error($e->getMessage(), $e->getCode() ?: 500);
