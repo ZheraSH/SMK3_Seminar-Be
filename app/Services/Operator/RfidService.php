@@ -8,6 +8,7 @@ use App\Http\Requests\Operator\UpdateRfidRequest;
 use App\Models\Rfid;
 use App\Models\Mastercard;
 use App\Enums\RfidStatusEnum;
+use App\Enums\StudentStatusEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -30,19 +31,18 @@ class RfidService
 
     public function allCard(Request $request): Collection
     {
-        $students = Rfid::with('student.user')
-            ->whereNotNull('student_id')
-            ->get()
-            ->map(function ($rfid) {
-                $student = $rfid->student;
-                return (object) [
-                    'id'        => optional($student)->id,
-                    'rfid'      => $rfid->rfid,
-                    'classroom' => optional($student)->classroom,
-                    'name'      => optional(optional($student)->user)->name,
-                    'type'      => 'student',
-                ];
-            });
+        $students = Rfid::with(['student.user','student.classroomStudents.classroom'])
+        ->whereNotNull('student_id')->get()->map(function ($rfid) {
+            $student = $rfid->student;
+            $activeClassroom = $student?->classroomStudents->where('status', StudentStatusEnum::ACTIVE->value)->first()?->classroom;
+            return (object) [
+                'id'        => optional($student)->id,
+                'rfid'      => $rfid->rfid,
+                'classroom' => $activeClassroom?->name ?? null,
+                'name'      => optional(optional($student)->user)->name,
+                'type'      => 'student',
+            ];
+        });
 
         $mastercards = Mastercard::all()->map(function ($card) {
             return (object) [

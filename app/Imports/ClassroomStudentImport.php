@@ -187,6 +187,7 @@ class ClassroomStudentImport implements ToCollection, WithHeadingRow, WithValida
                     'nisn'           => trim($row['nisn']),
                     'religion_id'    => $religion->id,
                     'gender'         => $gender,
+                    'image'          => ($gender === GenderEnum::MALE->value) ? 'default_image/student-boy.png' : 'default_image/student-girl.png',
                     'birth_place'    => trim($row['tempat_lahir']),
                     'birth_date'     => \Carbon\Carbon::parse($row['tanggal_lahir'])->format('Y-m-d'),
                     'address'        => trim($row['alamat']),
