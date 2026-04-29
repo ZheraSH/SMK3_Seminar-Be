@@ -46,7 +46,7 @@ Route::prefix('attendance')->group(function () {
 });
 // Mastercard Management
 Route::prefix('attendance')->group(function () {
-    Route::post('mastercards/check', [MastercardController::class, 'check']);
+    Route::post('mastercards-check', [MastercardController::class, 'check']);
     Route::apiResource('mastercards', MastercardController::class);
 });
 
