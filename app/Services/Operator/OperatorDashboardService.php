@@ -40,21 +40,20 @@ class OperatorDashboardService
         ];
     }
 
-    public function getRfidActivities($request)
+    public function getRfidActivities(int $limit = 10)
     {
-        $perPage = $request->get('per_page', 10);
-        $search = $request->get('search');
-        $classroomName = $request->get('classroom_id');
-
-        return $this->attendanceRepository->getRecentRfidActivities($perPage, $search, $classroomName);
+        // Delegate query to repository
+        return $this->attendanceRepository->getRecentRfidActivities($limit);
     }
 
     public function getTodayAttendanceSummary(): array
     {
         $totalStudents = $this->studentRepository->count();
 
+        // Delegate query to repository
         $data = $this->attendanceRepository->getTodayAttendanceSummary();
 
+        // Service handles business logic: formatting response
         return [
             'total_students' => $totalStudents,
             'present' => (int) $data->present,
@@ -68,9 +67,12 @@ class OperatorDashboardService
     {
         $totalStudents = $this->studentRepository->count();
 
+        // Delegate query to repository
         $monthlyData = $this->attendanceRepository->getMonthlyAttendanceChart(now()->year);
 
+        // Service handles business logic: calculation and formatting
         return $monthlyData->map(function ($row) use ($totalStudents) {
+            // Estimate school days (rough: ~20 days per month)
             $schoolDays = $row->total_days_with_attendance ?: 20;
             $maxPossible = $totalStudents * $schoolDays;
 

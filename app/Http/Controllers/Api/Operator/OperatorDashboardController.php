@@ -9,7 +9,6 @@ use App\Http\Resources\Operator\Dashboard\DashboardActivityResource;
 use App\Http\Resources\Operator\Dashboard\DashboardTodayAttendanceChartResource;
 use App\Http\Resources\Operator\Dashboard\DashboardMonthlyAttendanceChartResource;
 use App\Helpers\ResponseHelper;
-use Illuminate\Http\Request;
 
 class OperatorDashboardController extends Controller
 {
@@ -34,14 +33,13 @@ class OperatorDashboardController extends Controller
         }
     }
 
-    public function getRfidHistory(Request $request)
+    public function getRfidHistory()
     {
         try {
-            $data = $this->service->getRfidActivities($request);
+            $data = $this->service->getRfidActivities();
 
-            return ResponseHelper::pagination(
-                $data,
-                DashboardActivityResource::class,
+            return ResponseHelper::success(
+                DashboardActivityResource::collection($data),
                 'Aktivitas Tap RFID'
             );
         } catch (\Throwable $th) {
