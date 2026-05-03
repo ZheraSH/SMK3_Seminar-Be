@@ -145,6 +145,7 @@ Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
     Route::prefix('rfids')->controller(RfidController::class)->group(function () {
         Route::get('students-available', 'getAvailableStudents'); // list siswa yg belum punya kartu RFID
     });
+    Route::get('rfid-tap-history', [RfidTapController::class, 'history']); // history rfid tap
     Route::apiResource('rfids', RfidController::class);
     });
 

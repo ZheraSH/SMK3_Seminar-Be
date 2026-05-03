@@ -393,4 +393,9 @@ class RfidTapService
             'minutes_late' => $attendance->minutes_late ?? 0,
         ];
     }
+
+    public function getHistory(int $perPage = 10, ?string $search = null, ?string $status = null)
+    {
+        return $this->attendanceRepository->getPaginatedRfidHistory($perPage, $search, $status);
+    }
 }
