@@ -9,8 +9,10 @@ use App\Helpers\ResponseHelper;
 use App\Http\Requests\Operator\LogStudentTapRequest;
 use App\Http\Requests\Operator\TapRfidRequest;
 use App\Http\Resources\Operator\LogStudentTapResource;
+use App\Http\Resources\Operator\RfidTapHistoryResource;
 use App\Http\Resources\Operator\TapResultResource;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class RfidTapController extends Controller
 {
@@ -42,6 +44,25 @@ class RfidTapController extends Controller
             return (new LogStudentTapResource($result))->response()->setStatusCode(200);
         } catch (\Throwable $e) {
             return ResponseHelper::error($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function history(Request $request)
+    {
+        try {
+            $perPage = $request->get('per_page', 10);
+            $search = $request->get('search');
+            $status = $request->get('status');
+
+            $data = $this->rfidTapService->getHistory($perPage, $search, $status);
+
+            return ResponseHelper::pagination(
+                $data,
+                RfidTapHistoryResource::class,
+                'History Tap RFID'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
 }

@@ -5,7 +5,6 @@ namespace App\Contracts\Repositories;
 use App\Contracts\Interfaces\AttendanceInterface;
 use App\Enums\AttendanceStatusEnum;
 use App\Models\Attendance;
-
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Enums\AttendanceProofEnum;
@@ -435,9 +434,46 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
             ]);
     }
 
+    public function getPaginatedRfidHistory(int $perPage = 10, ?string $search = null, ?string $status = null)
+    {
+        $query = DB::table('attendances')
+            ->join('students', 'attendances.student_id', '=', 'students.id')
+            ->join('users', 'students.user_id', '=', 'users.id')
+            ->leftJoin('classroom_students', function ($join) {
+                $join->on('students.id', '=', 'classroom_students.student_id')
+                    ->where('classroom_students.status', '=', 'active');
+            })
+            ->leftJoin('classrooms', 'classroom_students.classroom_id', '=', 'classrooms.id')
+            ->where('attendances.attendance_type', 'rfid')
+            ->where('attendances.is_final', true);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('users.name', 'like', '%' . $search . '%')
+                  ->orWhere('classrooms.name', 'like', '%' . $search . '%');
+            });
+        }
+
+        if ($status) {
+            $query->where('attendances.status', $status);
+        }
+
+        return $query->groupBy('attendances.student_id', 'users.name', 'classrooms.name', 'attendances.status', 'attendances.date', 'attendances.checkin_time')
+            ->orderByDesc('attendances.date')
+            ->orderByDesc('attendances.checkin_time')
+            ->select([
+                DB::raw('MAX(attendances.id) as id'),
+                'users.name',
+                'classrooms.name as classroom',
+                'attendances.status',
+                'attendances.date',
+                'attendances.checkin_time',
+            ])
+            ->paginate($perPage);
+    }
+
     public function getTodayAttendanceSummary()
     {
-        // For today's summary, we rely on the primary RFID record per student
         return DB::table('attendances')
             ->whereDate('date', now())
             ->where('attendance_type', 'rfid')
