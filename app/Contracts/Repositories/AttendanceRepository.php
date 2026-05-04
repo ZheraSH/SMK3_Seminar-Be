@@ -410,9 +410,9 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
     // Homeroom Teacher Close
 
     // Operator
-    public function getRecentRfidActivities(int $limit = 10)
+    public function getRecentRfidActivities(int $perPage = 10, ?string $search = null, ?string $classroomName = null)
     {
-        return DB::table('attendances')
+        $query = DB::table('attendances')
             ->join('students', 'attendances.student_id', '=', 'students.id')
             ->join('users', 'students.user_id', '=', 'users.id')
             ->leftJoin('classroom_students', function ($join) {
@@ -422,22 +422,30 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
             ->leftJoin('classrooms', 'classroom_students.classroom_id', '=', 'classrooms.id')
             ->whereDate('attendances.date', now())
             ->where('attendances.attendance_type', 'rfid')
-            ->where('attendances.is_final', true)
-            ->groupBy('attendances.student_id', 'users.name', 'classrooms.name', 'attendances.status', 'attendances.checkin_time')
+            ->where('attendances.is_final', true);
+
+        if ($search) {
+            $query->where('users.name', 'like', '%' . $search . '%');
+        }
+
+        if ($classroomName) {
+            $query->where('classrooms.name', 'like', '%' . $classroomName . '%');
+        }
+
+        return $query->groupBy('attendances.student_id', 'users.name', 'classrooms.name', 'attendances.status', 'attendances.checkin_time')
             ->orderByDesc('attendances.checkin_time')
-            ->limit($limit)
-            ->get([
+            ->select([
                 DB::raw('MAX(attendances.id) as id'),
                 'users.name',
                 'classrooms.name as classroom',
                 'attendances.status',
                 'attendances.checkin_time',
-            ]);
+            ])
+            ->paginate($perPage);
     }
 
     public function getTodayAttendanceSummary()
     {
-        // For today's summary, we rely on the primary RFID record per student
         return DB::table('attendances')
             ->whereDate('date', now())
             ->where('attendance_type', 'rfid')

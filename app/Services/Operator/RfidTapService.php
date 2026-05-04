@@ -65,7 +65,6 @@ class RfidTapService
                 continue;
             }
 
-            // Gabungkan date + time menjadi Carbon
             $tapTime = Carbon::createFromFormat('Y-m-d H:i:s', $date . ' ' . $timeRaw, 'Asia/Jakarta');
 
             if (!$rule || $rule->is_holiday) {
@@ -76,9 +75,7 @@ class RfidTapService
 
             $checkinEnd    = TapHelper::parseRuleTimeToCarbon($rule->checkin_end);
             $checkoutStart = TapHelper::parseRuleTimeToCarbon($rule->checkout_start);
-            $checkinStart  = TapHelper::parseRuleTimeToCarbon($rule->checkin_start);
 
-            // Tentukan apakah tap ini checkin atau checkout
             $isCheckout    = $checkoutStart && $tapTime->greaterThanOrEqualTo($checkoutStart);
 
             $student->loadMissing('classroomStudents');
@@ -90,7 +87,6 @@ class RfidTapService
                 $record = $this->attendanceRepository->getRFIDAttendanceByStudentAndDate($student->id, $date);
 
                 if ($isCheckout) {
-                    // Update checkout
                     if ($record) {
                         $this->attendanceRepository->update($record->id, [
                             'checkout_time' => $tapTime->toTimeString(),
@@ -99,10 +95,9 @@ class RfidTapService
                     $result = $record ? 'checkout_updated' : 'checkout_skipped_no_checkin';
                     $status = $record?->status ?? null;
                 } else {
-                    // Hitung status checkin
                     $status = AttendanceStatusEnum::PRESENT->value;
-                    if ($checkinStart) {
-                        $status = TapHelper::calculateAttendanceStatus($tapTime, $checkinStart);
+                    if ($checkinEnd) {
+                        $status = TapHelper::calculateAttendanceStatus($tapTime, $checkinEnd);
                     }
 
                     $attendanceData = [
@@ -238,7 +233,7 @@ class RfidTapService
             return $this->tapRecordResponse($student, $rfid, $now, 'Tap berhasil. Absensi akan dilakukan guru pada jam pelajaran pertama');
         }
 
-        $expected = TapHelper::parseRuleTimeToCarbon($rule->checkin_start) ?? $now;
+        $expected = TapHelper::parseRuleTimeToCarbon($rule->checkin_end) ?? $now;
         $status = TapHelper::calculateAttendanceStatus($now, $expected);
         $minutesLate = TapHelper::calculateMinutesLate($now, $expected);
 
