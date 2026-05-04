@@ -17,13 +17,13 @@ return new class extends Migration
             $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
             $table->string('image')->nullable();
             $table->string('nip', 18)->unique();
-            $table->string('nik', 16);
+            $table->string('nik', 16)->nullable();
             $table->foreignUuid('religion_id')->constrained('religions')->OnDelete('cascade');
             $table->enum('gender', GenderEnum::values());
             $table->date('birth_date');
             $table->string('birth_place');
             $table->string('address');
-            $table->string('phone_number');
+            $table->string('phone_number')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

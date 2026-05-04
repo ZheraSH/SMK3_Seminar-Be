@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Operator;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Operator\StoreEmployeeRequest;
 use App\Http\Requests\Operator\UpdateEmployeeRequest;
+use App\Http\Requests\Operator\ImportEmployeeRequest;
 use App\Http\Resources\Operator\EmployeeResource;
 use App\Services\Operator\EmployeeService;
 use App\Models\Employee;
@@ -86,6 +87,39 @@ class EmployeeController extends Controller
             return ResponseHelper::success(
                 null,
                 'Data karyawan berhasil dihapus'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
+        }
+    }
+
+    public function import(ImportEmployeeRequest $request)
+    {
+        try {
+            $result = $this->employeeService->importEmployees($request->file('file'));
+
+            $message = "Berhasil mengimport {$result['imported_count']} guru ke sistem.";
+
+            if (!empty($result['errors'])) {
+                return ResponseHelper::success(
+                    [
+                        'imported_count' => $result['imported_count'],
+                        'error_count'    => count($result['errors']),
+                        'errors'         => $result['errors'],
+                    ],
+                    $message . ' Beberapa baris dilewati, cek bagian errors.',
+                    201
+                );
+            }
+
+            return ResponseHelper::success(
+                [
+                    'imported_count' => $result['imported_count'],
+                    'error_count'    => 0,
+                    'errors'         => [],
+                ],
+                $message,
+                201
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);

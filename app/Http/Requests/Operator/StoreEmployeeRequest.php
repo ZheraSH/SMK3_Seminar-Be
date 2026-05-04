@@ -34,103 +34,18 @@ class StoreEmployeeRequest extends ApiRequest
                 Rule::unique(Employee::class, 'nip'),
             ],
             'nik' => 'nullable|string|max:16',
-            'religion_id' => 'nullable|exists:religions,id',
+            'religion_id' => 'required|exists:religions,id',
             'gender' => 'required|in:' . implode(',', GenderEnum::values()),
             'birth_date' => 'required|date|before:today',
             'birth_place' => 'required|string|max:255',
             'address' => 'required|string|max:500',
             'phone_number' => 'nullable|string|max:20',
-            'roles' => ['required', 'array', 'min:1', 'max:2'],
+            'roles' => ['required', 'array', 'min:1'],
             'roles.*' => ['required', 'string', Rule::in(RoleEnum::values())],
         ];
     }
 
-    public function withValidator($validator)
-    {
-        $validator->after(function ($validator) {
-            $roles = $this->input('roles', []);
 
-            if (empty($roles)) {
-                return;
-            }
-
-            foreach ($roles as $role) {
-                if (!in_array($role, RoleEnum::values())) {
-                    $validator->errors()->add('roles', "Role '{$role}' tidak valid.");
-                    return;
-                }
-            }
-
-            $teacherRoles = RoleEnum::teacherRoles();
-            $staffRoles = RoleEnum::staffRoles();
-
-            $teacherCount = count(array_intersect($roles, $teacherRoles));
-            $staffCount = count(array_intersect($roles, $staffRoles));
-
-            if ($teacherCount > 0 && $staffCount > 0) {
-                $validator->errors()->add('roles', 'Tidak boleh memilih role dari kategori guru dan staff sekaligus.');
-                return;
-            }
-
-            if ($teacherCount > 0) {
-                if (count($roles) > 2) {
-                    $validator->errors()->add('roles', 'Kategori guru maksimal memilih 2 role.');
-                }
-
-                if (!$this->isValidTeacherCombination($roles)) {
-                    $validator->errors()->add('roles', 'Kombinasi role guru tidak valid. Pilihan valid: Guru Pengajar + Wali Kelas, Guru Pengajar + BK, Wali Kelas + BK, atau salah satu saja.');
-                }
-            }
-
-            if ($staffCount > 0) {
-                if (count($roles) > 1) {
-                    $validator->errors()->add('roles', 'Kategori staff hanya boleh memilih 1 role.');
-                }
-
-                if (!$this->isValidStaffRole($roles)) {
-                    $validator->errors()->add('roles', 'Role staff tidak valid. Pilihan: Staff TU atau Waka Kurikulum.');
-                }
-            }
-        });
-    }
-
-    private function isValidTeacherCombination(array $roles): bool
-    {
-        $teacherRoles = RoleEnum::teacherRoles();
-
-        $filteredRoles = array_intersect($roles, $teacherRoles);
-
-        if (count($filteredRoles) === 1) {
-            return true;
-        }
-
-        if (count($filteredRoles) === 2) {
-            $sortedRoles = sort($filteredRoles);
-            $validCombinations = [
-                [RoleEnum::TEACHER->value, RoleEnum::HOMEROOM_TEACHER->value],
-                [RoleEnum::TEACHER->value, RoleEnum::COUNSELOR->value],
-                [RoleEnum::HOMEROOM_TEACHER->value, RoleEnum::COUNSELOR->value],
-            ];
-
-            return in_array($sortedRoles, $validCombinations);
-        }
-
-        return false;
-    }
-
-    private function isValidStaffRole(array $roles): bool
-    {
-        $staffRoles = RoleEnum::staffRoles();
-
-        $filteredRoles = array_intersect($roles, $staffRoles);
-
-        if (count($filteredRoles) !== 1) {
-            return false;
-        }
-
-        $role = reset($filteredRoles);
-        return in_array($role, $staffRoles);
-    }
 
     public function messages(): array
     {
@@ -160,7 +75,6 @@ class StoreEmployeeRequest extends ApiRequest
             'roles.required' => 'Role tidak boleh kosong',
             'roles.array' => 'Role harus berupa array',
             'roles.min' => 'Pilih minimal 1 role',
-            'roles.max' => 'Maksimal 2 role',
             'roles.*.required' => 'Role tidak boleh kosong',
             'roles.*.in' => 'Role yang dipilih tidak valid',
         ];
