@@ -21,7 +21,7 @@ class UpdateSchoolRequest extends FormRequest
         $schoolId = $school ? $school->id : null;
 
         return [
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:4096',
             'name' => 'sometimes|required|string|max:255',
             'principal_name' => 'sometimes|required|string|max:255',
             'npsn' => [
@@ -52,7 +52,7 @@ class UpdateSchoolRequest extends FormRequest
         return [
             'logo.image' => 'Logo harus berupa file gambar',
             'logo.mimes' => 'Format logo harus jpeg, png, jpg, gif, atau svg',
-            'logo.max' => 'Ukuran logo maksimal 2MB',
+            'logo.max' => 'Ukuran logo maksimal 4MB',
             'name.required' => 'Nama sekolah wajib diisi',
             'name.max' => 'Nama sekolah maksimal 255 karakter',
             'principal_name.required' => 'Nama kepala sekolah wajib diisi',
