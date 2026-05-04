@@ -2,12 +2,11 @@
 
 namespace App\Http\Requests\Homeroom_teacher;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 use Illuminate\Validation\Rule;
 use App\Enums\AttendanceStatusEnum;
+use App\Http\Requests\ApiRequest;
 
-class StudentAttendanceListRequest extends FormRequest
+class StudentAttendanceListRequest extends ApiRequest
 {
     public function authorize(): bool
     {

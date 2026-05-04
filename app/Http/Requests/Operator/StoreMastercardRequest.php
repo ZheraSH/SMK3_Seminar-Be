@@ -2,25 +2,17 @@
 
 namespace App\Http\Requests\Operator;
 
+use App\Http\Requests\ApiRequest;
 use App\Rules\ValidRfidNumber;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreMastercardRequest extends FormRequest
+class StoreMastercardRequest extends ApiRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
@@ -33,11 +25,6 @@ class StoreMastercardRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get custom validation messages.
-     *
-     * @return array<string, string>
-     */
     public function messages(): array
     {
         return [

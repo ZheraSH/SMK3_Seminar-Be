@@ -2,13 +2,13 @@
 
 namespace App\Http\Requests\Operator;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use App\Enums\SchoolTypeEnum;
 use App\Enums\AccreditationEnum;
+use App\Http\Requests\ApiRequest;
 use App\Models\School;
 
-class UpdateSchoolRequest extends FormRequest
+class UpdateSchoolRequest extends ApiRequest
 {
     public function authorize(): bool
     {

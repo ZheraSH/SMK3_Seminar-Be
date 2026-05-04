@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Operator;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\ApiRequest;
 
-class PromoteClassRequest extends FormRequest
+class PromoteClassRequest extends ApiRequest
 {
     public function authorize(): bool
     {

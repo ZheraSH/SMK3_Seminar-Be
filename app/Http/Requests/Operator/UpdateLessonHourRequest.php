@@ -2,8 +2,6 @@
 
 namespace App\Http\Requests\Operator;
 
-use Illuminate\Validation\Rule;
-use App\Enums\DayEnum;
 use App\Http\Requests\ApiRequest;
 
 class UpdateLessonHourRequest extends ApiRequest
