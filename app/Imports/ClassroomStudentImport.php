@@ -63,9 +63,9 @@ class ClassroomStudentImport implements ToCollection, WithHeadingRow, WithValida
             'tempat_lahir' => 'required|string|max:255',
             'tanggal_lahir'=> 'required|date',
             'alamat'       => 'required|string|max:500',
-            'nomor_kk'     => 'required|numeric|digits:16',
-            'nomor_akta'   => 'required|numeric|digits_between:10,20',
             // Nullable columns
+            'nomor_kk'        => 'nullable|numeric|digits:16',
+            'nomor_akta'      => 'nullable|numeric|digits_between:10,20',
             'anak_ke'         => 'nullable|integer|min:1',
             'jumlah_saudara'  => 'nullable|integer|min:0',
         ];
@@ -88,10 +88,8 @@ class ClassroomStudentImport implements ToCollection, WithHeadingRow, WithValida
             'tanggal_lahir.date'      => 'Format Tanggal Lahir tidak valid (contoh: 2005-08-17).',
             'alamat.required'         => 'Kolom Alamat wajib diisi.',
             'alamat.max'              => 'Alamat terlalu panjang, maksimal 500 karakter.',
-            'nomor_kk.required'       => 'Kolom Nomor KK wajib diisi.',
             'nomor_kk.numeric'        => 'Nomor KK harus berupa angka.',
             'nomor_kk.digits'         => 'Nomor KK harus tepat 16 digit angka.',
-            'nomor_akta.required'     => 'Kolom Nomor Akta wajib diisi.',
             'nomor_akta.numeric'      => 'Nomor Akta harus berupa angka.',
             'nomor_akta.digits_between' => 'Nomor Akta harus antara 10 sampai 20 digit angka.',
             'anak_ke.integer'         => 'Kolom Anak Ke harus berupa angka bulat.',

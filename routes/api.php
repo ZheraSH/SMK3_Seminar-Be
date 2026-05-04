@@ -96,6 +96,7 @@ Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
     Route::apiResource('religions', ReligionController::class)->only('index');
     // Employees
     Route::apiResource('employees', EmployeeController::class);
+    Route::post('employees-import', [EmployeeController::class, 'import']); // import guru dari Excel
     // Students
     Route::apiResource('students', StudentController::class);
     // Majors

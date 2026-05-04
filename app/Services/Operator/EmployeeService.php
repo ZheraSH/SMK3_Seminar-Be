@@ -9,10 +9,12 @@ use App\Http\Requests\Operator\UpdateEmployeeRequest;
 use App\Enums\RoleEnum;
 use App\Enums\UploadDiskEnum;
 use App\Enums\GenderEnum;
+use App\Imports\EmployeeImport;
 use App\Traits\UploadTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 
 class EmployeeService
 {
@@ -32,8 +34,6 @@ class EmployeeService
         return DB::transaction(function () use ($request) {
             $data = $request->validated();
             $roles = $data['roles'];
-
-            $this->validateRoles($roles);
 
             if ($request->hasFile('image')) {
                 $data['image'] = $this->upload(
@@ -70,8 +70,6 @@ class EmployeeService
             $employee = $this->employeeRepository->show($id);
             $data = $request->validated();
             $roles = $data['roles'];
-
-            $this->validateRoles($roles);
 
             $updateData = [
                 'name'  => $data['name'],
@@ -128,28 +126,26 @@ class EmployeeService
         return $this->upload(UploadDiskEnum::TEACHER->value, $file);
     }
 
-    private function validateRoles(array $roles): void
+        public function importEmployees(mixed $file): array
     {
-        $teacherRoles = RoleEnum::teacherRoles();
-        $staffRoles = RoleEnum::staffRoles();
 
-        $guruCount = count(array_intersect($roles, $teacherRoles));
-        $staffCount = count(array_intersect($roles, $staffRoles));
+        $storedPath = $file->store('imports/tmp', 'local');
+        $fullPath   = storage_path('app/' . $storedPath);
 
-        if ($guruCount > 0 && $staffCount > 0) {
-            throw new \InvalidArgumentException('Tidak boleh memilih role dari kategori guru dan staff sekaligus.');
-        }
+        try {
+            $import = new EmployeeImport();
+            Excel::import($import, $fullPath);
 
-        if ($guruCount > 0) {
-            if (count($roles) > 2) {
-                throw new \InvalidArgumentException('Kategori guru maksimal memilih 2 role.');
-            }
-        }
-
-        if ($staffCount > 0) {
-            if (count($roles) > 1) {
-                throw new \InvalidArgumentException('Kategori staff hanya boleh memilih 1 role.');
+            return [
+                'imported_count' => $import->importedCount,
+                'errors'         => $import->getErrors(),
+            ];
+        } finally {
+            if (file_exists($fullPath)) {
+                unlink($fullPath);
             }
         }
     }
+
+
 }
