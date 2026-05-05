@@ -22,9 +22,9 @@ class ImportClassroomStudentRequest extends ApiRequest
     {
         return [
             'file.required' => 'File Excel wajib di-upload.',
-            'file.file'     => 'Upload harus berupa file.',
-            'file.mimes'    => 'Format file harus berupa xlsx, xls, atau csv.',
-            'file.max'      => 'Ukuran file maksimal 5MB.',
+            'file.file' => 'Upload harus berupa file.',
+            'file.mimes' => 'Format file harus berupa xlsx, xls, atau csv.',
+            'file.max' => 'Ukuran file maksimal 5MB.',
         ];
     }
 }

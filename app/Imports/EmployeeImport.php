@@ -47,51 +47,51 @@ class EmployeeImport implements ToCollection, WithHeadingRow, WithValidation, Sk
     public function rules(): array
     {
         return [
-            'nama'          => 'required|string|max:255',
-            'nip'           => 'required|string|max:18',
-            'agama'         => 'required|string',
+            'nama' => 'required|string|max:255',
+            'nip' => 'required|string|max:18',
+            'agama' => 'required|string',
             'jenis_kelamin' => 'required|in:L,P,l,p',
-            'tempat_lahir'  => 'required|string|max:255',
+            'tempat_lahir' => 'required|string|max:255',
             'tanggal_lahir' => 'required|date',
-            'alamat'        => 'required|string|max:500',
+            'alamat' => 'required|string|max:500',
             // Nullable
-            'nik'           => 'nullable|string|max:16',
-            'nomor_hp'      => 'nullable|string|max:20',
+            'nik' => 'nullable|string|max:16',
+            'nomor_hp' => 'nullable|string|max:20',
         ];
     }
 
     public function customValidationMessages(): array
     {
         return [
-            'nama.required'          => 'Kolom Nama wajib diisi.',
-            'nama.max'               => 'Nama terlalu panjang, maksimal 255 karakter.',
-            'nip.required'           => 'Kolom NIP wajib diisi.',
-            'nip.max'                => 'NIP terlalu panjang, maksimal 18 karakter.',
+            'nama.required' => 'Kolom Nama wajib diisi.',
+            'nama.max' => 'Nama terlalu panjang, maksimal 255 karakter.',
+            'nip.required' => 'Kolom NIP wajib diisi.',
+            'nip.max' => 'NIP terlalu panjang, maksimal 18 karakter.',
             'jenis_kelamin.required' => 'Kolom Jenis Kelamin wajib diisi.',
-            'jenis_kelamin.in'       => 'Jenis Kelamin hanya boleh diisi \'L\' (Laki-laki) atau \'P\' (Perempuan).',
-            'tempat_lahir.required'  => 'Kolom Tempat Lahir wajib diisi.',
-            'tempat_lahir.max'       => 'Tempat Lahir terlalu panjang, maksimal 255 karakter.',
+            'jenis_kelamin.in' => 'Jenis Kelamin hanya boleh diisi \'L\' (Laki-laki) atau \'P\' (Perempuan).',
+            'tempat_lahir.required' => 'Kolom Tempat Lahir wajib diisi.',
+            'tempat_lahir.max' => 'Tempat Lahir terlalu panjang, maksimal 255 karakter.',
             'tanggal_lahir.required' => 'Kolom Tanggal Lahir wajib diisi.',
-            'tanggal_lahir.date'     => 'Format Tanggal Lahir tidak valid (contoh: 1990-08-17).',
-            'alamat.required'        => 'Kolom Alamat wajib diisi.',
-            'alamat.max'             => 'Alamat terlalu panjang, maksimal 500 karakter.',
-            'nik.max'                => 'NIK terlalu panjang, maksimal 16 digit.',
-            'nomor_hp.max'           => 'Nomor HP terlalu panjang, maksimal 20 karakter.',
+            'tanggal_lahir.date' => 'Format Tanggal Lahir tidak valid (contoh: 1990-08-17).',
+            'alamat.required' => 'Kolom Alamat wajib diisi.',
+            'alamat.max' => 'Alamat terlalu panjang, maksimal 500 karakter.',
+            'nik.max' => 'NIK terlalu panjang, maksimal 16 digit.',
+            'nomor_hp.max' => 'Nomor HP terlalu panjang, maksimal 20 karakter.',
         ];
     }
 
     public function customValidationAttributes(): array
     {
         return [
-            'nama'          => 'Nama',
-            'nip'           => 'NIP',
-            'agama'         => 'Agama',
+            'nama' => 'Nama',
+            'nip' => 'NIP',
+            'agama' => 'Agama',
             'jenis_kelamin' => 'Jenis Kelamin',
-            'tempat_lahir'  => 'Tempat Lahir',
+            'tempat_lahir' => 'Tempat Lahir',
             'tanggal_lahir' => 'Tanggal Lahir',
-            'alamat'        => 'Alamat',
-            'nik'           => 'NIK',
-            'nomor_hp'      => 'Nomor HP',
+            'alamat' => 'Alamat',
+            'nik' => 'NIK',
+            'nomor_hp' => 'Nomor HP',
         ];
     }
 
@@ -105,9 +105,9 @@ class EmployeeImport implements ToCollection, WithHeadingRow, WithValidation, Sk
                     $key = 'nip_duplikat|' . $row['nip'];
                     if (!isset($this->groupedErrors[$key])) {
                         $this->groupedErrors[$key] = [
-                            'kolom'   => 'nip',
+                            'kolom' => 'nip',
                             'message' => "NIP {$row['nip']} sudah terdaftar di sistem.",
-                            'rows'    => [],
+                            'rows' => [],
                         ];
                     }
                     $this->groupedErrors[$key]['rows'][] = $rowNumber;
@@ -121,9 +121,9 @@ class EmployeeImport implements ToCollection, WithHeadingRow, WithValidation, Sk
                         $key = 'agama_tidak_ditemukan|' . strtolower(trim($row['agama']));
                         if (!isset($this->groupedErrors[$key])) {
                             $this->groupedErrors[$key] = [
-                                'kolom'   => 'agama',
+                                'kolom' => 'agama',
                                 'message' => "Agama '{$row['agama']}' tidak ditemukan di database.",
-                                'rows'    => [],
+                                'rows' => [],
                             ];
                         }
                         $this->groupedErrors[$key]['rows'][] = $rowNumber;
@@ -143,9 +143,9 @@ class EmployeeImport implements ToCollection, WithHeadingRow, WithValidation, Sk
                     $key = 'gender_invalid|' . strtolower(trim($row['jenis_kelamin']));
                     if (!isset($this->groupedErrors[$key])) {
                         $this->groupedErrors[$key] = [
-                            'kolom'   => 'jenis_kelamin',
+                            'kolom' => 'jenis_kelamin',
                             'message' => "Jenis kelamin '{$row['jenis_kelamin']}' tidak valid (harus L atau P).",
-                            'rows'    => [],
+                            'rows' => [],
                         ];
                     }
                     $this->groupedErrors[$key]['rows'][] = $rowNumber;
@@ -170,16 +170,16 @@ class EmployeeImport implements ToCollection, WithHeadingRow, WithValidation, Sk
                 $user->assignRole(RoleEnum::TEACHER->value);
 
                 Employee::create([
-                    'user_id'      => $user->id,
-                    'nip'          => trim($row['nip']),
-                    'nik'          => !empty($row['nik']) ? trim($row['nik']) : null,
-                    'religion_id'  => $religionId,
-                    'gender'       => $gender,
-                    'birth_place'  => trim($row['tempat_lahir']),
-                    'birth_date'   => \Carbon\Carbon::parse($row['tanggal_lahir'])->format('Y-m-d'),
-                    'address'      => trim($row['alamat']),
+                    'user_id' => $user->id,
+                    'nip' => trim($row['nip']),
+                    'nik' => !empty($row['nik']) ? trim($row['nik']) : null,
+                    'religion_id' => $religionId,
+                    'gender' => $gender,
+                    'birth_place' => trim($row['tempat_lahir']),
+                    'birth_date' => \Carbon\Carbon::parse($row['tanggal_lahir'])->format('Y-m-d'),
+                    'address' => trim($row['alamat']),
                     'phone_number' => !empty($row['nomor_hp']) ? trim($row['nomor_hp']) : null,
-                    'image'        => $defaultImage,
+                    'image' => $defaultImage,
                 ]);
 
                 $this->importedCount++;

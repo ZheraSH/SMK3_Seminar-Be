@@ -12,11 +12,11 @@ class RfidAllCardResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id'        => $this->id,
-            'rfid'      => $this->rfid,
+            'id' => $this->id,
+            'rfid' => $this->rfid,
             'classroom' => $this->classroom,
-            'name'      => $this->name,
-            'type'      => $this->type,
+            'name' => $this->name,
+            'type' => $this->type,
         ];
     }
 }

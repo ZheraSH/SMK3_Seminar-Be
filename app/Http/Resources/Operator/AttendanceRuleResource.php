@@ -9,6 +9,7 @@ use App\Helpers\TapHelper;
 class AttendanceRuleResource extends JsonResource
 {
     use HasEnumLabelsTrait;
+
     public function toArray($request): array
     {
         return [

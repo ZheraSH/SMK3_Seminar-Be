@@ -11,12 +11,12 @@ class LogStudentTapResource extends JsonResource
         $results = $this->resource;
 
         return [
-            'status'    => 'success',
-            'message'   => 'Data absensi berhasil diupload',
-            'summary'   => [
-                'total'     => $results['total'] ?? 0,
-                'saved'     => $results['saved'] ?? 0,
-                'skipped'   => $results['skipped'] ?? 0,
+            'status' => 'success',
+            'message' => 'Data absensi berhasil diupload',
+            'summary' => [
+                'total' => $results['total'] ?? 0,
+                'saved' => $results['saved'] ?? 0,
+                'skipped' => $results['skipped'] ?? 0,
             ],
             'details'   => $results['details'] ?? [],
         ];

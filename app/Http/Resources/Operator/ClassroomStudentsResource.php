@@ -8,6 +8,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class ClassroomStudentsResource extends JsonResource
 {
     use ResolvesImageUrlTrait;
+
     public function toArray($request): array
     {
         return [

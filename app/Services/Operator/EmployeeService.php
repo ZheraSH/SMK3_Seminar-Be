@@ -138,7 +138,7 @@ class EmployeeService
 
             return [
                 'imported_count' => $import->importedCount,
-                'errors'         => $import->getErrors(),
+                'errors' => $import->getErrors(),
             ];
         } finally {
             if (file_exists($fullPath)) {
