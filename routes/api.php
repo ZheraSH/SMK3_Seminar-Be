@@ -41,8 +41,8 @@ Route::get('school-logo', [SchoolController::class, 'publicLogo']);
 Route::prefix('attendance')->group(function () {
     Route::get('rfids', [RfidController::class, 'allCard']);
     Route::get('hours', [AttendanceRuleController::class, 'index']);
-    Route::post('/', [RfidTapController::class, 'tap']);
     Route::post('add', [RfidTapController::class, 'add']);
+    // Route::post('/', [RfidTapController::class, 'tap']);
 });
 // Mastercard Management
 Route::prefix('attendance')->group(function () {
