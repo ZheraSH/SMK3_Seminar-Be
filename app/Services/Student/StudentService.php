@@ -2,7 +2,7 @@
 
 namespace App\Services\Student;
 
-use App\Contracts\Repositories\AttendanceRepository;
+use App\Contracts\Repositories\AttendanceRfidRepository;
 use App\Contracts\Repositories\Operator\LessonScheduleRepository;
 use App\Contracts\Repositories\Operator\StudentRepository;
 use App\Enums\DayEnum;
@@ -13,13 +13,13 @@ use Carbon\Carbon;
 class StudentService
 {
     private StudentRepository $studentRepository;
-    private AttendanceRepository $attendanceRepository;
+    private AttendanceRfidRepository $attendanceRfidRepository;
     private LessonScheduleRepository $lessonScheduleRepository;
 
-    public function __construct(StudentRepository $studentRepository, AttendanceRepository $attendanceRepository, LessonScheduleRepository $lessonScheduleRepository)
+    public function __construct(StudentRepository $studentRepository, AttendanceRfidRepository $attendanceRfidRepository, LessonScheduleRepository $lessonScheduleRepository)
     {
         $this->studentRepository = $studentRepository;
-        $this->attendanceRepository = $attendanceRepository;
+        $this->attendanceRfidRepository = $attendanceRfidRepository;
         $this->lessonScheduleRepository = $lessonScheduleRepository;
     }
 
@@ -32,7 +32,7 @@ class StudentService
     public function getStudentHistory(User $user, Request $request)
     {
         $studentId = $user->student->id;
-        return $this->attendanceRepository->getStudentHistory($studentId, 10);
+        return $this->attendanceRfidRepository->getStudentHistory($studentId, 10);
     }
 
     public function getStudentScheduleByDay(User $user, Request $request, ?string $day = null): array

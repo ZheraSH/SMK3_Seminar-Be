@@ -3,9 +3,9 @@
 namespace App\Services\Teacher;
 
 use App\Contracts\Repositories\AttendanceRepository;
+use App\Contracts\Repositories\AttendanceRfidRepository;
 use App\Contracts\Repositories\Operator\LessonScheduleRepository;
 use App\Contracts\Repositories\Operator\ClassroomStudentsRepository;
-use App\Enums\AttendanceProofEnum;
 use App\Enums\AttendanceStatusEnum;
 use App\Enums\DayEnum;
 use App\Enums\StudentStatusEnum;
@@ -20,12 +20,14 @@ class TeacherService
     private LessonScheduleRepository $lessonScheduleRepository;
     private ClassroomStudentsRepository $classroomStudentsRepository;
     private AttendanceRepository $attendanceRepository;
+    private AttendanceRfidRepository $attendanceRfidRepository;
 
-    public function __construct(LessonScheduleRepository $lessonScheduleRepository, AttendanceRepository $attendanceRepository, ClassroomStudentsRepository $classroomStudentsRepository)
+    public function __construct(LessonScheduleRepository $lessonScheduleRepository, AttendanceRepository $attendanceRepository, ClassroomStudentsRepository $classroomStudentsRepository, AttendanceRfidRepository $attendanceRfidRepository)
     {
         $this->lessonScheduleRepository = $lessonScheduleRepository;
         $this->classroomStudentsRepository = $classroomStudentsRepository;
         $this->attendanceRepository = $attendanceRepository;
+        $this->attendanceRfidRepository = $attendanceRfidRepository;
     }
 
     /* =====================================================
@@ -44,7 +46,6 @@ class TeacherService
         foreach ($schedules as $schedule) {
             $hasCrossCheck = $this->attendanceRepository
                 ->getByScheduleAndDate($schedule->id, $date)
-                ->where('attendance_type', 'cross_check')
                 ->isNotEmpty();
 
             $schedule->has_cross_checked = $hasCrossCheck;
@@ -74,7 +75,6 @@ class TeacherService
         foreach ($schedules as $schedule) {
             $hasCrossCheck = $this->attendanceRepository
                 ->getByScheduleAndDate($schedule->id, $date)
-                ->where('attendance_type', 'cross_check')
                 ->isNotEmpty();
 
             $schedule->has_cross_checked = $hasCrossCheck;
@@ -117,7 +117,6 @@ class TeacherService
 
                 $hasCrossCheck = $this->attendanceRepository
                     ->getByScheduleAndDate($last->id, $date)
-                    ->where('attendance_type', 'cross_check')
                     ->isNotEmpty();
 
                 $last->has_cross_checked = $hasCrossCheck;
@@ -181,7 +180,7 @@ class TeacherService
         $students->getCollection()->transform(function ($classroomStudent) use ($date, $lessonOrder) {
             $student = $classroomStudent->student;
             $existingAttendance = $this->attendanceRepository->getByStudentLesson($student->id, $date, $lessonOrder);
-            $rfidAttendance = $this->attendanceRepository->getRFIDAttendanceByStudentAndDate($student->id, $date);
+            $rfidAttendance = $this->attendanceRfidRepository->getByStudentAndDate($student->id, $date);
             $currentStatus = $existingAttendance?->status?->value ?? null;
             $isLocked = $existingAttendance?->is_locked ?? false;
 
@@ -283,9 +282,7 @@ class TeacherService
                             'teacher_id'           => $teacherId,
                             'lesson_schedule_id'   => $schedule->id,
                             'subject_id'           => $schedule->subject_id,
-                            'attendance_type'      => 'cross_check',
                             'status'               => $status,
-                            'proof'                => AttendanceProofEnum::CLASSROOM->value,
                             'is_final'             => true,
                             'updated_at'           => now()
                         ]
@@ -349,7 +346,6 @@ class TeacherService
         return [
             'total_students' => $this->classroomStudentsRepository->countActiveByClassroom($classroomId),
             'hadir' => $attendances->where('status', AttendanceStatusEnum::PRESENT->value)->count(),
-            'terlambat' => $attendances->where('status', AttendanceStatusEnum::LATE->value)->count(),
             'izin' => $attendances->where('status', AttendanceStatusEnum::LEAVE->value)->count(),
             'sakit' => $attendances->where('status', AttendanceStatusEnum::SICK->value)->count(),
             'alpha' => $attendances->where('status', AttendanceStatusEnum::ALPHA->value)->count(),

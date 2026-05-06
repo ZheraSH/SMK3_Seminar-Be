@@ -6,10 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Enums\AttendanceStatusEnum;
-use App\Enums\AttendanceProofEnum;
 use App\Traits\Models\BelongsToAttendancePermission;
 use App\Traits\Models\BelongsToClassroomStudents;
-use App\Traits\Models\BelongsToRfid;
 use App\Traits\Models\BelongsToStudent;
 use App\Traits\Models\BelongsToSubject;
 use App\Traits\Models\BelongsToTeacher;
@@ -21,7 +19,7 @@ class Attendance extends Model
     use HasFactory, HasUuids, BelongsToStudent,
     BelongsToSubject, BelongsToTeacher,
     BelongsToLessonSchedule, BelongsToClassroomStudents,
-    BelongsToRfid, BelongsToAttendancePermission, SoftDeletes;
+    BelongsToAttendancePermission, SoftDeletes;
 
     public $incrementing = false;
     protected $keyType = 'string';
@@ -33,14 +31,9 @@ class Attendance extends Model
         'lesson_schedule_id',
         'teacher_id',
         'subject_id',
-        'rfid_id',
         'date',
-        'checkin_time',
-        'checkout_time',
         'lesson_order',
-        'attendance_type',
         'status',
-        'proof',
         'is_final',
         'is_locked',
         'overridden_by_permission_id',
@@ -48,10 +41,7 @@ class Attendance extends Model
 
     protected $casts = [
         'date' => 'date:Y-m-d',
-        'checkin_time' => 'string',
-        'checkout_time' => 'string',
         'status' => AttendanceStatusEnum::class,
-        'proof' => AttendanceProofEnum::class,
         'is_final' => 'boolean',
         'is_locked' => 'boolean',
     ];

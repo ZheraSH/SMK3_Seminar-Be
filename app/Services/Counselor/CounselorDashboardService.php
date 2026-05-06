@@ -5,26 +5,27 @@ namespace App\Services\Counselor;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use App\Contracts\Repositories\AttendanceRepository;
+use App\Contracts\Repositories\AttendanceRfidRepository;
+use Illuminate\Support\Collection;
 
 class CounselorDashboardService
 {
-    private AttendanceRepository $attendanceRepository;
+    private AttendanceRfidRepository $attendanceRfidRepository;
 
-    public function __construct(AttendanceRepository $attendanceRepository)
+    public function __construct(AttendanceRfidRepository $attendanceRfidRepository)
     {
-        $this->attendanceRepository = $attendanceRepository;
+        $this->attendanceRfidRepository = $attendanceRfidRepository;
     }
 
     public function getAttendanceCounts(User $user, Request $request): array
     {
-        return $this->attendanceRepository->countTotalStatusToday(Carbon::today()->toDateString());
+        return $this->attendanceRfidRepository->countTotalStatusToday(Carbon::today()->toDateString());
     }
 
-    public function getHighAlphaStudents(User $user, Request $request): \Illuminate\Database\Eloquent\Collection
+    public function getHighAlphaStudents(User $user, Request $request): Collection
     {
         $limit = $request->input('limit', 10);
         $threshold = 3;
-        return $this->attendanceRepository->getStudentsWithHighAlpha($threshold, (int) $limit);
+        return $this->attendanceRfidRepository->getStudentsWithHighAlpha($threshold, (int) $limit);
     }
 }

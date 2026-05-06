@@ -256,15 +256,13 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
 
         if ($status && $date) {
             if ($status === 'alpha') {
-                $query->whereDoesntHave('attendances', function ($q) use ($date) {
+                $query->whereDoesntHave('student.attendanceRfids', function ($q) use ($date) {
                     $q->whereDate('date', $date)
-                        ->where('attendance_type', 'rfid')
                         ->where('is_final', true);
                 });
             } else {
-                $query->whereHas('attendances', function ($q) use ($date, $status) {
+                $query->whereHas('student.attendanceRfids', function ($q) use ($date, $status) {
                     $q->whereDate('date', $date)
-                        ->where('attendance_type', 'rfid')
                         ->where('status', $status)
                         ->where('is_final', true);
                 });
@@ -293,14 +291,12 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
 
         if ($status && $date) {
             if ($status === 'alpha') {
-                $query->whereDoesntHave('student.attendances', function ($q) use ($date) {
-                    $q->whereDate('date', $date)
-                        ->where('attendance_type', 'rfid');
+                $query->whereDoesntHave('student.attendanceRfids', function ($q) use ($date) {
+                    $q->whereDate('date', $date);
                 });
             } else {
-                $query->whereHas('student.attendances', function ($q) use ($date, $status) {
+                $query->whereHas('student.attendanceRfids', function ($q) use ($date, $status) {
                     $q->whereDate('date', $date)
-                        ->where('attendance_type', 'rfid')
                         ->where('status', $status);
                 });
             }
@@ -340,15 +336,13 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
 
         if ($status && $date) {
             if ($status === 'alpha') {
-                $query->whereDoesntHave('student.attendances', function ($q) use ($date) {
+                $query->whereDoesntHave('student.attendanceRfids', function ($q) use ($date) {
                     $q->whereDate('date', $date)
-                        ->where('attendance_type', 'rfid')
                         ->where('is_final', true);
                 });
             } else {
-                $query->whereHas('student.attendances', function ($q) use ($date, $status) {
+                $query->whereHas('student.attendanceRfids', function ($q) use ($date, $status) {
                     $q->whereDate('date', $date)
-                        ->where('attendance_type', 'rfid')
                         ->where('status', $status)
                         ->where('is_final', true);
                 });

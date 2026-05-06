@@ -2,7 +2,7 @@
 
 namespace App\Services\Homeroom_Teacher;
 
-use App\Contracts\Repositories\AttendanceRepository;
+use App\Contracts\Repositories\AttendanceRfidRepository;
 use App\Contracts\Repositories\Operator\ClassroomStudentsRepository;
 use App\Contracts\Repositories\Operator\ClassroomRepository;
 use App\Enums\AttendanceStatusEnum;
@@ -15,13 +15,13 @@ class HomeroomTeacherService
 {
     private ClassroomRepository $classroomRepository;
     private ClassroomStudentsRepository $classroomStudentsRepository;
-    private AttendanceRepository $attendanceRepository;
+    private AttendanceRfidRepository $attendanceRfidRepository;
 
-    public function __construct(ClassroomRepository $classroomRepository, ClassroomStudentsRepository $classroomStudentsRepository, AttendanceRepository $attendanceRepository)
+    public function __construct(ClassroomRepository $classroomRepository, ClassroomStudentsRepository $classroomStudentsRepository, AttendanceRfidRepository $attendanceRfidRepository)
     {
         $this->classroomRepository = $classroomRepository;
         $this->classroomStudentsRepository = $classroomStudentsRepository;
-        $this->attendanceRepository = $attendanceRepository;
+        $this->attendanceRfidRepository = $attendanceRfidRepository;
     }
 
     public function getTeacherClassroom(User $teacher): ?array
@@ -76,10 +76,7 @@ class HomeroomTeacherService
             return $this->emptyDailySummary($classroom);
         }
 
-        // Use RFID attendance for daily summary (most accurate for daily presence)
-        $attendances = $this->attendanceRepository
-            ->getByClassroomAndDate($classroom['id'], $date)
-            ->where('attendance_type', 'rfid');
+        $attendances = $this->attendanceRfidRepository->getByClassroomAndDate($classroom['id'], $date);
 
         $counters = $this->countAttendance(
             $classroom['id'],
@@ -115,11 +112,7 @@ class HomeroomTeacherService
 
         while ($start->lte($end)) {
             $date = $start->format('Y-m-d');
-
-            // Use RFID attendance for weekly statistics (consistent with daily summary)
-            $attendances = $this->attendanceRepository
-                ->getByClassroomAndDate($classroom['id'], $date)
-                ->where('attendance_type', 'rfid');
+            $attendances = $this->attendanceRfidRepository->getByClassroomAndDate($classroom['id'], $date);
 
             $count = $this->countAttendance(
                 $classroom['id'],
@@ -163,10 +156,7 @@ class HomeroomTeacherService
         $studentsPaginated = $this->classroomStudentsRepository
             ->getByClassroomForDailyAttendance($classroom['id'], $date, $search, $status, $perPage);
 
-        // Use RFID attendance for daily attendance list
-        $attendances = $this->attendanceRepository
-            ->getByClassroomAndDate($classroom['id'], $date)
-            ->where('attendance_type', 'rfid');
+        $attendances = $this->attendanceRfidRepository->getByClassroomAndDate($classroom['id'], $date);
 
         $students = $studentsPaginated->map(
             fn($cs) => $this->mapStudentAttendance($cs, $date, $attendances)
@@ -262,12 +252,8 @@ class HomeroomTeacherService
         $status = $request->input('status');
         $classroom = $this->requireClassroom($teacher);
 
-        $studentsCollection = $this->classroomStudentsRepository
-            ->getAllByClassroomForAttendanceRecap($classroom['id'], $date, null, $status);
-
-        $attendances = $this->attendanceRepository
-            ->getByClassroomAndDate($classroom['id'], $date)
-            ->where('attendance_type', 'rfid');
+        $studentsCollection = $this->classroomStudentsRepository->getAllByClassroomForAttendanceRecap($classroom['id'], $date, null, $status);
+        $attendances = $this->attendanceRfidRepository->getByClassroomAndDate($classroom['id'], $date);
 
         $students = $studentsCollection->map(
             fn($cs) => $this->mapStudentAttendance($cs, $date, $attendances)

@@ -4,7 +4,6 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Enums\AttendanceStatusEnum;
-use App\Enums\AttendanceProofEnum;
 
 class AttendanceResource extends JsonResource
 {
@@ -12,16 +11,16 @@ class AttendanceResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'date' => $this->date->format('d-m-Y'),
-            'checkin_time' => $this->checkin_time,
-            'checkout_time' => $this->checkout_time,
+            'date' => $this->date?->format('d-m-Y'),
             'lesson_order' => $this->lesson_order,
-            'attendance_type' => $this->attendance_type,
-            'attendance_type_label' => $this->attendance_type === 'rfid' ? 'RFID' : 'Cross-Check',
-            'status' => $this->status,
-            'status_label' => AttendanceStatusEnum::from($this->status)->label(),
-            'proof' => $this->proof,
-            'proof_label' => AttendanceProofEnum::from($this->proof)->label(),
+            'status' => $this->status instanceof AttendanceStatusEnum
+                ? $this->status->value
+                : $this->status,
+            'status_label' => $this->status instanceof AttendanceStatusEnum
+                ? $this->status->label()
+                : (AttendanceStatusEnum::tryFrom($this->status)?->label() ?? $this->status),
+            'is_locked' => $this->is_locked,
+            'is_final' => $this->is_final,
             'student' => $this->whenLoaded('student', function () {
                 return [
                     'id' => $this->student->id,

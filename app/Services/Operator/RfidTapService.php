@@ -2,34 +2,26 @@
 
 namespace App\Services\Operator;
 
-use App\Contracts\Repositories\AttendanceRepository;
+use App\Contracts\Repositories\AttendanceRfidRepository;
 use App\Contracts\Repositories\Operator\RfidRepository;
 use App\Contracts\Repositories\Operator\AttendanceRuleRepository;
 use App\Contracts\Repositories\Operator\LessonScheduleRepository;
-use App\Enums\AttendanceProofEnum;
 use App\Enums\AttendanceStatusEnum;
 use App\Enums\StudentStatusEnum;
-// use App\Enums\RfidStatusEnum;
-// use App\Enums\TapStatusEnum;
-// use App\Enums\TapTypeEnum;
 use App\Helpers\TapHelper;
 use Carbon\Carbon;
-// use Illuminate\Http\Request;
-// use Illuminate\Support\Facades\DB;
 
 class RfidTapService
 {
     private RfidRepository $rfidRepository;
-    private AttendanceRepository $attendanceRepository;
+    private AttendanceRfidRepository $attendanceRfidRepository;
     private AttendanceRuleRepository $attendanceRuleRepository;
-    private LessonScheduleRepository $lessonScheduleRepository;
 
-    public function __construct(RfidRepository $rfidRepository, AttendanceRepository $attendanceRepository, AttendanceRuleRepository $attendanceRuleRepository, LessonScheduleRepository $lessonScheduleRepository)
+    public function __construct(RfidRepository $rfidRepository, AttendanceRfidRepository $attendanceRfidRepository, AttendanceRuleRepository $attendanceRuleRepository)
     {
         $this->rfidRepository = $rfidRepository;
-        $this->attendanceRepository = $attendanceRepository;
+        $this->attendanceRfidRepository = $attendanceRfidRepository;
         $this->attendanceRuleRepository = $attendanceRuleRepository;
-        $this->lessonScheduleRepository = $lessonScheduleRepository;
     }
 
     public function processBulkUpload(array $attendances, string $date): array
@@ -38,7 +30,7 @@ class RfidTapService
         $skipped = 0;
         $details = [];
 
-        $day = strtolower(Carbon::parse($date)->englishDayOfWeek);
+        $day  = strtolower(Carbon::parse($date)->englishDayOfWeek);
         $rule = $this->attendanceRuleRepository->getByDay($day);
 
         foreach ($attendances as $item) {
@@ -75,7 +67,6 @@ class RfidTapService
 
             $checkinEnd    = TapHelper::parseRuleTimeToCarbon($rule->checkin_end);
             $checkoutStart = TapHelper::parseRuleTimeToCarbon($rule->checkout_start);
-
             $isCheckout    = $checkoutStart && $tapTime->greaterThanOrEqualTo($checkoutStart);
 
             $student->loadMissing('classroomStudents');
@@ -84,33 +75,27 @@ class RfidTapService
                 ->first();
 
             try {
-                $record = $this->attendanceRepository->getRFIDAttendanceByStudentAndDate($student->id, $date);
+                $record = $this->attendanceRfidRepository->getByStudentAndDate($student->id, $date);
 
                 if ($isCheckout) {
                     if ($record) {
-                        $this->attendanceRepository->update($record->id, [
+                        $this->attendanceRfidRepository->update($record->id, [
                             'checkout_time' => $tapTime->toTimeString(),
                         ]);
                         $result = 'checkout_updated';
-                        $status = $record->status ?? null;
+                        $status = $record->status?->value ?? $record->status ?? null;
                     } else {
-                        $status = AttendanceStatusEnum::ALPHA->value;
-                        $attendanceData = [
-                            'student_id' => $student->id,
-                            'rfid_id' => $rfid->id,
+                        $status = AttendanceStatusEnum::LATE->value;
+                        $this->attendanceRfidRepository->store([
+                            'student_id'           => $student->id,
+                            'rfid_id'              => $rfid->id,
                             'classroom_student_id' => $activeClassroom?->id,
                             'date' => $date,
                             'checkin_time' => null,
                             'checkout_time' => $tapTime->toTimeString(),
-                            'lesson_order' => 1,
-                            'attendance_type' => 'rfid',
                             'status' => $status,
-                            'proof' => AttendanceProofEnum::RFID->value,
-                            'is_final' => true,
-                            'is_locked' => false,
-                        ];
-                        $this->attendanceRepository->store($attendanceData);
-                        $result = 'checkout_created_alpha_no_checkin';
+                        ]);
+                        $result = 'checkout_created_no_checkin';
                     }
                 } else {
                     $status = AttendanceStatusEnum::PRESENT->value;
@@ -118,25 +103,19 @@ class RfidTapService
                         $status = TapHelper::calculateAttendanceStatus($tapTime, $checkinEnd);
                     }
 
-                    $attendanceData = [
-                        'student_id' => $student->id,
-                        'rfid_id' => $rfid->id,
-                        'classroom_student_id' => $activeClassroom?->id,
-                        'date' => $date,
-                        'checkin_time' => $tapTime->toTimeString(),
-                        'lesson_order' => 1,
-                        'attendance_type' => 'rfid',
-                        'status' => $status,
-                        'proof' => AttendanceProofEnum::RFID->value,
-                        'is_final' => true,
-                        'is_locked' => false,
-                    ];
-
                     if ($record) {
                         $result = 'checkin_skipped_already_exists';
-                        $status = $record->status ?? null;
+                        $status = $record->status?->value ?? $record->status ?? null;
                     } else {
-                        $this->attendanceRepository->store($attendanceData);
+                        $this->attendanceRfidRepository->store([
+                            'student_id' => $student->id,
+                            'rfid_id' => $rfid->id,
+                            'classroom_student_id' => $activeClassroom?->id,
+                            'date' => $date,
+                            'checkin_time' => $tapTime->toTimeString(),
+                            'checkout_time' => null,
+                            'status' => $status,
+                        ]);
                         $result = 'upload_created';
                     }
                 }
@@ -168,7 +147,7 @@ class RfidTapService
 
     public function getHistory(int $perPage = 10, ?string $search = null, ?string $status = null)
     {
-        return $this->attendanceRepository->getPaginatedRfidHistory($perPage, $search, $status);
+        return $this->attendanceRfidRepository->getPaginatedHistory($perPage, $search, $status);
     }
 
     // public function processTap(Request $request): array

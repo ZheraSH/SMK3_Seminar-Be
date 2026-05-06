@@ -6,7 +6,7 @@ use App\Contracts\Repositories\Operator\StudentRepository;
 use App\Contracts\Repositories\Operator\EmployeeRepository;
 use App\Contracts\Repositories\Operator\ClassroomRepository;
 use App\Contracts\Repositories\Operator\MajorRepository;
-use App\Contracts\Repositories\AttendanceRepository;
+use App\Contracts\Repositories\AttendanceRfidRepository;
 
 class OperatorDashboardService
 {
@@ -14,15 +14,15 @@ class OperatorDashboardService
     private EmployeeRepository $employeeRepository;
     private ClassroomRepository $classroomRepository;
     private MajorRepository $majorRepository;
-    private AttendanceRepository $attendanceRepository;
+    private AttendanceRfidRepository $attendanceRfidRepository;
 
-    public function __construct(StudentRepository $studentRepository, EmployeeRepository $employeeRepository, ClassroomRepository $classroomRepository, MajorRepository $majorRepository, AttendanceRepository $attendanceRepository)
+    public function __construct(StudentRepository $studentRepository, EmployeeRepository $employeeRepository, ClassroomRepository $classroomRepository, MajorRepository $majorRepository, AttendanceRfidRepository $attendanceRfidRepository)
     {
         $this->studentRepository = $studentRepository;
         $this->employeeRepository = $employeeRepository;
         $this->classroomRepository = $classroomRepository;
         $this->majorRepository = $majorRepository;
-        $this->attendanceRepository = $attendanceRepository;
+        $this->attendanceRfidRepository = $attendanceRfidRepository;
     }
 
     public function getMaster(): array
@@ -42,24 +42,19 @@ class OperatorDashboardService
 
     public function getRfidActivities(int $limit = 10)
     {
-        // Delegate query to repository
-        return $this->attendanceRepository->getRecentRfidActivities($limit);
+        return $this->attendanceRfidRepository->getRecentActivities($limit);
     }
 
     public function getTodayAttendanceSummary(): array
     {
         $totalStudents = $this->studentRepository->count();
 
-        // Delegate query to repository
-        $data = $this->attendanceRepository->getTodayAttendanceSummary();
+        $data = $this->attendanceRfidRepository->getTodaySummary();
 
-        // Service handles business logic: formatting response
         return [
             'total_students' => $totalStudents,
             'present' => (int) $data->present,
             'late' => (int) $data->late,
-            'permission' => (int) $data->permission,
-            'absent' => (int) $data->alpha,
         ];
     }
 
@@ -67,12 +62,9 @@ class OperatorDashboardService
     {
         $totalStudents = $this->studentRepository->count();
 
-        // Delegate query to repository
-        $monthlyData = $this->attendanceRepository->getMonthlyAttendanceChart(now()->year);
+        $monthlyData = $this->attendanceRfidRepository->getMonthlyChart(now()->year);
 
-        // Service handles business logic: calculation and formatting
         return $monthlyData->map(function ($row) use ($totalStudents) {
-            // Estimate school days (rough: ~20 days per month)
             $schoolDays = $row->total_days_with_attendance ?: 20;
             $maxPossible = $totalStudents * $schoolDays;
 
