@@ -65,8 +65,16 @@ class TapHelper
 
     public static function calculateAttendanceStatus(Carbon $tapTime, Carbon $expected): string
     {
-        $grace = $expected->copy()->addMinutes(5);
-        return $tapTime->lte($grace) ? AttendanceStatusEnum::PRESENT->value : AttendanceStatusEnum::LATE->value;
+        // $expected is checkin_end
+        $lateLimit = $expected->copy()->addMinutes(10);
+        
+        if ($tapTime->lte($expected)) {
+            return AttendanceStatusEnum::PRESENT->value;
+        } elseif ($tapTime->lte($lateLimit)) {
+            return AttendanceStatusEnum::LATE->value;
+        } else {
+            return AttendanceStatusEnum::ALPHA->value;
+        }
     }
 
     public static function calculateMinutesLate(Carbon $tapTime, Carbon $expected): int
