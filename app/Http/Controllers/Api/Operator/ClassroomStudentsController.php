@@ -3,14 +3,18 @@
 namespace App\Http\Controllers\Api\Operator;
 
 use App\Services\Operator\ClassroomStudentsService;
+use App\Http\Controllers\Controller;
 use App\Http\Resources\Operator\ClassroomStudentsResource;
 use App\Http\Resources\Operator\AvailableStudentResource;
-use App\Helpers\ResponseHelper;
-use App\Http\Controllers\Controller;
+use App\Http\Resources\Operator\PromotionResource;
 use App\Http\Requests\Operator\AddStudentToClassroomRequest;
 use App\Http\Requests\Operator\ImportClassroomStudentRequest;
 use App\Http\Requests\Operator\PromoteClassRequest;
+use App\Helpers\ResponseHelper;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Symfony\Component\HttpFoundation\Response as ResponseCode;
 
 class ClassroomStudentsController extends Controller
 {
@@ -81,14 +85,22 @@ class ClassroomStudentsController extends Controller
     public function promote(PromoteClassRequest $request, string $classroomId)
     {
         try {
-            $this->classroomStudentsService->promoteClass($classroomId, $request->validated('new_classroom_id'));
+            $result = $this->classroomStudentsService->promoteClass(
+                $classroomId,
+                $request->validated('homeroom_teacher_id')
+            );
 
             return ResponseHelper::success(
-                null,
-                'Siswa berhasil dinaikkan ke kelas baru'
+                new PromotionResource($result),
+                "Berhasil menaikkan {$result['students_promoted']} siswa dari {$result['from_level']} ke {$result['to_level']}."
             );
+
+        } catch (UniqueConstraintViolationException) {
+            return ResponseHelper::error('Siswa sudah pernah dinaikkan ke tahun ajaran ini. Tidak ada perubahan dilakukan.', 409);
+        } catch (\RuntimeException $e) {
+            return ResponseHelper::error($e->getMessage(), $e->getCode() === 422 ? 422 : 400);
         } catch (\Throwable $th) {
-            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
+            return ResponseHelper::error('Terjadi kesalahan saat memproses kenaikan kelas: ' . $th->getMessage(), 500);
         }
     }
 

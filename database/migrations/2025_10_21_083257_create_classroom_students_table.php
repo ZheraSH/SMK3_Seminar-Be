@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignUuid('classroom_id')->constrained('classrooms')->onDelete('cascade');
             $table->foreignUuid('student_id')->constrained('students')->onDelete('cascade');
             $table->enum('status', StudentStatusEnum::values())->default(StudentStatusEnum::ACTIVE->value);
+            $table->string('active_unique_guard')->nullable()->unique();
             $table->softDeletes();
             $table->timestamps();
         });

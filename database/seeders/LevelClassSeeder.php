@@ -11,15 +11,17 @@ class LevelClassSeeder extends Seeder
     public function run(): void
     {
         $levels = [
-            'X',
-            'XI',
-            'XII',
+            ['name' => 'X',   'level_order' => 1],
+            ['name' => 'XI',  'level_order' => 2],
+            ['name' => 'XII', 'level_order' => 3],
         ];
 
         foreach ($levels as $level) {
             LevelClass::firstOrCreate(
-                ['name' => $level],
-                ['id' => Str::uuid()]
+                [   'name' => $level['name'],
+                    'id'          => Str::uuid(),
+                    'level_order' => $level['level_order'],
+                ]
             );
         }
     }

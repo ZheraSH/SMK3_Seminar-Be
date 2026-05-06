@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Counselor\Dashboard;
 
+use App\Enums\StudentStatusEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -12,7 +13,10 @@ class CounselorHighAlphaStudentResource extends JsonResource
         $student = $this->student;
         $classroom = null;
         if ($student && $student->classroomStudents->isNotEmpty()) {
-            $classroom = $student->classroomStudents->first()->classroom;
+            $activeClassroomStudent = $student->classroomStudents
+                ->where('status', StudentStatusEnum::ACTIVE->value)
+                ->first();
+            $classroom = $activeClassroomStudent ? $activeClassroomStudent->classroom : null;
         }
 
         return [

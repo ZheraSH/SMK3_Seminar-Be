@@ -8,6 +8,7 @@ use App\Contracts\Repositories\Operator\ClassroomStudentsRepository;
 use App\Enums\AttendanceProofEnum;
 use App\Enums\AttendanceStatusEnum;
 use App\Enums\DayEnum;
+use App\Enums\StudentStatusEnum;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -96,7 +97,7 @@ class TeacherService
             'classroom.levelClass',
             'classroom.homeroomTeacher.user',
             'classroom.schoolYear',
-            'classroom.classroomStudents' => fn($q) => $q->where('status', 'active'),
+            'classroom.classroomStudents' => fn($q) => $q->where('status', StudentStatusEnum::ACTIVE->value),
             'lessonHour'
         ]);
 

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Operator;
 
 use App\Http\Requests\ApiRequest;
+use App\Models\Employee;
 use App\Models\Major;
 use App\Models\LevelClass;
 use Illuminate\Support\Facades\DB;
@@ -57,6 +58,11 @@ class StoreClassroomRequest extends ApiRequest
                 'required',
                 'exists:employees,id',
                 function ($attribute, $value, $fail) {
+                    $employee = Employee::find($value);
+                    if ($employee && !$employee->user->hasRole('homeroom_teacher')) {
+                        $fail('Guru/Wali kelas yang dipilih tidak memiliki hak akses sebagai wali kelas.');
+                    }
+
                     $exists = DB::table('classrooms')
                         ->where('homeroom_teacher_id', $value)
                         ->where('school_year_id', $this->school_year_id)

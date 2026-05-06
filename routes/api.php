@@ -118,7 +118,7 @@ Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
         Route::post('students-add', 'store'); // tambahkan siswa ke classroom
         Route::post('students-import', 'import'); // import siswa dari Excel ke classroom
         Route::delete('student-remove/{studentId}', 'destroy'); // hapus siswa dari classroom
-        // Route::post('promote', 'promote'); // naik kelas
+        Route::post('promote', 'promote'); // naik kelas
     });
     // Semesters
     Route::prefix('semesters')->controller(SemesterController::class)->group(function () {

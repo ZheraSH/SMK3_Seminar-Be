@@ -201,6 +201,7 @@ class ClassroomStudentImport implements ToCollection, WithHeadingRow, WithValida
                     'classroom_id' => $this->classroomId,
                     'student_id' => $student->id,
                     'status' => StudentStatusEnum::ACTIVE->value,
+                    'active_unique_guard' => $student->id,
                 ]);
 
                 $this->importedCount++;

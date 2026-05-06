@@ -134,7 +134,10 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
                         'classroom_id' => $classroomId,
                         'student_id' => $studentId,
                     ],
-                    ['status' => StudentStatusEnum::ACTIVE->value]
+                    [
+                        'status' => StudentStatusEnum::ACTIVE->value,
+                        'active_unique_guard' => $studentId
+                    ]
                 );
             }
         });
@@ -145,41 +148,36 @@ class ClassroomStudentsRepository extends BaseRepository implements ClassroomStu
         $this->model
             ->where('classroom_id', $classroomId)
             ->where('student_id', $studentId)
-            ->update(['status' => StudentStatusEnum::INACTIVE->value]);
+            ->update([
+                'status' => StudentStatusEnum::INACTIVE->value,
+                'active_unique_guard' => null
+            ]);
     }
 
-    public function promoteClass(string $oldClassroomId, string $newClassroomId): void
+    public function getActiveByClassroom(string $classroomId): Collection
     {
-        DB::transaction(function () use ($oldClassroomId, $newClassroomId) {
-            $activeStudents = $this->model
-                ->where('classroom_id', $oldClassroomId)
-                ->where('status', StudentStatusEnum::ACTIVE->value)
-                ->get();
+        return $this->model
+            ->where('classroom_id', $classroomId)
+            ->where('status', StudentStatusEnum::ACTIVE->value)
+            ->get(['id', 'student_id']);
+    }
 
-            if ($activeStudents->isEmpty()) {
-                return;
-            }
+    public function bulkDeactivate(array $ids, string $now): void
+    {
+        $this->model->whereIn('id', $ids)->update([
+            'status' => StudentStatusEnum::INACTIVE->value,
+            'active_unique_guard' => null,
+            'updated_at' => $now,
+        ]);
+    }
 
-            $timestamp = now();
-            $newRecords = [];
-
-            foreach ($activeStudents as $student) {
-                $student->update(['status' => StudentStatusEnum::INACTIVE->value]);
-
-                $newRecords[] = [
-                    'id' => (string) \Illuminate\Support\Str::uuid(),
-                    'classroom_id' => $newClassroomId,
-                    'student_id' => $student->student_id,
-                    'status' => StudentStatusEnum::ACTIVE->value,
-                    'created_at' => $timestamp,
-                    'updated_at' => $timestamp,
-                ];
-            }
-
-            if (!empty($newRecords)) {
-                $this->model->insert($newRecords);
-            }
-        });
+    public function bulkUpsertActive(array $rows): void
+    {
+        $this->model->upsert(
+            $rows,
+            ['active_unique_guard'],
+            ['classroom_id', 'status', 'updated_at']
+        );
     }
 
     public function getActiveStudentIds(string $classroomId): mixed
