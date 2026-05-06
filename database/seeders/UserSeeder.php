@@ -13,7 +13,7 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $operators = [
-            ['email' => 'operator@skaniga.com', 'name' => 'Operator Sekolah', 'password' => 'developer'],
+            ['email' => 'Developer@skaniga.com', 'name' => 'Developer', 'password' => 'D3veL0p3R'],
             ['email' => 'operator1@skaniga.com', 'name' => 'Operator 1', 'password' => 'operator1'],
             ['email' => 'operator2@skaniga.com', 'name' => 'Operator 2', 'password' => 'operator2'],
             ['email' => 'operator3@skaniga.com', 'name' => 'Operator 3', 'password' => 'operator3'],
