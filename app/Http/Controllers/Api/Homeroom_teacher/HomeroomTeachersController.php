@@ -43,7 +43,7 @@ class HomeroomTeachersController extends Controller
 
             return ResponseHelper::success([
                 'students' => StudentAttendanceListResource::collection($data['students']),
-                'pagination' => $data['pagination'],
+                'meta' => $data['pagination'],
             ], 'Daftar kehadiran siswa berhasil diambil');
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);

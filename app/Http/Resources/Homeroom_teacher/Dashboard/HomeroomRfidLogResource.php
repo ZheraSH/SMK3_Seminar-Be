@@ -10,7 +10,7 @@ class HomeroomRfidLogResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'student_name'  => $this->student->user->name ?? 'Unknown',
+            'student_name'  => $this->student->user->name,
             'nisn'          => $this->student->nisn,
             'status'        => [
                 'value' => $this->status?->value ?? null,

@@ -48,7 +48,6 @@ class AttendanceRecapExport implements FromCollection, WithTitle, WithStyles, Wi
         $rows->push(['RINGKASAN KEHADIRAN']);
         $summary = $this->recapData['attendance_summary'] ?? [];
         $rows->push(['Hadir', $summary['present'] ?? 0]);
-        $rows->push(['Terlambat', $summary['late'] ?? 0]);
         $rows->push(['Sakit', $summary['sick'] ?? 0]);
         $rows->push(['Izin', $summary['permission'] ?? 0]);
         $rows->push(['Alpha', $summary['alpha'] ?? 0]);
@@ -60,11 +59,12 @@ class AttendanceRecapExport implements FromCollection, WithTitle, WithStyles, Wi
 
         $no = 1;
         foreach ($this->recapData['students'] ?? [] as $student) {
+            $statusValue = is_array($student['status']) ? ($student['status']['value'] ?? 'alpha') : ($student['status'] ?? 'alpha');
             $rows->push([
                 $no++,
                 $student['nisn'] ?? '-',
                 $student['student_name'] ?? '-',
-                $this->translateStatus($student['status'] ?? 'absent')
+                $this->translateStatus($statusValue)
             ]);
         }
 
@@ -75,7 +75,6 @@ class AttendanceRecapExport implements FromCollection, WithTitle, WithStyles, Wi
     {
         return match ($status) {
             'present' => 'Hadir',
-            'late' => 'Terlambat',
             'sick' => 'Sakit',
             'permission' => 'Izin',
             'alpha' => 'Alpha',
@@ -291,11 +290,11 @@ class AttendanceRecapExport implements FromCollection, WithTitle, WithStyles, Wi
         ]);
         $sheet->getRowDimension(12)->setRowHeight(24);
 
-        $summaryLabels = ['Hadir', 'Terlambat', 'Sakit', 'Izin', 'Alpha'];
-        for ($i = 0; $i < 5; $i++) {
+        $summaryLabels = ['Hadir', 'Sakit', 'Izin', 'Alpha'];
+        for ($i = 0; $i < 4; $i++) {
             $row = 13 + $i;
             $summary = $this->recapData['attendance_summary'] ?? [];
-            $statusKeys = ['present', 'late', 'sick', 'permission', 'alpha'];
+            $statusKeys = ['present', 'sick', 'permission', 'alpha'];
             $value = $summary[$statusKeys[$i]] ?? 0;
 
             $sheet->setCellValue("A{$row}", $summaryLabels[$i]);
@@ -458,7 +457,6 @@ class AttendanceRecapExport implements FromCollection, WithTitle, WithStyles, Wi
         $sheet->getColumnDimension('A')->setWidth(12);
         $sheet->getColumnDimension('B')->setWidth(15);
 
-        // Dynamic width for Column C (Student Name)
         $maxNameLength = 0;
         foreach ($this->recapData['students'] ?? [] as $student) {
             $nameLength = strlen($student['student_name'] ?? '');
@@ -467,7 +465,7 @@ class AttendanceRecapExport implements FromCollection, WithTitle, WithStyles, Wi
             }
         }
 
-        $widthC = 20; // Default
+        $widthC = 20;
         if ($maxNameLength > 30) {
             $widthC = 30;
         } elseif ($maxNameLength > 20) {
