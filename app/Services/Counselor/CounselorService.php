@@ -3,26 +3,22 @@
 namespace App\Services\Counselor;
 
 use App\Contracts\Repositories\AttendanceRepository;
-use App\Contracts\Repositories\AttendanceRfidRepository;
 use App\Contracts\Repositories\Operator\LessonScheduleRepository;
 use App\Contracts\Repositories\Operator\ClassroomStudentsRepository;
 use App\Enums\AttendanceStatusEnum;
 use App\Enums\PermissionTypeEnum;
 use Illuminate\Http\Request;
-use App\Models\User;
 use Carbon\Carbon;
 
 class CounselorService
 {
     private AttendanceRepository $attendanceRepository;
-    private AttendanceRfidRepository $attendanceRfidRepository;
     private LessonScheduleRepository $lessonScheduleRepository;
     private ClassroomStudentsRepository $classroomStudentsRepository;
 
-    public function __construct(AttendanceRepository $attendanceRepository, AttendanceRfidRepository $attendanceRfidRepository, LessonScheduleRepository $lessonScheduleRepository, ClassroomStudentsRepository $classroomStudentsRepository)
+    public function __construct(AttendanceRepository $attendanceRepository, LessonScheduleRepository $lessonScheduleRepository, ClassroomStudentsRepository $classroomStudentsRepository)
     {
         $this->attendanceRepository = $attendanceRepository;
-        $this->attendanceRfidRepository = $attendanceRfidRepository;
         $this->lessonScheduleRepository = $lessonScheduleRepository;
         $this->classroomStudentsRepository = $classroomStudentsRepository;
     }
@@ -72,21 +68,23 @@ class CounselorService
 
     public function getGlobalAttendanceStats(): array
     {
-        $data = $this->attendanceRfidRepository->countTotalStatusGlobal();
+        $data = $this->attendanceRepository->countTotalStatusGlobal();
 
         $total = $data['total'] ?: 1;
 
         return [
             'counts' => [
                 'hadir' => (int) $data['hadir'],
-                'terlambat' => (int) $data['terlambat'],
-                'alpha' => (int) $data['alpha'],
+                'sakit' => (int) $data['sakit'],
+                'izin' => (int) $data['izin'],
+                'alpa' => (int) $data['alpha'],
                 'total' => (int) $data['total'],
             ],
             'percentages' => [
                 'hadir' => round(($data['hadir'] / $total) * 100, 2),
-                'terlambat' => round(($data['terlambat'] / $total) * 100, 2),
-                'alpha' => round(($data['alpha'] / $total) * 100, 2),
+                'sakit' => round(($data['sakit'] / $total) * 100, 2),
+                'izin' => round(($data['izin'] / $total) * 100, 2),
+                'alpa' => round(($data['alpha'] / $total) * 100, 2),
             ]
         ];
     }
@@ -94,7 +92,17 @@ class CounselorService
     public function getMonthlyAttendanceStats(Request $request): array
     {
         $year = $request->input('year', Carbon::now()->year);
-        return $this->attendanceRfidRepository->countTotalStatusMonthly((int) $year);
+        $monthlyData = $this->attendanceRepository->countTotalStatusMonthly((int) $year);
+
+        return collect($monthlyData)->map(function ($row) {
+            $total = $row['hadir'] + $row['sakit'] + $row['izin'] + $row['alpha'];
+            $attended = $row['hadir'] + $row['sakit'];
+
+            return [
+                'month' => $row['month'],
+                'percentage' => $total > 0 ? round(($attended / $total) * 100, 2) : 0,
+            ];
+        })->toArray();
     }
 
     public function getGlobalDailyAttendance(Request $request): array
@@ -111,7 +119,7 @@ class CounselorService
         $studentsPaginated = $this->classroomStudentsRepository
             ->getGlobalDailyAttendance($date, $search, $status, $perPage);
 
-        $monthlySummaries = $this->attendanceRfidRepository
+        $monthlySummaries = $this->attendanceRepository
             ->getMonthlyAttendanceSummaryPerStudent($month, $year)
             ->keyBy('student_id');
 
@@ -121,17 +129,17 @@ class CounselorService
 
             return [
                 'student_name' => $cs->student->user->name,
-                'classroom'    => $cs->classroom->name,
-                'hadir'        => (int) (($summary?->hadir ?? 0) + ($summary?->telat ?? 0)),
-                'izin'         => 0,
-                'sakit'        => 0,
-                'alpha'        => (int) ($summary?->alpha ?? 0),
+                'classroom' => $cs->classroom->name,
+                'hadir' => (int) ($summary?->hadir ?? 0),
+                'izin' => (int) ($summary?->izin ?? 0),
+                'sakit' => (int) ($summary?->sakit ?? 0),
+                'alpha' => (int) ($summary?->alpha ?? 0),
             ];
         });
 
         return [
             'students' => $students,
-            'meta' => $this->classroomStudentsRepository->formatPagination($studentsPaginated),
+            'pagination' => $this->classroomStudentsRepository->formatPagination($studentsPaginated),
         ];
     }
 }

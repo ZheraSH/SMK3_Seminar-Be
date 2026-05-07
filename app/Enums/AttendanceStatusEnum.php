@@ -13,7 +13,7 @@ enum AttendanceStatusEnum: string
     {
         return match ($this) {
             self::SICK => 'Sakit',
-            self::ALPHA => 'Alpha',
+            self::ALPHA => 'Alpa',
             self::PRESENT => 'Hadir',
             self::PERMISSION => 'Izin',
         };

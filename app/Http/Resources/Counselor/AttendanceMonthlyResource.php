@@ -4,17 +4,15 @@ namespace App\Http\Resources\Counselor;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Carbon;
 
 class AttendanceMonthlyResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
         return [
-            'month' => $this->resource['month'],
-            'hadir' => (int) $this->resource['hadir'],
-            'terlambat' => (int) $this->resource['terlambat'],
-            'izin' => (int) $this->resource['izin'],
-            'alpha' => (int) $this->resource['alpha'],
+            'month' => Carbon::create()->month($this->resource['month'])->translatedFormat('F'),
+            'attendance_percentage' => $this->resource['percentage'],
         ];
     }
 }

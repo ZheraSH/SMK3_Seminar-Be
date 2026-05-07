@@ -15,7 +15,7 @@ class AttendanceMonitoringResource extends JsonResource
             'hadir' => (int) $this['hadir'],
             'izin' => (int) $this['izin'],
             'sakit' => (int) $this['sakit'],
-            'alpha' => (int) $this['alpha'],
+            'alpa' => (int) $this['alpha'],
         ];
     }
 }

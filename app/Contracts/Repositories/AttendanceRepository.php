@@ -228,4 +228,88 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
 
         return $result ? $result->toArray() : ['hadir' => 0, 'izin' => 0, 'sakit' => 0, 'alpha' => 0];
     }
+
+    // =========================================================================
+    //  COUNSELOR — Stats Global
+    // =========================================================================
+    public function countTotalStatusGlobal(): array
+    {
+        $result = $this->model
+            ->final()
+            ->selectRaw("
+                COUNT(DISTINCT CASE WHEN status = ? THEN CONCAT(student_id, date) END) as hadir,
+                COUNT(DISTINCT CASE WHEN status = ? THEN CONCAT(student_id, date) END) as izin,
+                COUNT(DISTINCT CASE WHEN status = ? THEN CONCAT(student_id, date) END) as sakit,
+                COUNT(DISTINCT CASE WHEN status = ? THEN CONCAT(student_id, date) END) as alpha,
+                COUNT(DISTINCT CONCAT(student_id, date)) as total
+            ", [
+                AttendanceStatusEnum::PRESENT->value,
+                AttendanceStatusEnum::PERMISSION->value,
+                AttendanceStatusEnum::SICK->value,
+                AttendanceStatusEnum::ALPHA->value,
+            ])
+            ->first();
+
+        return $result ? $result->toArray() : ['hadir' => 0, 'izin' => 0, 'sakit' => 0, 'alpha' => 0, 'total' => 0];
+    }
+
+    public function countTotalStatusMonthly(int $year): array
+    {
+        $months = range(1, 12);
+        $result = [];
+
+        $data = $this->model
+            ->whereYear('date', $year)
+            ->final()
+            ->selectRaw("
+                MONTH(date) as month,
+                COUNT(DISTINCT CASE WHEN status = ? THEN CONCAT(student_id, date) END) as hadir,
+                COUNT(DISTINCT CASE WHEN status = ? THEN CONCAT(student_id, date) END) as izin,
+                COUNT(DISTINCT CASE WHEN status = ? THEN CONCAT(student_id, date) END) as sakit,
+                COUNT(DISTINCT CASE WHEN status = ? THEN CONCAT(student_id, date) END) as alpha
+            ", [
+                AttendanceStatusEnum::PRESENT->value,
+                AttendanceStatusEnum::PERMISSION->value,
+                AttendanceStatusEnum::SICK->value,
+                AttendanceStatusEnum::ALPHA->value,
+            ])
+            ->groupBy('month')
+            ->get()
+            ->keyBy('month');
+
+        foreach ($months as $month) {
+            $monthData = $data->get($month);
+            $result[] = [
+                'month' => $month,
+                'hadir' => $monthData ? $monthData->hadir : 0,
+                'izin' => $monthData ? $monthData->izin : 0,
+                'sakit' => $monthData ? $monthData->sakit : 0,
+                'alpha' => $monthData ? $monthData->alpha : 0,
+            ];
+        }
+
+        return $result;
+    }
+
+    public function getMonthlyAttendanceSummaryPerStudent(int $month, int $year): Collection
+    {
+        return $this->model
+            ->whereMonth('date', $month)
+            ->whereYear('date', $year)
+            ->final()
+            ->selectRaw("
+                student_id,
+                COUNT(DISTINCT CASE WHEN status = ? THEN date END) as hadir,
+                COUNT(DISTINCT CASE WHEN status = ? THEN date END) as izin,
+                COUNT(DISTINCT CASE WHEN status = ? THEN date END) as sakit,
+                COUNT(DISTINCT CASE WHEN status = ? THEN date END) as alpha
+            ", [
+                AttendanceStatusEnum::PRESENT->value,
+                AttendanceStatusEnum::PERMISSION->value,
+                AttendanceStatusEnum::SICK->value,
+                AttendanceStatusEnum::ALPHA->value,
+            ])
+            ->groupBy('student_id')
+            ->get();
+    }
 }

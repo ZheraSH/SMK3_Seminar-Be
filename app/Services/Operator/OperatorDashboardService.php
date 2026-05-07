@@ -47,14 +47,23 @@ class OperatorDashboardService
     {
         $totalStudents = $this->studentRepository->count();
 
-        $monthlyData = $this->attendanceRfidRepository->getMonthlyChart(now()->year);
+        $monthlyData = $this->attendanceRfidRepository->getMonthlyChart(now()->year)->keyBy('month');
 
-        return $monthlyData->map(function ($row) use ($totalStudents) {
+        return collect(range(1, 12))->map(function ($month) use ($totalStudents, $monthlyData) {
+            $row = $monthlyData->get($month);
+
+            if (!$row) {
+                return [
+                    'month' => $month,
+                    'percentage' => 0,
+                ];
+            }
+
             $schoolDays = $row->total_days_with_attendance ?: 20;
             $maxPossible = $totalStudents * $schoolDays;
 
             return [
-                'month' => $row->month,
+                'month' => $month,
                 'percentage' => $maxPossible
                     ? round(($row->total_present / $maxPossible) * 100, 2)
                     : 0,

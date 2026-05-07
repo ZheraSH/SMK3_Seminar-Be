@@ -23,7 +23,7 @@ class CounselorHighAlphaStudentResource extends JsonResource
             'id' => $student->id,
             'name' => $student->user->name ?? 'Unknown',
             'classroom' => $classroom ? $classroom->name : 'No Class',
-            'status' => 'Alpha',
+            'status' => 'Alpa',
             'total_alpha' => $this->total_alpha,
         ];
     }

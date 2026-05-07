@@ -13,7 +13,7 @@ enum RfidAttendanceStatusEnum: string
         return match ($this) {
             self::PRESENT => 'Masuk',
             self::LATE => 'Terlambat',
-            self::ALPHA => 'Alpha',
+            self::ALPHA => 'Alpa',
         };
     }
 

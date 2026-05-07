@@ -23,6 +23,7 @@ class CounselorsController extends Controller
         $this->counselorService = $counselorService;
         $this->attendancePermissionService = $attendancePermissionService;
     }
+
     public function index(Request $request)
     {
         try {
