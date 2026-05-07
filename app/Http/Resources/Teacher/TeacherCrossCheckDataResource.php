@@ -12,21 +12,8 @@ class TeacherCrossCheckDataResource extends JsonResource
     {
         $lessonSchedule = $this->lesson_schedule;
         $classroom = $this->classroom;
-        $studentsData = [];
-        $paginationMeta = null;
-
-        if ($this->students instanceof LengthAwarePaginator) {
-            $studentsPaginator = $this->students;
-            $studentsData = $studentsPaginator->getCollection()->toArray();
-            $paginationMeta = [
-                'current_page' => $studentsPaginator->currentPage(),
-                'last_page' => $studentsPaginator->lastPage(),
-                'per_page' => $studentsPaginator->perPage(),
-                'total' => $studentsPaginator->total(),
-            ];
-        } else {
-            $studentsData = $this->students ?? [];
-        }
+        $studentsData = $this->students ?? [];
+        $paginationMeta = $this->pagination ?? null;
 
         return [
             'date' => $this->date,
@@ -92,7 +79,7 @@ class TeacherCrossCheckDataResource extends JsonResource
                     ] : null,
                 ];
             }, $studentsData),
-            'pagination' => $paginationMeta,
+            'meta' => $paginationMeta,
         ];
     }
 }

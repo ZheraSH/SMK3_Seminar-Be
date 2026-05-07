@@ -6,6 +6,7 @@ use App\Contracts\Repositories\AttendanceRfidRepository;
 use App\Contracts\Repositories\Operator\ClassroomStudentsRepository;
 use App\Contracts\Repositories\Operator\ClassroomRepository;
 use App\Enums\AttendanceStatusEnum;
+use App\Enums\RfidAttendanceStatusEnum;
 use App\Enums\RoleEnum;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -164,12 +165,7 @@ class HomeroomTeacherService
 
         return [
             'students' => $students->values(),
-            'pagination' => [
-                'current_page' => $studentsPaginated->currentPage(),
-                'per_page' => $studentsPaginated->perPage(),
-                'total' => $studentsPaginated->total(),
-                'last_page' => $studentsPaginated->lastPage(),
-            ],
+            'meta' => $this->classroomStudentsRepository->formatPagination($studentsPaginated),
         ];
     }
 
@@ -194,11 +190,11 @@ class HomeroomTeacherService
     private function countAttendance(string $classroomId, string $date, $attendances): array
     {
         $counters = [
-            'present' => 0,
-            'late' => 0,
-            'sick' => 0,
-            'permission' => 0,
-            'alpha' => 0,
+            'present'    => 0,
+            'late'       => 0,   // RFID: tap masuk terlambat
+            'sick'       => 0,   // dari izin / cross-check manual
+            'permission' => 0,   // dari izin / cross-check manual
+            'alpha'      => 0,
         ];
 
         $students = $this->classroomStudentsRepository->getActiveStudentIds($classroomId);
@@ -212,11 +208,9 @@ class HomeroomTeacherService
             }
 
             match ($attendance->status) {
-                AttendanceStatusEnum::PRESENT => $counters['present']++,
-                AttendanceStatusEnum::LATE => $counters['late']++,
-                AttendanceStatusEnum::SICK => $counters['sick']++,
-                AttendanceStatusEnum::LEAVE => $counters['permission']++,
-                default => $counters['alpha']++,
+                RfidAttendanceStatusEnum::PRESENT => $counters['present']++,
+                RfidAttendanceStatusEnum::LATE => $counters['late']++,
+                RfidAttendanceStatusEnum::ALPHA => $counters['alpha']++,
             };
         }
 
@@ -237,12 +231,17 @@ class HomeroomTeacherService
 
         $attendance = $attendances->firstWhere('student_id', $studentId);
 
+        $statusValue = $attendance?->status?->value ?? RfidAttendanceStatusEnum::ALPHA->value;
+
         return [
             'student_image' => $studentImage,
-            'student_name' => $cs->student->user->name,
-            'nisn' => $cs->student->nisn,
-            'status' => $attendance?->status->value ?? 'alpha',
-            'date' => $date,
+            'student_name'  => $cs->student->user->name,
+            'nisn'          => $cs->student->nisn,
+            'status'        => [
+                'value' => $statusValue,
+                'label' => RfidAttendanceStatusEnum::tryFrom($statusValue)?->label() ?? 'Alpha',
+            ],
+            'date'          => $date,
         ];
     }
 

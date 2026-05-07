@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Homeroom_teacher;
 
+use App\Exports\AttendanceRecapExport;
 use App\Http\Controllers\Controller;
 use App\Services\Homeroom_Teacher\HomeroomTeacherService;
 use App\Http\Resources\Homeroom_teacher\SummaryClassResource;
@@ -9,6 +10,7 @@ use App\Http\Resources\Homeroom_teacher\StudentAttendanceListResource;
 use App\Http\Requests\Homeroom_teacher\StudentAttendanceListRequest;
 use App\Helpers\ResponseHelper;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class HomeroomTeachersController extends Controller
 {
@@ -54,11 +56,11 @@ class HomeroomTeachersController extends Controller
             $date = $request->input('date', now()->format('Y-m-d'));
             $recap = $this->service->generateAttendanceRecap($request->user(), $request);
 
-            if (class_exists(\Maatwebsite\Excel\Facades\Excel::class)) {
-                $export = new \App\Exports\AttendanceRecapExport($recap);
+            if (class_exists(Excel::class)) {
+                $export = new AttendanceRecapExport($recap);
                 $filename = 'rekap-absensi-' . $recap['classroom']['name'] . '-' . $date . '.xlsx';
 
-                return \Maatwebsite\Excel\Facades\Excel::download($export, $filename);
+                return Excel::download($export, $filename);
             }
 
             return ResponseHelper::success($recap, 'Rekap absensi berhasil dibuat');
