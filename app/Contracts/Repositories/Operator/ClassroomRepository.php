@@ -21,16 +21,21 @@ class ClassroomRepository extends BaseRepository implements ClassroomInterface
 
     protected function baseQuery()
     {
-        return $this->model->query()->with([
-            'major:id,name,code',
-            'levelClass:id,name',
-            'schoolYear:id,name',
-            'homeroomTeacher.user:id,name',
-            'classroomStudents' => function ($q) {
-                $q->where('status', StudentStatusEnum::ACTIVE->value)
-                    ->with('student.user:id,name');
-            }
-        ]);
+        return $this->model->query()
+            ->where(function ($q) {
+                $q->whereHas('schoolYear', fn($s) => $s->where('active', true))
+                  ->orWhereHas('classroomStudents', fn($cs) => $cs->where('status', StudentStatusEnum::ACTIVE->value));
+            })
+            ->with([
+                'major:id,name,code',
+                'levelClass:id,name',
+                'schoolYear:id,name',
+                'homeroomTeacher.user:id,name',
+                'classroomStudents' => function ($q) {
+                    $q->where('status', StudentStatusEnum::ACTIVE->value)
+                        ->with('student.user:id,name');
+                }
+            ]);
     }
 
     public function get(): Collection
