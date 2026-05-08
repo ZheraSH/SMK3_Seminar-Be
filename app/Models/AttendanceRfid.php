@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\AttendanceStatusEnum;
+use App\Enums\RfidAttendanceStatusEnum;
 use App\Traits\Models\BelongsToClassroomStudents;
 use App\Traits\Models\BelongsToRfid;
 use App\Traits\Models\BelongsToStudent;
@@ -34,14 +34,13 @@ class AttendanceRfid extends Model
         'date' => 'date:Y-m-d',
         'checkin_time' => 'string',
         'checkout_time' => 'string',
-        'status' => AttendanceStatusEnum::class,
+        'status' => RfidAttendanceStatusEnum::class,
     ];
 
     public function scopeToday($query)
     {
         return $query->whereDate('date', today());
     }
-
 
     public function scopeByStudent($query, $studentId)
     {

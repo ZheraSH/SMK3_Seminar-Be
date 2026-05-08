@@ -5,8 +5,7 @@ namespace App\Services\Operator;
 use App\Contracts\Repositories\AttendanceRfidRepository;
 use App\Contracts\Repositories\Operator\RfidRepository;
 use App\Contracts\Repositories\Operator\AttendanceRuleRepository;
-use App\Contracts\Repositories\Operator\LessonScheduleRepository;
-use App\Enums\AttendanceStatusEnum;
+use App\Enums\RfidAttendanceStatusEnum;
 use App\Enums\StudentStatusEnum;
 use App\Helpers\TapHelper;
 use Carbon\Carbon;
@@ -85,20 +84,20 @@ class RfidTapService
                         $result = 'checkout_updated';
                         $status = $record->status?->value ?? $record->status ?? null;
                     } else {
-                        $status = AttendanceStatusEnum::LATE->value;
+                        $status = RfidAttendanceStatusEnum::ALPHA->value;
                         $this->attendanceRfidRepository->store([
-                            'student_id'           => $student->id,
-                            'rfid_id'              => $rfid->id,
+                            'student_id' => $student->id,
+                            'rfid_id' => $rfid->id,
                             'classroom_student_id' => $activeClassroom?->id,
                             'date' => $date,
                             'checkin_time' => null,
                             'checkout_time' => $tapTime->toTimeString(),
                             'status' => $status,
                         ]);
-                        $result = 'checkout_created_no_checkin';
+                        $result = 'absent_checkout_only';
                     }
                 } else {
-                    $status = AttendanceStatusEnum::PRESENT->value;
+                    $status = RfidAttendanceStatusEnum::PRESENT->value;
                     if ($checkinEnd) {
                         $status = TapHelper::calculateAttendanceStatus($tapTime, $checkinEnd);
                     }
@@ -116,7 +115,7 @@ class RfidTapService
                             'checkout_time' => null,
                             'status' => $status,
                         ]);
-                        $result = 'upload_created';
+                        $result = 'checkin_created';
                     }
                 }
 
@@ -128,7 +127,7 @@ class RfidTapService
                     'time' => $tapTime->format('H:i:s'),
                     'type' => $isCheckout ? 'checkout' : 'checkin',
                     'status' => $status,
-                    'status_label' => $status ? TapHelper::getSafeEnumLabel($status, AttendanceStatusEnum::class) : null,
+                    'status_label' => $status ? TapHelper::getSafeEnumLabel($status, RfidAttendanceStatusEnum::class) : null,
                     'result' => $result,
                 ];
             } catch (\Throwable $e) {
@@ -138,8 +137,8 @@ class RfidTapService
         }
 
         return [
-            'total' => count($attendances),
-            'saved' => $saved,
+            'total'   => count($attendances),
+            'saved'   => $saved,
             'skipped' => $skipped,
             'details' => $details,
         ];

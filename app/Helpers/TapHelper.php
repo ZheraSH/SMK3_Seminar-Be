@@ -2,7 +2,7 @@
 
 namespace App\Helpers;
 
-use App\Enums\AttendanceStatusEnum;
+use App\Enums\RfidAttendanceStatusEnum;
 use Carbon\Carbon;
 
 class TapHelper
@@ -22,13 +22,13 @@ class TapHelper
     public static function calculateAttendanceStatus(Carbon $tapTime, Carbon $expected): string
     {
         $lateLimit = $expected->copy()->addMinutes(10);
-        
+
         if ($tapTime->lte($expected)) {
-            return AttendanceStatusEnum::PRESENT->value;
+            return RfidAttendanceStatusEnum::PRESENT->value;
         } elseif ($tapTime->lte($lateLimit)) {
-            return AttendanceStatusEnum::LATE->value;
+            return RfidAttendanceStatusEnum::LATE->value;
         } else {
-            return AttendanceStatusEnum::ALPHA->value;
+            return RfidAttendanceStatusEnum::ALPHA->value;
         }
     }
 

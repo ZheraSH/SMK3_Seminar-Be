@@ -1,6 +1,6 @@
 <?php
 
-use App\Enums\AttendanceStatusEnum;
+use App\Enums\RfidAttendanceStatusEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->date('date');
             $table->time('checkin_time')->nullable();
             $table->time('checkout_time')->nullable();
-            $table->enum('status', [AttendanceStatusEnum::PRESENT->value, AttendanceStatusEnum::LATE->value])->default(AttendanceStatusEnum::PRESENT->value);
+            $table->enum('status', RfidAttendanceStatusEnum::values())->default(RfidAttendanceStatusEnum::ALPHA->value);
             $table->softDeletes();
             $table->timestamps();
 

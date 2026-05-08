@@ -51,10 +51,15 @@ class OperatorDashboardService
 
         $data = $this->attendanceRfidRepository->getTodaySummary();
 
+        $present = (int) $data->present;
+        $late = (int) $data->late;
+        $absent = (int) $data->absent;
+
         return [
             'total_students' => $totalStudents,
-            'present' => (int) $data->present,
-            'late' => (int) $data->late,
+            'present' => $present,
+            'late' => $late,
+            'absent' => $absent,
         ];
     }
 

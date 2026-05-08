@@ -31,8 +31,8 @@ class CounselorService
     {
         $attendanceStatus = match ($permissionType) {
             PermissionTypeEnum::SICK->value => AttendanceStatusEnum::SICK->value,
-            PermissionTypeEnum::PERMISSION->value => AttendanceStatusEnum::LEAVE->value,
-            PermissionTypeEnum::DISPENSATION->value => AttendanceStatusEnum::LEAVE->value,
+            PermissionTypeEnum::PERMISSION->value => AttendanceStatusEnum::PERMISSION->value,
+            PermissionTypeEnum::DISPENSATION->value => AttendanceStatusEnum::PERMISSION->value,
             default => AttendanceStatusEnum::ALPHA->value,
         };
 
@@ -80,11 +80,13 @@ class CounselorService
             'counts' => [
                 'hadir' => (int) $data['hadir'],
                 'terlambat' => (int) $data['terlambat'],
+                'alpha' => (int) $data['alpha'],
                 'total' => (int) $data['total'],
             ],
             'percentages' => [
                 'hadir' => round(($data['hadir'] / $total) * 100, 2),
                 'terlambat' => round(($data['terlambat'] / $total) * 100, 2),
+                'alpha' => round(($data['alpha'] / $total) * 100, 2),
             ]
         ];
     }
@@ -119,22 +121,17 @@ class CounselorService
 
             return [
                 'student_name' => $cs->student->user->name,
-                'classroom' => $cs->classroom->name,
-                'hadir' => (int) (($summary?->hadir ?? 0) + ($summary?->telat ?? 0)),
-                'izin' => 0,
-                'sakit' => 0,
-                'alpha' => 0,
+                'classroom'    => $cs->classroom->name,
+                'hadir'        => (int) (($summary?->hadir ?? 0) + ($summary?->telat ?? 0)),
+                'izin'         => 0,
+                'sakit'        => 0,
+                'alpha'        => (int) ($summary?->alpha ?? 0),
             ];
         });
 
         return [
             'students' => $students,
-            'pagination' => [
-                'current_page' => $studentsPaginated->currentPage(),
-                'per_page' => $studentsPaginated->perPage(),
-                'total' => $studentsPaginated->total(),
-                'last_page' => $studentsPaginated->lastPage(),
-            ],
+            'meta' => $this->classroomStudentsRepository->formatPagination($studentsPaginated),
         ];
     }
 }

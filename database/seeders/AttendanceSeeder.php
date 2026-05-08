@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\AttendanceStatusEnum;
+use App\Enums\RfidAttendanceStatusEnum;
 use App\Models\LessonSchedule;
 use App\Models\Student;
 use Carbon\Carbon;
@@ -26,6 +27,15 @@ class AttendanceSeeder extends Seeder
             return;
         }
 
+        $counselor = DB::table('employees')
+            ->join('users', 'employees.user_id', '=', 'users.id')
+            ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->where('roles.name', 'counselor')
+            ->select('employees.id')
+            ->first();
+        $counselorId = $counselor?->id;
+
         $startDate = Carbon::now()->subDays(6);
         $endDate   = Carbon::now();
 
@@ -46,9 +56,12 @@ class AttendanceSeeder extends Seeder
 
                 $rand = rand(1, 100);
                 $scenario = match (true) {
-                    $rand <= 70 => 'present',
-                    $rand <= 80 => 'late',
-                    $rand <= 90 => 'sick',
+                    $rand <= 60 => 'present',
+                    $rand <= 70 => 'late',
+                    $rand <= 75 => 'sick',
+                    $rand <= 80 => 'sick_locked',
+                    $rand <= 85 => 'permission',
+                    $rand <= 90 => 'permission_locked',
                     default     => 'alpha',
                 };
 
@@ -57,8 +70,8 @@ class AttendanceSeeder extends Seeder
                 // =========================================================
                 if (in_array($scenario, ['present', 'late'])) {
                     $rfidStatus  = $scenario === 'late'
-                        ? AttendanceStatusEnum::LATE->value
-                        : AttendanceStatusEnum::PRESENT->value;
+                        ? RfidAttendanceStatusEnum::LATE->value     
+                        : RfidAttendanceStatusEnum::PRESENT->value;
                     $checkinTime  = $scenario === 'late' ? '07:15:00' : '06:45:00';
                     $checkoutTime = '15:00:00';
 
@@ -77,6 +90,34 @@ class AttendanceSeeder extends Seeder
                         ]);
                     } catch (\Exception $e) {
                         $this->command->error("RFID Insert Error for Student {$student->id}: " . $e->getMessage());
+                    }
+                }
+
+                // =========================================================
+                // INSERT KE attendance_permissions (untuk lock BK)
+                // =========================================================
+                $permissionId = null;
+                if (in_array($scenario, ['sick_locked', 'permission_locked'])) {
+                    $permissionId = Str::uuid()->toString();
+                    $type = $scenario === 'sick_locked' ? 'sick' : 'permission';
+                    try {
+                        DB::table('attendance_permissions')->insert([
+                            'id' => $permissionId,
+                            'type' => $type,
+                            'start_date' => $currentDate,
+                            'end_date' => $currentDate,
+                            'reason' => 'Dummy reason from seeder',
+                            'proof' => null,
+                            'status' => 'approved',
+                            'student_id' => $student->id,
+                            'counselor_id' => $counselorId,
+                            'verified_at' => now()->toDateTimeString(),
+                            'created_at' => now()->toDateTimeString(),
+                            'updated_at' => now()->toDateTimeString(),
+                        ]);
+                    } catch (\Exception $e) {
+                        $this->command->error("Permission Insert Error: " . $e->getMessage());
+                        $permissionId = null;
                     }
                 }
 
@@ -101,10 +142,14 @@ class AttendanceSeeder extends Seeder
                     if ($scenario === 'present' || $scenario === 'late') {
                         $crossStatus = AttendanceStatusEnum::PRESENT->value;
                         $isFinal = 1;
-                    } elseif ($scenario === 'sick') {
+                    } elseif (in_array($scenario, ['sick', 'sick_locked'])) {
                         $crossStatus = AttendanceStatusEnum::SICK->value;
-                        $isLocked = 1;
                         $isFinal = 1;
+                        if ($scenario === 'sick_locked') $isLocked = 1;
+                    } elseif (in_array($scenario, ['permission', 'permission_locked'])) {
+                        $crossStatus = AttendanceStatusEnum::PERMISSION->value;
+                        $isFinal = 1;
+                        if ($scenario === 'permission_locked') $isLocked = 1;
                     } elseif ($scenario === 'alpha' && rand(1, 100) > 20) {
                         $isFinal = 1;
                     }
@@ -122,7 +167,7 @@ class AttendanceSeeder extends Seeder
                             'status' => $crossStatus,
                             'is_locked' => $isLocked,
                             'is_final' => $isFinal,
-                            'overridden_by_permission_id' => null,
+                            'overridden_by_permission_id' => $isLocked ? $permissionId : null,
                             'created_at' => now()->toDateTimeString(),
                             'updated_at' => now()->toDateTimeString(),
                         ]);

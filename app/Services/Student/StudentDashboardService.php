@@ -27,7 +27,7 @@ class StudentDashboardService
         return [
             'hadir' => (int) ($attendance['hadir'] ?? 0),
             'telat' => (int) ($attendance['telat'] ?? 0),
-            'alpha' => 0, // Alpha dihitung dari luar (hari sekolah - total record)
+            'alpha' => (int) ($attendance['alpha'] ?? 0),
             'izin'  => $izin,
         ];
     }

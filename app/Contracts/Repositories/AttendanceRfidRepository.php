@@ -3,7 +3,7 @@
 namespace App\Contracts\Repositories;
 
 use App\Contracts\Interfaces\AttendanceRfidInterface;
-use App\Enums\AttendanceStatusEnum;
+use App\Enums\RfidAttendanceStatusEnum;
 use App\Enums\StudentStatusEnum;
 use App\Models\AttendanceRfid;
 use Illuminate\Database\Eloquent\Collection;
@@ -78,13 +78,14 @@ class AttendanceRfidRepository extends BaseRepository implements AttendanceRfidI
     {
         return $this->model
             ->where('student_id', $studentId)
-            
             ->selectRaw("
                 SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as hadir,
-                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as telat
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as telat,
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as alpha
             ", [
-                AttendanceStatusEnum::PRESENT->value,
-                AttendanceStatusEnum::LATE->value,
+                RfidAttendanceStatusEnum::PRESENT->value,
+                RfidAttendanceStatusEnum::LATE->value,
+                RfidAttendanceStatusEnum::ALPHA->value,
             ])
             ->first()
             ->toArray();
@@ -95,14 +96,15 @@ class AttendanceRfidRepository extends BaseRepository implements AttendanceRfidI
         $data = $this->model
             ->where('student_id', $studentId)
             ->whereYear('date', $year)
-            
             ->selectRaw("
                 MONTH(date) as month,
                 SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as hadir,
-                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as telat
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as telat,
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as alpha
             ", [
-                AttendanceStatusEnum::PRESENT->value,
-                AttendanceStatusEnum::LATE->value,
+                RfidAttendanceStatusEnum::PRESENT->value,
+                RfidAttendanceStatusEnum::LATE->value,
+                RfidAttendanceStatusEnum::ALPHA->value,
             ])
             ->groupByRaw('MONTH(date)')
             ->get()
@@ -113,6 +115,7 @@ class AttendanceRfidRepository extends BaseRepository implements AttendanceRfidI
                 'month' => $month,
                 'hadir' => $data[$month]->hadir ?? 0,
                 'telat' => $data[$month]->telat ?? 0,
+                'alpha' => $data[$month]->alpha ?? 0,
             ];
         })->values()->toArray();
     }
@@ -121,13 +124,14 @@ class AttendanceRfidRepository extends BaseRepository implements AttendanceRfidI
     {
         return $this->model
             ->whereDate('date', $date)
-            
             ->selectRaw("
                 COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as hadir,
-                COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as telat
+                COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as telat,
+                COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as alpha
             ", [
-                AttendanceStatusEnum::PRESENT->value,
-                AttendanceStatusEnum::LATE->value,
+                RfidAttendanceStatusEnum::PRESENT->value,
+                RfidAttendanceStatusEnum::LATE->value,
+                RfidAttendanceStatusEnum::ALPHA->value,
             ])
             ->first()
             ->toArray();
@@ -136,20 +140,22 @@ class AttendanceRfidRepository extends BaseRepository implements AttendanceRfidI
     public function countTotalStatusGlobal(): array
     {
         $data = $this->model->query()
-            
             ->selectRaw("
                 COUNT(CASE WHEN status = ? THEN 1 END) as hadir,
                 COUNT(CASE WHEN status = ? THEN 1 END) as terlambat,
+                COUNT(CASE WHEN status = ? THEN 1 END) as alpha,
                 COUNT(*) as total
             ", [
-                AttendanceStatusEnum::PRESENT->value,
-                AttendanceStatusEnum::LATE->value,
+                RfidAttendanceStatusEnum::PRESENT->value,
+                RfidAttendanceStatusEnum::LATE->value,
+                RfidAttendanceStatusEnum::ALPHA->value,
             ])
             ->first();
 
         return $data ? $data->toArray() : [
             'hadir' => 0,
             'terlambat' => 0,
+            'alpha' => 0,
             'total' => 0
         ];
     }
@@ -158,14 +164,15 @@ class AttendanceRfidRepository extends BaseRepository implements AttendanceRfidI
     {
         $data = $this->model->query()
             ->whereYear('date', $year)
-            
             ->selectRaw("
                 MONTH(date) as month,
                 COUNT(CASE WHEN status = ? THEN 1 END) as hadir,
-                COUNT(CASE WHEN status = ? THEN 1 END) as terlambat
+                COUNT(CASE WHEN status = ? THEN 1 END) as terlambat,
+                COUNT(CASE WHEN status = ? THEN 1 END) as alpha
             ", [
-                AttendanceStatusEnum::PRESENT->value,
-                AttendanceStatusEnum::LATE->value,
+                RfidAttendanceStatusEnum::PRESENT->value,
+                RfidAttendanceStatusEnum::LATE->value,
+                RfidAttendanceStatusEnum::ALPHA->value,
             ])
             ->groupByRaw('MONTH(date)')
             ->get()
@@ -173,9 +180,10 @@ class AttendanceRfidRepository extends BaseRepository implements AttendanceRfidI
 
         return collect(range(1, 12))->map(function ($month) use ($data) {
             return [
-                'month' => $month,
-                'hadir' => $data[$month]->hadir ?? 0,
+                'month'     => $month,
+                'hadir'     => $data[$month]->hadir     ?? 0,
                 'terlambat' => $data[$month]->terlambat ?? 0,
+                'alpha'     => $data[$month]->alpha     ?? 0,
             ];
         })->values()->toArray();
     }
@@ -185,10 +193,10 @@ class AttendanceRfidRepository extends BaseRepository implements AttendanceRfidI
         return $this->model->query()
             ->whereMonth('date', $month)
             ->whereYear('date', $year)
-            
             ->select('student_id')
-            ->selectRaw("SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as hadir", [AttendanceStatusEnum::PRESENT->value])
-            ->selectRaw("SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as telat", [AttendanceStatusEnum::LATE->value])
+            ->selectRaw("SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as hadir", [RfidAttendanceStatusEnum::PRESENT->value])
+            ->selectRaw("SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as telat",  [RfidAttendanceStatusEnum::LATE->value])
+            ->selectRaw("SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as alpha",  [RfidAttendanceStatusEnum::ALPHA->value])
             ->groupBy('student_id')
             ->get();
     }
@@ -204,6 +212,7 @@ class AttendanceRfidRepository extends BaseRepository implements AttendanceRfidI
             })
             ->leftJoin('classrooms', 'classroom_students.classroom_id', '=', 'classrooms.id')
             ->whereDate('attendance_rfids.date', now())
+            ->where('attendance_rfids.status', '!=', RfidAttendanceStatusEnum::ALPHA->value)
             ->orderByDesc('attendance_rfids.checkin_time')
             ->limit($limit)
             ->get([
@@ -239,7 +248,9 @@ class AttendanceRfidRepository extends BaseRepository implements AttendanceRfidI
             $query->where('attendance_rfids.status', $status);
         }
 
-        return $query->orderByDesc('attendance_rfids.date')
+        return $query
+            ->orderByDesc('attendance_rfids.date')
+            ->orderByRaw('attendance_rfids.checkin_time IS NULL ASC')
             ->orderByDesc('attendance_rfids.checkin_time')
             ->select([
                 'attendance_rfids.id',
@@ -259,10 +270,12 @@ class AttendanceRfidRepository extends BaseRepository implements AttendanceRfidI
             ->whereDate('date', now())
             ->selectRaw('
                  COUNT(CASE WHEN status = ? THEN 1 END) as present,
-                 COUNT(CASE WHEN status = ? THEN 1 END) as late
+                 COUNT(CASE WHEN status = ? THEN 1 END) as late,
+                 COUNT(CASE WHEN status = ? THEN 1 END) as absent
              ', [
-                AttendanceStatusEnum::PRESENT->value,
-                AttendanceStatusEnum::LATE->value,
+                RfidAttendanceStatusEnum::PRESENT->value,
+                RfidAttendanceStatusEnum::LATE->value,
+                RfidAttendanceStatusEnum::ALPHA->value,
             ])
             ->first();
     }
@@ -276,10 +289,10 @@ class AttendanceRfidRepository extends BaseRepository implements AttendanceRfidI
                  COUNT(DISTINCT CASE WHEN status IN (?, ?) THEN DATE(date) END) as total_days_with_attendance,
                  COUNT(DISTINCT CASE WHEN status IN (?, ?) THEN CONCAT(student_id, DATE(date)) END) as total_present
              ', [
-                AttendanceStatusEnum::PRESENT->value,
-                AttendanceStatusEnum::LATE->value,
-                AttendanceStatusEnum::PRESENT->value,
-                AttendanceStatusEnum::LATE->value,
+                RfidAttendanceStatusEnum::PRESENT->value,
+                RfidAttendanceStatusEnum::LATE->value,
+                RfidAttendanceStatusEnum::PRESENT->value,
+                RfidAttendanceStatusEnum::LATE->value,
             ])
             ->whereYear('date', $year)
             ->groupBy('month')
@@ -290,9 +303,8 @@ class AttendanceRfidRepository extends BaseRepository implements AttendanceRfidI
     public function getStudentsWithHighAlpha(int $threshold, int $limit = 10): Collection
     {
         return $this->model
-            ->where('status', AttendanceStatusEnum::ALPHA->value)
-            
-            ->selectRaw('student_id, COUNT(*) as total_alpha')
+            ->where('status', RfidAttendanceStatusEnum::ALPHA->value)
+            ->selectRaw('student_id, COUNT(DISTINCT date) as total_alpha')
             ->groupBy('student_id')
             ->having('total_alpha', '>=', $threshold)
             ->orderByDesc('total_alpha')

@@ -76,8 +76,7 @@ class Attendance extends Model
     public function scopePresent($query)
     {
         return $query->whereIn('status', [
-            AttendanceStatusEnum::PRESENT->value,
-            AttendanceStatusEnum::LATE->value
+            AttendanceStatusEnum::PRESENT->value
         ]);
     }
 
