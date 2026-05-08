@@ -7,6 +7,7 @@ use App\Contracts\Repositories\Operator\EmployeeRepository;
 use App\Contracts\Repositories\Operator\ClassroomRepository;
 use App\Contracts\Repositories\Operator\MajorRepository;
 use App\Contracts\Repositories\AttendanceRfidRepository;
+use App\Contracts\Repositories\AttendanceRepository;
 
 class OperatorDashboardService
 {
@@ -15,17 +16,19 @@ class OperatorDashboardService
     private ClassroomRepository $classroomRepository;
     private MajorRepository $majorRepository;
     private AttendanceRfidRepository $attendanceRfidRepository;
+    private AttendanceRepository $attendanceRepository;
 
-    public function __construct(StudentRepository $studentRepository, EmployeeRepository $employeeRepository, ClassroomRepository $classroomRepository, MajorRepository $majorRepository, AttendanceRfidRepository $attendanceRfidRepository)
+    public function __construct(StudentRepository $studentRepository, EmployeeRepository $employeeRepository, ClassroomRepository $classroomRepository, MajorRepository $majorRepository, AttendanceRfidRepository $attendanceRfidRepository, AttendanceRepository $attendanceRepository)
     {
         $this->studentRepository = $studentRepository;
         $this->employeeRepository = $employeeRepository;
         $this->classroomRepository = $classroomRepository;
         $this->majorRepository = $majorRepository;
         $this->attendanceRfidRepository = $attendanceRfidRepository;
+        $this->attendanceRepository = $attendanceRepository;
     }
 
-    public function getMaster(): array
+    public function getCounter(): array
     {
         $totalStudents = $this->studentRepository->count();
         $totalEmployees = $this->employeeRepository->count();
@@ -37,29 +40,6 @@ class OperatorDashboardService
             'total_employees' => $totalEmployees,
             'total_classrooms' => $totalClassrooms,
             'total_majors' => $totalMajors,
-        ];
-    }
-
-    public function getRfidActivities(int $limit = 10)
-    {
-        return $this->attendanceRfidRepository->getRecentActivities($limit);
-    }
-
-    public function getTodayAttendanceSummary(): array
-    {
-        $totalStudents = $this->studentRepository->count();
-
-        $data = $this->attendanceRfidRepository->getTodaySummary();
-
-        $present = (int) $data->present;
-        $late = (int) $data->late;
-        $absent = (int) $data->absent;
-
-        return [
-            'total_students' => $totalStudents,
-            'present' => $present,
-            'late' => $late,
-            'absent' => $absent,
         ];
     }
 
@@ -80,5 +60,30 @@ class OperatorDashboardService
                     : 0,
             ];
         });
+    }
+
+    public function getTodayAttendanceSummary(): array
+    {
+        $totalStudents = $this->studentRepository->count();
+
+        $data = $this->attendanceRepository->countTotalStatusToday(now()->format('Y-m-d'));
+
+        $present = (int) ($data['hadir'] ?? 0);
+        $sick = (int) ($data['sakit'] ?? 0);
+        $permission = (int) ($data['izin'] ?? 0);
+        $alpha = (int) ($data['alpa'] ?? 0);
+
+        return [
+            'total_students' => $totalStudents,
+            'present' => $present,
+            'sick' => $sick,
+            'permission' => $permission,
+            'alpha' => $alpha,
+        ];
+    }
+
+    public function getRfidActivities(int $limit = 10)
+    {
+        return $this->attendanceRfidRepository->getRecentActivities($limit);
     }
 }

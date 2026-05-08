@@ -215,7 +215,8 @@ class TeacherService
         return (object) [
             'lesson_schedule' => $schedule,
             'classroom' => $schedule->classroom,
-            'students' => $students,
+            'students' => $students->items(),
+            'pagination' => $this->classroomStudentsRepository->formatPagination($students),
             'summary' => $this->getClassroomSummary($classroomId, $date),
             'date' => $date,
             'lesson_order' => $lessonOrder,
@@ -235,60 +236,60 @@ class TeacherService
 
         $date = $data['date'];
         $classroomId = $data['classroom_id'];
+        $lessonOrder = (int) $data['lesson_order'];
+        $lessonScheduleId = $data['lesson_schedule_id'];
+        $subjectId = $data['subject_id'];
 
-        $dayId = $this->getIndonesianDayFromDate($date);
-        $day = DayEnum::translate($dayId);
+        $schedule = $this->lessonScheduleRepository->show($lessonScheduleId);
 
-        $allSchedules = $this->lessonScheduleRepository->getByTeacherAndDayWithLessonHour($teacherId, $day)
-            ->where('classroom_id', $classroomId);
+        if (!$schedule) {
+            throw new \Exception('Jadwal pelajaran tidak ditemukan', 404);
+        }
 
-        return DB::transaction(function () use ($data, $teacherId, $allSchedules, $date) {
+        return DB::transaction(function () use ($data, $teacherId, $schedule, $date, $classroomId, $lessonOrder, $subjectId) {
             $results = [];
 
             foreach ($data['attendances'] as $attendanceData) {
                 $studentId = $attendanceData['student_id'];
                 $status = $attendanceData['status'];
 
-                if (!$studentId || $studentId === 'NaN' || $studentId === 'null') {
+                if (!$studentId || $studentId === 'null') {
                     continue;
                 }
 
                 $classroomStudent = $this->classroomStudentsRepository->getByStudentAndClassroom(
                     $studentId,
-                    $data['classroom_id']
+                    $classroomId
                 );
 
                 if (!$classroomStudent) continue;
 
-                foreach ($allSchedules as $schedule) {
-                    $lessonOrder = $schedule->lessonHour->order;
+                $isLocked = $this->attendanceRepository->isAttendanceLocked(
+                    $studentId,
+                    $date,
+                    $lessonOrder
+                );
 
-                    $isLocked = $this->attendanceRepository->isAttendanceLocked(
-                        $studentId,
-                        $date,
-                        $lessonOrder
-                    );
+                if ($isLocked) continue;
 
-                    if ($isLocked) continue;
+                $attendance = $this->attendanceRepository->updateOrCreate(
+                    [
+                        'student_id' => $studentId,
+                        'date' => $date,
+                        'lesson_order' => $lessonOrder,
+                    ],
+                    [
+                        'classroom_student_id' => $classroomStudent->id,
+                        'teacher_id' => $teacherId,
+                        'lesson_schedule_id' => $schedule->id,
+                        'subject_id' => $subjectId,
+                        'status' => $status,
+                        'is_final' => true,
+                        'updated_at' => now(),
+                    ]
+                );
 
-                    $attendance = $this->attendanceRepository->updateOrCreate(
-                        [
-                            'student_id'   => $studentId,
-                            'date'         => $date,
-                            'lesson_order' => $lessonOrder
-                        ],
-                        [
-                            'classroom_student_id' => $classroomStudent->id,
-                            'teacher_id'           => $teacherId,
-                            'lesson_schedule_id'   => $schedule->id,
-                            'subject_id'           => $schedule->subject_id,
-                            'status'               => $status,
-                            'is_final'             => true,
-                            'updated_at'           => now()
-                        ]
-                    );
-                    $results[] = $attendance;
-                }
+                $results[] = $attendance;
             }
 
             return $results;
@@ -345,9 +346,9 @@ class TeacherService
 
         return [
             'total_students' => $this->classroomStudentsRepository->countActiveByClassroom($classroomId),
-            'hadir' => $attendances->where('status', AttendanceStatusEnum::PRESENT->value)->count(),
-            'izin' => $attendances->where('status', AttendanceStatusEnum::LEAVE->value)->count(),
-            'sakit' => $attendances->where('status', AttendanceStatusEnum::SICK->value)->count(),
+            'present' => $attendances->where('status', AttendanceStatusEnum::PRESENT->value)->count(),
+            'permission' => $attendances->where('status', AttendanceStatusEnum::PERMISSION->value)->count(),
+            'sick' => $attendances->where('status', AttendanceStatusEnum::SICK->value)->count(),
             'alpha' => $attendances->where('status', AttendanceStatusEnum::ALPHA->value)->count(),
         ];
     }

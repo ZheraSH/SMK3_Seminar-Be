@@ -286,11 +286,9 @@ class AttendanceRfidRepository extends BaseRepository implements AttendanceRfidI
         return $this->model->query()
             ->selectRaw('
                  MONTH(date) as month,
-                 COUNT(DISTINCT CASE WHEN status IN (?, ?) THEN DATE(date) END) as total_days_with_attendance,
+                 COUNT(DISTINCT DATE(date)) as total_days_with_attendance,
                  COUNT(DISTINCT CASE WHEN status IN (?, ?) THEN CONCAT(student_id, DATE(date)) END) as total_present
              ', [
-                RfidAttendanceStatusEnum::PRESENT->value,
-                RfidAttendanceStatusEnum::LATE->value,
                 RfidAttendanceStatusEnum::PRESENT->value,
                 RfidAttendanceStatusEnum::LATE->value,
             ])

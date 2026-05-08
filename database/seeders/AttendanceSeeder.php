@@ -58,8 +58,7 @@ class AttendanceSeeder extends Seeder
                 $scenario = match (true) {
                     $rand <= 60 => 'present',
                     $rand <= 70 => 'late',
-                    $rand <= 75 => 'sick',
-                    $rand <= 80 => 'sick_locked',
+                    $rand <= 80 => 'sick',
                     $rand <= 85 => 'permission',
                     $rand <= 90 => 'permission_locked',
                     default     => 'alpha',
@@ -97,9 +96,9 @@ class AttendanceSeeder extends Seeder
                 // INSERT KE attendance_permissions (untuk lock BK)
                 // =========================================================
                 $permissionId = null;
-                if (in_array($scenario, ['sick_locked', 'permission_locked'])) {
+                if ($scenario === 'permission_locked') {
                     $permissionId = Str::uuid()->toString();
-                    $type = $scenario === 'sick_locked' ? 'sick' : 'permission';
+                    $type = 'permission';
                     try {
                         DB::table('attendance_permissions')->insert([
                             'id' => $permissionId,
@@ -142,10 +141,9 @@ class AttendanceSeeder extends Seeder
                     if ($scenario === 'present' || $scenario === 'late') {
                         $crossStatus = AttendanceStatusEnum::PRESENT->value;
                         $isFinal = 1;
-                    } elseif (in_array($scenario, ['sick', 'sick_locked'])) {
+                    } elseif ($scenario === 'sick') {
                         $crossStatus = AttendanceStatusEnum::SICK->value;
                         $isFinal = 1;
-                        if ($scenario === 'sick_locked') $isLocked = 1;
                     } elseif (in_array($scenario, ['permission', 'permission_locked'])) {
                         $crossStatus = AttendanceStatusEnum::PERMISSION->value;
                         $isFinal = 1;

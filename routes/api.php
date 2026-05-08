@@ -81,9 +81,9 @@ Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
     //Dashboard
     Route::prefix('dashboard')->controller(OperatorDashboardController::class)->group(function () {
         Route::get('counters', 'getCounter'); //total siswa/guru/kelas/attendance
-        Route::get('tap-history', 'getRfidHistory'); //kegiatan tap RFID terbaru
-        Route::get('statistic-today', 'getStatisticsDay'); //statistik absen harian
-        Route::get('statistic-monthly', 'getStatisticsMonthly'); //statistik absen bulanan
+        Route::get('tap-history', 'getHistoryRfid'); //kegiatan tap RFID terbaru
+        Route::get('statistic-today', 'getStatisticsDayCrossCheck'); //statistik absen harian CrossCheck
+        Route::get('statistic-monthly', 'getStatisticsMonthlyRfid'); //statistik absen bulanan Rfid
     });
     //school Informations
     Route::apiResource('school-information', SchoolController::class)->only('index');

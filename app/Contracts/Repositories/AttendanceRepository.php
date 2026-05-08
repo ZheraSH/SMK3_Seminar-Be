@@ -183,14 +183,12 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
             ->final()
             ->selectRaw("
                 COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as hadir,
-                COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as telat,
                 COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as izin,
                 COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as sakit,
-                COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as alpha
+                COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as alpa
             ", [
                 AttendanceStatusEnum::PRESENT->value,
-                AttendanceStatusEnum::LATE->value,
-                AttendanceStatusEnum::LEAVE->value,
+                AttendanceStatusEnum::PERMISSION->value,
                 AttendanceStatusEnum::SICK->value,
                 AttendanceStatusEnum::ALPHA->value,
             ])
