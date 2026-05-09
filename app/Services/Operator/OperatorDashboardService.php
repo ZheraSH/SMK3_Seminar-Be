@@ -71,7 +71,7 @@ class OperatorDashboardService
         $present = (int) ($data['hadir'] ?? 0);
         $sick = (int) ($data['sakit'] ?? 0);
         $permission = (int) ($data['izin'] ?? 0);
-        $alpha = (int) ($data['alpa'] ?? 0);
+        $alpha = (int) ($data['alpha'] ?? 0);
 
         return [
             'total_students' => $totalStudents,

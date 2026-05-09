@@ -124,15 +124,6 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
             ->first();
     }
 
-    public function getFinalAttendancesForStudent(string $studentId, string $date): Collection
-    {
-        return $this->model
-            ->where('student_id', $studentId)
-            ->whereDate('date', $date)
-            ->orderBy('lesson_order')
-            ->get();
-    }
-
     // =========================================================================
     //  LOCK & PERMISSION
     // =========================================================================
@@ -185,7 +176,7 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
                 COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as hadir,
                 COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as izin,
                 COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as sakit,
-                COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as alpa
+                COUNT(DISTINCT CASE WHEN status = ? THEN student_id END) as alpha
             ", [
                 AttendanceStatusEnum::PRESENT->value,
                 AttendanceStatusEnum::PERMISSION->value,
@@ -210,5 +201,31 @@ class AttendanceRepository extends BaseRepository implements AttendanceInterface
                 $q->where('status', 'active')->with('classroom');
             }])
             ->get();
+    }
+
+    // =========================================================================
+    //  STUDENT DASHBOARD
+    // =========================================================================
+
+    public function getStudentYearlySummary(string $studentId, int $year): array
+    {
+        $result = $this->model
+            ->where('student_id', $studentId)
+            ->whereYear('date', $year)
+            ->final()
+            ->selectRaw("
+                COUNT(DISTINCT CASE WHEN status = ? THEN date END) as hadir,
+                COUNT(DISTINCT CASE WHEN status = ? THEN date END) as izin,
+                COUNT(DISTINCT CASE WHEN status = ? THEN date END) as sakit,
+                COUNT(DISTINCT CASE WHEN status = ? THEN date END) as alpha
+            ", [
+                AttendanceStatusEnum::PRESENT->value,
+                AttendanceStatusEnum::PERMISSION->value,
+                AttendanceStatusEnum::SICK->value,
+                AttendanceStatusEnum::ALPHA->value,
+            ])
+            ->first();
+
+        return $result ? $result->toArray() : ['hadir' => 0, 'izin' => 0, 'sakit' => 0, 'alpha' => 0];
     }
 }

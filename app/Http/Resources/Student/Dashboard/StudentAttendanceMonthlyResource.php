@@ -14,7 +14,7 @@ class StudentAttendanceMonthlyResource extends JsonResource
             'label' => $this->monthLabel($this->resource['month']),
             'hadir' => (int) ($this->resource['hadir'] ?? 0),
             'telat' => (int) ($this->resource['telat'] ?? 0),
-            'alpha' => (int) ($this->resource['alpha'] ?? 0),
+            'alpa' => (int) ($this->resource['alpha'] ?? 0),
         ];
     }
 

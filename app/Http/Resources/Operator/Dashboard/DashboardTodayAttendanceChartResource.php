@@ -26,7 +26,7 @@ class DashboardTodayAttendanceChartResource extends JsonResource
                 'count' => $this['permission'] ?? 0,
                 'percentage' => $total ? round((($this['permission'] ?? 0) / $total) * 100, 2) : 0,
             ],
-            'alpha' => [
+            'alpa' => [
                 'count' => $this['alpha'] ?? 0,
                 'percentage' => $total ? round((($this['alpha'] ?? 0) / $total) * 100, 2) : 0,
             ],

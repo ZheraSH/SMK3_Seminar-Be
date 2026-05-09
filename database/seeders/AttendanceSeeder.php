@@ -36,7 +36,7 @@ class AttendanceSeeder extends Seeder
             ->first();
         $counselorId = $counselor?->id;
 
-        $startDate = Carbon::now()->subDays(6);
+        $startDate = Carbon::now()->subMonths(2);
         $endDate   = Carbon::now();
 
         for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
@@ -65,31 +65,31 @@ class AttendanceSeeder extends Seeder
                 };
 
                 // =========================================================
-                // INSERT KE attendance_rfids (hanya jika hadir / terlambat)
+                // INSERT KE attendance_rfids
                 // =========================================================
-                if (in_array($scenario, ['present', 'late'])) {
-                    $rfidStatus  = $scenario === 'late'
-                        ? RfidAttendanceStatusEnum::LATE->value     
-                        : RfidAttendanceStatusEnum::PRESENT->value;
-                    $checkinTime  = $scenario === 'late' ? '07:15:00' : '06:45:00';
-                    $checkoutTime = '15:00:00';
+                $rfidStatus = match ($scenario) {
+                    'late' => RfidAttendanceStatusEnum::LATE->value,
+                    'present' => RfidAttendanceStatusEnum::PRESENT->value,
+                    default => RfidAttendanceStatusEnum::ALPHA->value,
+                };
+                $checkinTime  = $scenario === 'late' ? '07:15:00' : ($scenario === 'present' ? '06:45:00' : null);
+                $checkoutTime = in_array($scenario, ['present', 'late']) ? '15:00:00' : null;
 
-                    try {
-                        DB::table('attendance_rfids')->insert([
-                            'id' => Str::uuid()->toString(),
-                            'student_id' => $student->id,
-                            'classroom_student_id' => $classroomStudent?->id,
-                            'rfid_id' => $rfidRecord?->id,
-                            'date' => $currentDate,
-                            'checkin_time' => $checkinTime,
-                            'checkout_time' => $checkoutTime,
-                            'status' => $rfidStatus,
-                            'created_at' => now()->toDateTimeString(),
-                            'updated_at' => now()->toDateTimeString(),
-                        ]);
-                    } catch (\Exception $e) {
-                        $this->command->error("RFID Insert Error for Student {$student->id}: " . $e->getMessage());
-                    }
+                try {
+                    DB::table('attendance_rfids')->insert([
+                        'id' => Str::uuid()->toString(),
+                        'student_id' => $student->id,
+                        'classroom_student_id' => $classroomStudent?->id,
+                        'rfid_id' => $rfidRecord?->id,
+                        'date' => $currentDate,
+                        'checkin_time' => $checkinTime,
+                        'checkout_time' => $checkoutTime,
+                        'status' => $rfidStatus,
+                        'created_at' => now()->toDateTimeString(),
+                        'updated_at' => now()->toDateTimeString(),
+                    ]);
+                } catch (\Exception $e) {
+                    $this->command->error("RFID Insert Error for Student {$student->id}: " . $e->getMessage());
                 }
 
                 // =========================================================
