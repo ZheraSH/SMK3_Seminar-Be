@@ -6,7 +6,6 @@ use App\Contracts\Repositories\Operator\EmployeeRepository;
 use App\Contracts\Repositories\UserRepository;
 use App\Http\Requests\Operator\StoreEmployeeRequest;
 use App\Http\Requests\Operator\UpdateEmployeeRequest;
-use App\Enums\RoleEnum;
 use App\Enums\UploadDiskEnum;
 use App\Enums\GenderEnum;
 use App\Imports\EmployeeImport;
@@ -15,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class EmployeeService
 {
@@ -126,7 +126,7 @@ class EmployeeService
         return $this->upload(UploadDiskEnum::TEACHER->value, $file);
     }
 
-        public function importEmployees(mixed $file): array
+    public function importEmployees(mixed $file): array
     {
 
         $storedPath = $file->store('imports/tmp', 'local');
@@ -137,7 +137,34 @@ class EmployeeService
             Excel::import($import, $fullPath);
 
             return [
+                'failed' => false,
                 'imported_count' => $import->importedCount,
+                'errors' => [],
+            ];
+        } catch (ValidationException $e) {
+            $grouped = [];
+            foreach ($e->failures() as $failure) {
+                foreach ($failure->errors() as $error) {
+                    $key = $failure->attribute() . '|' . $error;
+                    if (!isset($grouped[$key])) {
+                        $grouped[$key] = [
+                            'kolom'   => $failure->attribute(),
+                            'message' => $error,
+                            'rows'    => [],
+                        ];
+                    }
+                    $grouped[$key]['rows'][] = $failure->row();
+                }
+            }
+            return [
+                'failed' => true,
+                'imported_count' => 0,
+                'errors' => array_values($grouped),
+            ];
+        } catch (\RuntimeException $e) {
+            return [
+                'failed' => true,
+                'imported_count' => 0,
                 'errors' => $import->getErrors(),
             ];
         } finally {

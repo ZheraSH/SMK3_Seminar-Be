@@ -16,10 +16,8 @@ use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
-use Maatwebsite\Excel\Concerns\SkipsOnFailure;
-use Maatwebsite\Excel\Validators\Failure;
 
-class ClassroomStudentImport implements ToCollection, WithHeadingRow, WithValidation, SkipsOnFailure
+class ClassroomStudentImport implements ToCollection, WithHeadingRow, WithValidation
 {
 
     private array $groupedErrors = [];
@@ -31,26 +29,14 @@ class ClassroomStudentImport implements ToCollection, WithHeadingRow, WithValida
         $this->classroomId = $classroomId;
     }
 
-    public function onFailure(Failure ...$failures): void
-    {
-        foreach ($failures as $failure) {
-            foreach ($failure->errors() as $error) {
-                $key = $failure->attribute() . '|' . $error;
-                if (!isset($this->groupedErrors[$key])) {
-                    $this->groupedErrors[$key] = [
-                        'kolom'   => $failure->attribute(),
-                        'message' => $error,
-                        'rows'    => [],
-                    ];
-                }
-                $this->groupedErrors[$key]['rows'][] = $failure->row();
-            }
-        }
-    }
-
     public function getErrors(): array
     {
         return array_values($this->groupedErrors);
+    }
+
+    public function hasErrors(): bool
+    {
+        return !empty($this->groupedErrors);
     }
 
     public function rules(): array
@@ -118,10 +104,10 @@ class ClassroomStudentImport implements ToCollection, WithHeadingRow, WithValida
 
     public function collection(Collection $rows): void
     {
-        foreach ($rows as $index => $row) {
-            $rowNumber = $index + 2;
+        DB::transaction(function () use ($rows) {
+            foreach ($rows as $index => $row) {
+                $rowNumber = $index + 2;
 
-            DB::transaction(function () use ($row, $rowNumber) {
                 if (Student::where('nisn', $row['nisn'])->exists()) {
                     $key = 'nisn_duplikat|' . $row['nisn'];
                     $this->groupedErrors[$key] = [
@@ -129,7 +115,7 @@ class ClassroomStudentImport implements ToCollection, WithHeadingRow, WithValida
                         'message' => "NISN {$row['nisn']} sudah terdaftar di sistem.",
                         'rows' => [$rowNumber],
                     ];
-                    return;
+                    continue;
                 }
 
                 $religion = Religion::whereRaw('LOWER(name) LIKE ?', ['%' . strtolower(trim($row['agama'])) . '%'])->first();
@@ -143,7 +129,7 @@ class ClassroomStudentImport implements ToCollection, WithHeadingRow, WithValida
                         ];
                     }
                     $this->groupedErrors[$key]['rows'][] = $rowNumber;
-                    return;
+                    continue;
                 }
 
                 $genderInput = strtoupper(trim($row['jenis_kelamin']));
@@ -163,7 +149,7 @@ class ClassroomStudentImport implements ToCollection, WithHeadingRow, WithValida
                         ];
                     }
                     $this->groupedErrors[$key]['rows'][] = $rowNumber;
-                    return;
+                    continue;
                 }
 
                 $email = trim($row['nisn']) . '@skaniga.com';
@@ -205,7 +191,11 @@ class ClassroomStudentImport implements ToCollection, WithHeadingRow, WithValida
                 ]);
 
                 $this->importedCount++;
-            });
-        }
+            }
+
+            if ($this->hasErrors()) {
+                throw new \RuntimeException('__IMPORT_VALIDATION_FAILED__');
+            }
+        });
     }
 }

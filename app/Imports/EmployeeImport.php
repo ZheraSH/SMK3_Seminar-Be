@@ -14,34 +14,20 @@ use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
-use Maatwebsite\Excel\Concerns\SkipsOnFailure;
-use Maatwebsite\Excel\Validators\Failure;
 
-class EmployeeImport implements ToCollection, WithHeadingRow, WithValidation, SkipsOnFailure
+class EmployeeImport implements ToCollection, WithHeadingRow, WithValidation
 {
     private array $groupedErrors = [];
     public int $importedCount = 0;
 
-    public function onFailure(Failure ...$failures): void
-    {
-        foreach ($failures as $failure) {
-            foreach ($failure->errors() as $error) {
-                $key = $failure->attribute() . '|' . $error;
-                if (!isset($this->groupedErrors[$key])) {
-                    $this->groupedErrors[$key] = [
-                        'kolom'   => $failure->attribute(),
-                        'message' => $error,
-                        'rows'    => [],
-                    ];
-                }
-                $this->groupedErrors[$key]['rows'][] = $failure->row();
-            }
-        }
-    }
-
     public function getErrors(): array
     {
         return array_values($this->groupedErrors);
+    }
+
+    public function hasErrors(): bool
+    {
+        return !empty($this->groupedErrors);
     }
 
     public function rules(): array
@@ -97,10 +83,10 @@ class EmployeeImport implements ToCollection, WithHeadingRow, WithValidation, Sk
 
     public function collection(Collection $rows): void
     {
-        foreach ($rows as $index => $row) {
-            $rowNumber = $index + 2;
+        DB::transaction(function () use ($rows) {
+            foreach ($rows as $index => $row) {
+                $rowNumber = $index + 2;
 
-            DB::transaction(function () use ($row, $rowNumber) {
                 if (Employee::where('nip', trim($row['nip']))->exists()) {
                     $key = 'nip_duplikat|' . $row['nip'];
                     if (!isset($this->groupedErrors[$key])) {
@@ -111,7 +97,7 @@ class EmployeeImport implements ToCollection, WithHeadingRow, WithValidation, Sk
                         ];
                     }
                     $this->groupedErrors[$key]['rows'][] = $rowNumber;
-                    return;
+                    continue;
                 }
 
                 $religionId = null;
@@ -127,7 +113,7 @@ class EmployeeImport implements ToCollection, WithHeadingRow, WithValidation, Sk
                             ];
                         }
                         $this->groupedErrors[$key]['rows'][] = $rowNumber;
-                        return;
+                        continue;
                     }
                     $religionId = $religion->id;
                 }
@@ -149,7 +135,7 @@ class EmployeeImport implements ToCollection, WithHeadingRow, WithValidation, Sk
                         ];
                     }
                     $this->groupedErrors[$key]['rows'][] = $rowNumber;
-                    return;
+                    continue;
                 }
 
                 $email = trim($row['nip']) . '@skaniga.com';
@@ -183,7 +169,11 @@ class EmployeeImport implements ToCollection, WithHeadingRow, WithValidation, Sk
                 ]);
 
                 $this->importedCount++;
-            });
-        }
+            }
+
+            if ($this->hasErrors()) {
+                throw new \RuntimeException('__IMPORT_VALIDATION_FAILED__');
+            }
+        });
     }
 }

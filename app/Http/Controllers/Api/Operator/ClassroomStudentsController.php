@@ -109,11 +109,23 @@ class ClassroomStudentsController extends Controller
         try {
             $result = $this->classroomStudentsService->importStudents($classroomId, $request->file('file'));
 
+            if ($result['failed']) {
+                return ResponseHelper::error(
+                    'Gagal mengimport siswa. Semua data dibatalkan, silakan perbaiki error berikut.',
+                    422,
+                    [
+                        'imported_count' => 0,
+                        'error_count'    => count($result['errors']),
+                        'errors'         => $result['errors'],
+                    ]
+                );
+            }
+
             return ResponseHelper::success(
                 [
                     'imported_count' => $result['imported_count'],
-                    'error_count'    => count($result['errors']),
-                    'errors'         => $result['errors'],
+                    'error_count'    => 0,
+                    'errors'         => [],
                 ],
                 "Berhasil mengimport {$result['imported_count']} siswa ke kelas.",
                 201

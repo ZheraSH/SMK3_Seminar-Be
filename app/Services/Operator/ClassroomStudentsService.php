@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Validators\ValidationException;
 use RuntimeException;
 
 class ClassroomStudentsService
@@ -175,7 +176,34 @@ class ClassroomStudentsService
             Excel::import($import, $fullPath);
 
             return [
+                'failed' => false,
                 'imported_count' => $import->importedCount,
+                'errors' => [],
+            ];
+        } catch (ValidationException $e) {
+            $grouped = [];
+            foreach ($e->failures() as $failure) {
+                foreach ($failure->errors() as $error) {
+                    $key = $failure->attribute() . '|' . $error;
+                    if (!isset($grouped[$key])) {
+                        $grouped[$key] = [
+                            'kolom'   => $failure->attribute(),
+                            'message' => $error,
+                            'rows'    => [],
+                        ];
+                    }
+                    $grouped[$key]['rows'][] = $failure->row();
+                }
+            }
+            return [
+                'failed' => true,
+                'imported_count' => 0,
+                'errors' => array_values($grouped),
+            ];
+        } catch (\RuntimeException $e) {
+            return [
+                'failed' => true,
+                'imported_count' => 0,
                 'errors' => $import->getErrors(),
             ];
         } finally {

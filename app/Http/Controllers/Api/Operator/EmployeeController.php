@@ -98,17 +98,15 @@ class EmployeeController extends Controller
         try {
             $result = $this->employeeService->importEmployees($request->file('file'));
 
-            $message = "Berhasil mengimport {$result['imported_count']} guru ke sistem.";
-
-            if (!empty($result['errors'])) {
-                return ResponseHelper::success(
+            if ($result['failed']) {
+                return ResponseHelper::error(
+                    'Gagal mengimport guru. Semua data dibatalkan, silakan perbaiki error berikut.',
+                    422,
                     [
-                        'imported_count' => $result['imported_count'],
+                        'imported_count' => 0,
                         'error_count'    => count($result['errors']),
                         'errors'         => $result['errors'],
-                    ],
-                    $message . ' Beberapa baris dilewati, cek bagian errors.',
-                    201
+                    ]
                 );
             }
 
@@ -118,7 +116,7 @@ class EmployeeController extends Controller
                     'error_count'    => 0,
                     'errors'         => [],
                 ],
-                $message,
+                "Berhasil mengimport {$result['imported_count']} guru ke sistem.",
                 201
             );
         } catch (\Throwable $th) {
