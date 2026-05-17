@@ -170,9 +170,9 @@ class ClassroomStudentsService
     {
         $storedPath = $file->store('imports/tmp', 'local');
         $fullPath = storage_path('app/' . $storedPath);
+        $import = new ClassroomStudentImport($classroomId);
 
         try {
-            $import = new ClassroomStudentImport($classroomId);
             Excel::import($import, $fullPath);
 
             return [

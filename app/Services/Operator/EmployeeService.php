@@ -131,9 +131,9 @@ class EmployeeService
 
         $storedPath = $file->store('imports/tmp', 'local');
         $fullPath   = storage_path('app/' . $storedPath);
+        $import = new EmployeeImport();
 
         try {
-            $import = new EmployeeImport();
             Excel::import($import, $fullPath);
 
             return [
