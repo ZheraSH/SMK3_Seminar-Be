@@ -24,7 +24,7 @@ class LessonScheduleResource extends JsonResource
                 'name' => $this->lessonHour->name,
                 'time' => $this->formatTimeRange($this->lessonHour->start, $this->lessonHour->end),
             ]),
-            'subject' => $this->whenLoaded('subject', fn() => $this->subject->only(['id', 'name'])),
+            'subject' => $this->whenLoaded('subject', fn() => $this->subject ? $this->subject->only(['id', 'name']) : null),
             'teacher' => $this->whenLoaded('teacher', function() {
                 return $this->teacher?->user ? [
                     'id' => $this->teacher->id,
