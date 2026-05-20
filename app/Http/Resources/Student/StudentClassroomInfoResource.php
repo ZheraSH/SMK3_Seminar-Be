@@ -11,7 +11,8 @@ class StudentClassroomInfoResource extends JsonResource
     {
         $student = $this->resource['student'];
         $classroom = $this->resource['classroom'];
-        $classmates = $this->resource['classmates'];
+        $classmates = collect($this->resource['classmates']);
+        $pagination = $this->resource['pagination'];
 
         return [
             'classroom' => [
@@ -33,14 +34,7 @@ class StudentClassroomInfoResource extends JsonResource
                         'image' => $classroomStudent->student->image ? asset('storage/' . $classroomStudent->student->image) : null,
                     ];
                 }),
-                'pagination' => [
-                    'current_page' => $classmates->currentPage(),
-                    'per_page' => $classmates->perPage(),
-                    'total' => $classmates->total(),
-                    'last_page' => $classmates->lastPage(),
-                    'from' => $classmates->firstItem(),
-                    'to' => $classmates->lastItem(),
-                ]
+                'meta' => $pagination
             ]
         ];
     }

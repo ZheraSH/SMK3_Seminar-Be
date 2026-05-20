@@ -22,7 +22,7 @@ class OperatorDashboardController extends Controller
     public function getCounter()
     {
         try {
-            $data = $this->service->getMaster();
+            $data = $this->service->getCounter();
 
             return ResponseHelper::success(
                 new DashboardCounterResource($data),
@@ -33,21 +33,21 @@ class OperatorDashboardController extends Controller
         }
     }
 
-    public function getRfidHistory()
+    public function getStatisticsMonthlyRfid()
     {
         try {
-            $data = $this->service->getRfidActivities();
+            $data = $this->service->getMonthlyAttendanceChart();
 
             return ResponseHelper::success(
-                DashboardActivityResource::collection($data),
-                'Aktivitas Tap RFID'
+                DashboardMonthlyAttendanceChartResource::collection($data),
+                'Statistik kehadiran bulanan'
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
-
-    public function getStatisticsDay()
+    
+    public function getStatisticsDayCrossCheck()
     {
         try {
             $data = $this->service->getTodayAttendanceSummary();
@@ -61,17 +61,18 @@ class OperatorDashboardController extends Controller
         }
     }
 
-    public function getStatisticsMonthly()
+    public function getHistoryRfid()
     {
         try {
-            $data = $this->service->getMonthlyAttendanceChart();
+            $data = $this->service->getRfidActivities();
 
             return ResponseHelper::success(
-                DashboardMonthlyAttendanceChartResource::collection($data),
-                'Statistik kehadiran bulanan'
+                DashboardActivityResource::collection($data),
+                'Aktivitas Tap RFID'
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
         }
     }
+
 }

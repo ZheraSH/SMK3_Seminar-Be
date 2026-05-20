@@ -21,6 +21,11 @@ return new class extends Migration
             $table->foreignUuid('homeroom_teacher_id')->nullable()->constrained('employees')->nullOnDelete();
             $table->softDeletes();
             $table->timestamps();
+
+            $table->unique(
+                ['level_class_id', 'major_id', 'school_year_id', 'name'],
+                'classrooms_level_major_year_name_unique'
+            );
         });
     }
     /**

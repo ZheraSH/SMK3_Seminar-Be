@@ -36,21 +36,21 @@ class RfidService
             $student = $rfid->student;
             $activeClassroom = $student?->classroomStudents->where('status', StudentStatusEnum::ACTIVE->value)->first()?->classroom;
             return (object) [
-                'id'        => optional($student)->id,
-                'rfid'      => $rfid->rfid,
+                'id' => optional($student)->id,
+                'rfid' => $rfid->rfid,
                 'classroom' => $activeClassroom?->name ?? null,
-                'name'      => optional(optional($student)->user)->name,
-                'type'      => 'student',
+                'name' => optional(optional($student)->user)->name,
+                'type' => 'student',
             ];
         });
 
         $mastercards = Mastercard::all()->map(function ($card) {
             return (object) [
-                'id'        => $card->id,
-                'rfid'      => $card->rfid,
+                'id' => $card->id,
+                'rfid' => $card->rfid,
                 'classroom' => null,
-                'name'      => null,
-                'type'      => 'mastercard',
+                'name' => null,
+                'type' => 'mastercard',
             ];
         });
 

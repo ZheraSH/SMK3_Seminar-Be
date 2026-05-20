@@ -10,7 +10,12 @@ class HomeroomDailyStatsResource extends JsonResource
 
     public function toArray(Request $request): array
     {
-        $attendedCount = $this['present'] + $this['late'] + $this['permission'] + $this['sick'];
+        $maxCount = max(
+            $this['present'],
+            $this['sick'],
+            $this['permission'],
+            $this['alpha']
+        );
 
         return [
             'date' => $this['date'],
@@ -19,12 +24,12 @@ class HomeroomDailyStatsResource extends JsonResource
             'total_students' => $this['total_students'],
             'count' => [
                 'present' => $this['present'],
-                'late' => $this['late'],
-                'permission' => $this['permission'] + $this['sick'],
-                'alpha' => $this['alpha'],
+                'sick' => $this['sick'],
+                'permission' => $this['permission'],
+                'alpa' => $this['alpha'],
             ],
             'attendance_percentage' => $this['total_students'] > 0
-                ? round(($attendedCount / $this['total_students']) * 100, 2)
+                ? round(($maxCount / $this['total_students']) * 100, 2)
                 : 0,
         ];
     }

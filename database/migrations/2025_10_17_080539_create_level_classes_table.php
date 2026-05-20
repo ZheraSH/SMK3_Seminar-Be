@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('level_classes', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
+            $table->unsignedTinyInteger('level_order')->default(0);
             $table->softDeletes();
             $table->timestamps();
         });

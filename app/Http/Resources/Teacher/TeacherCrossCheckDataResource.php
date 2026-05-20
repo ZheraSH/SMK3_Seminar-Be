@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Teacher;
 
+use App\Enums\AttendanceStatusEnum;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -11,21 +12,8 @@ class TeacherCrossCheckDataResource extends JsonResource
     {
         $lessonSchedule = $this->lesson_schedule;
         $classroom = $this->classroom;
-        $studentsData = [];
-        $paginationMeta = null;
-
-        if ($this->students instanceof LengthAwarePaginator) {
-            $studentsPaginator = $this->students;
-            $studentsData = $studentsPaginator->getCollection()->toArray();
-            $paginationMeta = [
-                'current_page' => $studentsPaginator->currentPage(),
-                'last_page' => $studentsPaginator->lastPage(),
-                'per_page' => $studentsPaginator->perPage(),
-                'total' => $studentsPaginator->total(),
-            ];
-        } else {
-            $studentsData = $this->students ?? [];
-        }
+        $studentsData = $this->students ?? [];
+        $paginationMeta = $this->pagination ?? null;
 
         return [
             'date' => $this->date,
@@ -68,7 +56,7 @@ class TeacherCrossCheckDataResource extends JsonResource
             'students' => array_map(function ($student) {
                 $statusLabel = null;
                 if ($student['current_status']) {
-                    $statusEnum = \App\Enums\AttendanceStatusEnum::tryFrom($student['current_status']);
+                    $statusEnum = AttendanceStatusEnum::tryFrom($student['current_status']);
                     $statusLabel = $statusEnum?->label();
                 } else {
                     $statusLabel = 'Belum Absen';
@@ -83,7 +71,6 @@ class TeacherCrossCheckDataResource extends JsonResource
                         'code' => $student['current_status'],
                         'label' => $statusLabel,
                         'is_final' => $student['existing_attendance']['is_final'] ?? false,
-                        'proof' => $student['existing_attendance']['proof'] ?? null,
                     ],
                     'arrival_info' => $student['rfid_info'] ? [
                         'status' => $student['rfid_info']['status'],
@@ -92,7 +79,7 @@ class TeacherCrossCheckDataResource extends JsonResource
                     ] : null,
                 ];
             }, $studentsData),
-            'pagination' => $paginationMeta,
+            'meta' => $paginationMeta,
         ];
     }
 }

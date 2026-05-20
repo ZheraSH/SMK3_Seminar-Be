@@ -19,8 +19,8 @@ enum RoleEnum: string
             self::STUDENT => 'Siswa',
             self::TEACHER => 'Guru Pengajar',
             self::HOMEROOM_TEACHER => 'Wali Kelas',
-            self::COUNSELOR => 'BK',
-            self::STAFF => 'Staff TU',
+            self::COUNSELOR => 'Bimbingan Konseling',
+            self::STAFF => 'Staff Tata Usaha',
             self::CURRICULUM_COORDINATOR => 'Waka Kurikulum',
         };
     }

@@ -4,7 +4,7 @@ namespace App\Http\Requests\Operator;
 
 use App\Http\Requests\ApiRequest;
 
-class ImportClassroomStudentRequest extends ApiRequest
+class ImportEmployeeRequest extends ApiRequest
 {
     public function authorize(): bool
     {

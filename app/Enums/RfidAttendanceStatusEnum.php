@@ -2,20 +2,18 @@
 
 namespace App\Enums;
 
-enum AttendanceProofEnum: string
+enum RfidAttendanceStatusEnum: string
 {
-    case RFID = 'rfid';
-    case MANUAL = 'manual';
-    case CLASSROOM = 'class';
-    case PERMISSION = 'permission';
+    case PRESENT = 'present';
+    case LATE = 'late';
+    case ALPHA = 'alpha';
 
     public function label(): string
     {
         return match ($this) {
-            self::RFID => 'Kartu RFID',
-            self::MANUAL => 'Input Manual',
-            self::CLASSROOM => 'Absen Kelas',
-            self::PERMISSION => 'Izin Kelas',
+            self::PRESENT => 'Masuk',
+            self::LATE => 'Terlambat',
+            self::ALPHA => 'Alpa',
         };
     }
 
@@ -30,7 +28,6 @@ enum AttendanceProofEnum: string
         foreach (self::cases() as $case) {
             $data[$case->value] = $case->label();
         }
-
         return $data;
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Operator;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Operator\StoreEmployeeRequest;
 use App\Http\Requests\Operator\UpdateEmployeeRequest;
+use App\Http\Requests\Operator\ImportEmployeeRequest;
 use App\Http\Resources\Operator\EmployeeResource;
 use App\Services\Operator\EmployeeService;
 use App\Models\Employee;
@@ -86,6 +87,37 @@ class EmployeeController extends Controller
             return ResponseHelper::success(
                 null,
                 'Data karyawan berhasil dihapus'
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);
+        }
+    }
+
+    public function import(ImportEmployeeRequest $request)
+    {
+        try {
+            $result = $this->employeeService->importEmployees($request->file('file'));
+
+            if ($result['failed']) {
+                return ResponseHelper::error(
+                    'Gagal mengimport guru. Semua data dibatalkan, silakan perbaiki error berikut.',
+                    422,
+                    [
+                        'imported_count' => 0,
+                        'error_count'    => count($result['errors']),
+                        'errors'         => $result['errors'],
+                    ]
+                );
+            }
+
+            return ResponseHelper::success(
+                [
+                    'imported_count' => $result['imported_count'],
+                    'error_count'    => 0,
+                    'errors'         => [],
+                ],
+                "Berhasil mengimport {$result['imported_count']} guru ke sistem.",
+                201
             );
         } catch (\Throwable $th) {
             return ResponseHelper::error($th->getMessage(), $th->getCode() ?: 400);

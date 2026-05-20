@@ -101,7 +101,6 @@ class LessonScheduleRepository extends BaseRepository implements LessonScheduleI
         return $this->baseQuery()
             ->where('classroom_id', $classroomId)
             ->where('day', $day)
-            ->whereHas('lessonHour', fn($q) => $q->where('is_lesson', true))
             ->orderBy(
                 LessonHour::select('start')
                     ->whereColumn('lesson_hours.id', 'lesson_schedules.lesson_hour_id')

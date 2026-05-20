@@ -41,8 +41,8 @@ Route::get('school-logo', [SchoolController::class, 'publicLogo']);
 Route::prefix('attendance')->group(function () {
     Route::get('rfids', [RfidController::class, 'allCard']);
     Route::get('hours', [AttendanceRuleController::class, 'index']);
-    Route::post('/', [RfidTapController::class, 'tap']);
     Route::post('add', [RfidTapController::class, 'add']);
+    // Route::post('/', [RfidTapController::class, 'tap']);
 });
 // Mastercard Management
 Route::prefix('attendance')->group(function () {
@@ -81,9 +81,9 @@ Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
     //Dashboard
     Route::prefix('dashboard')->controller(OperatorDashboardController::class)->group(function () {
         Route::get('counters', 'getCounter'); //total siswa/guru/kelas/attendance
-        Route::get('tap-history', 'getRfidHistory'); //kegiatan tap RFID terbaru
-        Route::get('statistic-today', 'getStatisticsDay'); //statistik absen harian
-        Route::get('statistic-monthly', 'getStatisticsMonthly'); //statistik absen bulanan
+        Route::get('tap-history', 'getHistoryRfid'); //kegiatan tap RFID terbaru
+        Route::get('statistic-today', 'getStatisticsDayCrossCheck'); //statistik absen harian CrossCheck
+        Route::get('statistic-monthly', 'getStatisticsMonthlyRfid'); //statistik absen bulanan Rfid
     });
     //school Informations
     Route::apiResource('school-information', SchoolController::class)->only('index');
@@ -96,6 +96,7 @@ Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
     Route::apiResource('religions', ReligionController::class)->only('index');
     // Employees
     Route::apiResource('employees', EmployeeController::class);
+    Route::post('employees-import', [EmployeeController::class, 'import']); // import guru dari Excel
     // Students
     Route::apiResource('students', StudentController::class);
     // Majors
@@ -117,7 +118,7 @@ Route::middleware(['auth:sanctum', 'role:school_operator'])->group(function () {
         Route::post('students-add', 'store'); // tambahkan siswa ke classroom
         Route::post('students-import', 'import'); // import siswa dari Excel ke classroom
         Route::delete('student-remove/{studentId}', 'destroy'); // hapus siswa dari classroom
-        // Route::post('promote', 'promote'); // naik kelas
+        Route::post('promote', 'promote'); // naik kelas
     });
     // Semesters
     Route::prefix('semesters')->controller(SemesterController::class)->group(function () {

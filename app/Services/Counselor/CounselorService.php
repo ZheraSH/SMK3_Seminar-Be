@@ -8,7 +8,6 @@ use App\Contracts\Repositories\Operator\ClassroomStudentsRepository;
 use App\Enums\AttendanceStatusEnum;
 use App\Enums\PermissionTypeEnum;
 use Illuminate\Http\Request;
-use App\Models\User;
 use Carbon\Carbon;
 
 class CounselorService
@@ -26,11 +25,10 @@ class CounselorService
 
     public function verifyPermission(string $permissionId, string $status, string $studentId, string $startDate, string $endDate, string $permissionType): void
     {
-
         $attendanceStatus = match ($permissionType) {
             PermissionTypeEnum::SICK->value => AttendanceStatusEnum::SICK->value,
-            PermissionTypeEnum::PERMISSION->value => AttendanceStatusEnum::LEAVE->value,
-            PermissionTypeEnum::DISPENSATION->value => AttendanceStatusEnum::LEAVE->value,
+            PermissionTypeEnum::PERMISSION->value => AttendanceStatusEnum::PERMISSION->value,
+            PermissionTypeEnum::DISPENSATION->value => AttendanceStatusEnum::PERMISSION->value,
             default => AttendanceStatusEnum::ALPHA->value,
         };
 
@@ -47,7 +45,6 @@ class CounselorService
 
         while ($start->lte($end)) {
             $date = $start->format('Y-m-d');
-            $dayName = strtolower($start->locale('id')->dayName);
             $dayEnglish = strtolower($start->locale('en')->dayName);
             $schedules = $this->lessonScheduleRepository->getLessonScheduleClassroomAndDay($classroomId, $dayEnglish);
 
@@ -78,16 +75,16 @@ class CounselorService
         return [
             'counts' => [
                 'hadir' => (int) $data['hadir'],
-                'terlambat' => (int) $data['terlambat'],
+                'sakit' => (int) $data['sakit'],
                 'izin' => (int) $data['izin'],
-                'alpha' => (int) $data['alpha'],
+                'alpa' => (int) $data['alpha'],
                 'total' => (int) $data['total'],
             ],
             'percentages' => [
                 'hadir' => round(($data['hadir'] / $total) * 100, 2),
-                'terlambat' => round(($data['terlambat'] / $total) * 100, 2),
+                'sakit' => round(($data['sakit'] / $total) * 100, 2),
                 'izin' => round(($data['izin'] / $total) * 100, 2),
-                'alpha' => round(($data['alpha'] / $total) * 100, 2),
+                'alpa' => round(($data['alpha'] / $total) * 100, 2),
             ]
         ];
     }
@@ -95,7 +92,17 @@ class CounselorService
     public function getMonthlyAttendanceStats(Request $request): array
     {
         $year = $request->input('year', Carbon::now()->year);
-        return $this->attendanceRepository->countTotalStatusMonthly((int) $year);
+        $monthlyData = $this->attendanceRepository->countTotalStatusMonthly((int) $year);
+
+        return collect($monthlyData)->map(function ($row) {
+            $total = $row['hadir'] + $row['sakit'] + $row['izin'] + $row['alpha'];
+            $attended = $row['hadir'] + $row['sakit'];
+
+            return [
+                'month' => $row['month'],
+                'percentage' => $total > 0 ? round(($attended / $total) * 100, 2) : 0,
+            ];
+        })->toArray();
     }
 
     public function getGlobalDailyAttendance(Request $request): array
@@ -123,7 +130,7 @@ class CounselorService
             return [
                 'student_name' => $cs->student->user->name,
                 'classroom' => $cs->classroom->name,
-                'hadir' => (int) (($summary?->hadir ?? 0) + ($summary?->telat ?? 0)),
+                'hadir' => (int) ($summary?->hadir ?? 0),
                 'izin' => (int) ($summary?->izin ?? 0),
                 'sakit' => (int) ($summary?->sakit ?? 0),
                 'alpha' => (int) ($summary?->alpha ?? 0),
@@ -132,12 +139,7 @@ class CounselorService
 
         return [
             'students' => $students,
-            'pagination' => [
-                'current_page' => $studentsPaginated->currentPage(),
-                'per_page' => $studentsPaginated->perPage(),
-                'total' => $studentsPaginated->total(),
-                'last_page' => $studentsPaginated->lastPage(),
-            ],
+            'pagination' => $this->classroomStudentsRepository->formatPagination($studentsPaginated),
         ];
     }
 }

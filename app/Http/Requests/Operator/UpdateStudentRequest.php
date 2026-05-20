@@ -41,8 +41,8 @@ class UpdateStudentRequest extends ApiRequest
             'birth_date' => 'required|date|before:today',
             'birth_place' => 'required|string|max:255',
             'address' => 'required|string|max:500',
-            'number_kk' => 'required|numeric|digits:16',
-            'number_akta' => 'required|numeric|digits_between:10,20',
+            'number_kk' => 'nullable|numeric|digits:16',
+            'number_akta' => 'nullable|numeric|digits_between:10,20',
             'order_child' => 'nullable|integer|min:1',
             'count_siblings' => 'nullable|integer|min:0',
         ];

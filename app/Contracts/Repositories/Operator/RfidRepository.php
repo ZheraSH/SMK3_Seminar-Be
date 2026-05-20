@@ -5,6 +5,7 @@ namespace App\Contracts\Repositories\Operator;
 use App\Contracts\Interfaces\Operator\RfidInterface;
 use App\Contracts\Repositories\BaseRepository;
 use App\Enums\RfidStatusEnum;
+use App\Enums\StudentStatusEnum;
 use App\Models\Rfid;
 use App\Models\Student;
 use Illuminate\Http\Request;
@@ -95,7 +96,7 @@ class RfidRepository extends BaseRepository implements RfidInterface
     public function getAvailableStudents(string $search = null, int $limit = 10): Collection
     {
         return Student::query()
-            ->where('status', \App\Enums\StudentStatusEnum::ACTIVE->value)
+            ->where('status', StudentStatusEnum::ACTIVE->value)
             ->whereDoesntHave('rfid')
             ->when($search, function ($query) use ($search) {
                 $query->whereHas('user', function ($u) use ($search) {

@@ -36,7 +36,7 @@ class ClassroomStudentSeeder extends Seeder
                     'classroom_id' => $classroom->id,
                     'student_id' => $student->id,
                     'status' => StudentStatusEnum::ACTIVE->value,
-
+                    'active_unique_guard' => $student->id,
                 ];
                 $studentIndex++;
             }

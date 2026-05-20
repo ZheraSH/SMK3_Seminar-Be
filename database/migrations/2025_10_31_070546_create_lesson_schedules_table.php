@@ -16,8 +16,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->enum('day', DayEnum::values());
             $table->foreignUuid('classroom_id')->constrained('classrooms');
-            $table->foreignUuid('subject_id')->constrained('subjects');
-            $table->foreignUuid('teacher_id')->constrained('employees');
+            $table->foreignUuid('subject_id')->nullable()->constrained('subjects');
+            $table->foreignUuid('teacher_id')->nullable()->constrained('employees');
             $table->foreignUuid('lesson_hour_id')->constrained('lesson_hours');
             $table->softDeletes();
             $table->timestamps();

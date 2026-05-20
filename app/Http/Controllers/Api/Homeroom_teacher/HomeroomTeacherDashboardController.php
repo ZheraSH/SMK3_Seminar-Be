@@ -21,7 +21,7 @@ class HomeroomTeacherDashboardController extends Controller
     public function indexStats(Request $request)
     {
         try {
-            $data = $this->service->getDailyStats($request->user(), $request);
+            $data = $this->service->getDailyStats($request->user());
             return ResponseHelper::success(
                 new HomeroomDailyStatsResource($data),
                 'Statistic attendance today'
@@ -34,7 +34,7 @@ class HomeroomTeacherDashboardController extends Controller
     public function rfidLogs(Request $request)
     {
         try {
-            $data = $this->service->getTodaysRfidLog($request->user(), $request);
+            $data = $this->service->getTodaysRfidLog($request->user());
             return ResponseHelper::success(
                 HomeroomRfidLogResource::collection($data),
                 'RFID logs today'

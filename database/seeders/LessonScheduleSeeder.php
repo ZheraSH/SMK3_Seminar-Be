@@ -15,7 +15,6 @@ class LessonScheduleSeeder extends Seeder
 {
     private const MAX_SUBJECTS_PER_TEACHER = 5;
     private const MAX_HOURS_PER_DAY = 10;
-    private const MIN_HOURS_PER_DAY = 4;
     private const FILL_RATE = 1.0;
     private const MAX_SAME_SUBJECT_PER_DAY = 3;
 
@@ -55,11 +54,28 @@ class LessonScheduleSeeder extends Seeder
         foreach ($classrooms as $classroom) {
             foreach ($days as $day) {
                 $lessonHours = LessonHour::where('day', $day)
-                    ->where('is_lesson', true)
                     ->orderBy('start')
                     ->get();
 
                 foreach ($lessonHours as $lessonHour) {
+                    if (!$lessonHour->is_lesson) {
+                        try {
+                            LessonSchedule::firstOrCreate(
+                                [
+                                    'classroom_id' => $classroom->id,
+                                    'day' => $day,
+                                    'lesson_hour_id' => $lessonHour->id,
+                                ],
+                                [
+                                    'id' => Str::uuid(),
+                                    'subject_id' => null,
+                                    'teacher_id' => null,
+                                ]
+                            );
+                        } catch (\Exception $e) {}
+                        continue;
+                    }
+
                     if (rand(1, 100) > (self::FILL_RATE * 100)) {
                         continue;
                     }
@@ -88,7 +104,7 @@ class LessonScheduleSeeder extends Seeder
                             [
                                 'id' => Str::uuid(),
                                 'subject_id' => $subject->id,
-                                'teacher_id' => $teacher->id, // Pastikan menggunakan teacher_id
+                                'teacher_id' => $teacher->id,
                             ]
                         );
 
@@ -130,7 +146,6 @@ class LessonScheduleSeeder extends Seeder
             $teacherId = $teacher->id;
             $stats = $teacherStats[$teacherId];
 
-            // Perbaiki query untuk menggunakan teacher_id
             $hasTimeConflict = LessonSchedule::where('teacher_id', $teacherId)
                 ->where('day', $day)
                 ->where('lesson_hour_id', $lessonHourId)
@@ -140,7 +155,6 @@ class LessonScheduleSeeder extends Seeder
                 continue;
             }
 
-            // Perbaiki query untuk menggunakan teacher_id
             $hasClassConflict = LessonSchedule::where('teacher_id', $teacherId)
                 ->where('classroom_id', $classroomId)
                 ->where('day', $day)

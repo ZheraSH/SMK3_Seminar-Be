@@ -14,7 +14,7 @@ class SchoolSeeder extends Seeder
     {
         DB::table('schools')->insert([
             'id' => Str::uuid(),
-            'logo' => 'logo/SMKN_3_PAMEKASAN_LOGO.png',
+            'logo' => 'logo/SMKN_3_PAMEKASAN_LOGO.svg',
             'name' => 'SMK NEGERI 3 PAMEKASAN',
             'principal_name' => 'Hj. Sri Indrawati S.Pd M.M',
             'npsn' => '20527275',

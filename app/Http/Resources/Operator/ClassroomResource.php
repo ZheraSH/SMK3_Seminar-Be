@@ -34,7 +34,7 @@ class ClassroomResource extends JsonResource
     private function activeStudentCount(): int
     {
         return $this->classroomStudents
-            ->where('status', StudentStatusEnum::ACTIVE)
+            ->where('status', StudentStatusEnum::ACTIVE->value)
             ->count();
     }
 }

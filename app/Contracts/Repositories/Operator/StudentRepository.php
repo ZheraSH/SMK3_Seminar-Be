@@ -198,17 +198,11 @@ class StudentRepository extends BaseRepository implements StudentInterface
         return [
             'student'    => $student,
             'classroom'  => $classroom,
-            'classmates' => $classmates
+            'classmates' => $classmates->items(),
+            'pagination' => $this->formatPagination($classmates)
         ];
     }
 
-    /**
-     * Update student image
-     *
-     * @param string $studentId
-     * @param string $imagePath
-     * @return bool
-     */
     public function updateImage(string $studentId, string $imagePath): bool
     {
         return $this->model->where('id', $studentId)->update(['image' => $imagePath]);

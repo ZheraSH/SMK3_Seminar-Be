@@ -26,9 +26,8 @@ class CrossCheckAttendanceRequest extends ApiRequest
                 'required',
                 'in:' . implode(',', [
                     AttendanceStatusEnum::PRESENT->value,
-                    AttendanceStatusEnum::LATE->value,
-                    AttendanceStatusEnum::LEAVE->value,
                     AttendanceStatusEnum::SICK->value,
+                    AttendanceStatusEnum::PERMISSION->value,
                     AttendanceStatusEnum::ALPHA->value,
                 ])
             ],

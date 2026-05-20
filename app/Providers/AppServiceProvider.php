@@ -19,6 +19,7 @@ use App\Contracts\Interfaces\Operator\LessonScheduleInterface;
 use App\Contracts\Interfaces\Operator\AttendanceRuleInterface;
 use App\Contracts\Interfaces\Operator\RfidInterface;
 use App\Contracts\Interfaces\AttendanceInterface;
+use App\Contracts\Interfaces\AttendanceRfidInterface;
 use App\Contracts\Interfaces\AttendancePermissionInterface;
 use App\Contracts\Interfaces\Operator\MastercardInterface;
 use App\Contracts\Repositories\UserRepository;
@@ -38,6 +39,7 @@ use App\Contracts\Repositories\Operator\LessonScheduleRepository;
 use App\Contracts\Repositories\Operator\AttendanceRuleRepository;
 use App\Contracts\Repositories\Operator\RfidRepository;
 use App\Contracts\Repositories\AttendanceRepository;
+use App\Contracts\Repositories\AttendanceRfidRepository;
 use App\Contracts\Repositories\AttendancePermissionRepository;
 use App\Contracts\Repositories\Operator\MastercardRepository;
 use Illuminate\Support\ServiceProvider;
@@ -62,6 +64,7 @@ class AppServiceProvider extends ServiceProvider
         AttendanceRuleInterface::class => AttendanceRuleRepository::class,
         RfidInterface::class => RfidRepository::class,
         AttendanceInterface::class => AttendanceRepository::class,
+        AttendanceRfidInterface::class => AttendanceRfidRepository::class,
         AttendancePermissionInterface::class => AttendancePermissionRepository::class,
         MastercardInterface::class => MastercardRepository::class,
     ];

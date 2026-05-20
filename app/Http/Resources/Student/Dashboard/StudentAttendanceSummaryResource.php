@@ -11,9 +11,9 @@ class StudentAttendanceSummaryResource extends JsonResource
     {
         return [
             'hadir' => (int) ($this->resource['hadir'] ?? 0),
-            'telat' => (int) ($this->resource['telat'] ?? 0),
+            'sakit' => (int) ($this->resource['sakit'] ?? 0),
             'izin'  => (int) ($this->resource['izin'] ?? 0),
-            'alpha' => (int) ($this->resource['alpha'] ?? 0),
+            'alpa' => (int) ($this->resource['alpha'] ?? 0),
         ];
     }
 }

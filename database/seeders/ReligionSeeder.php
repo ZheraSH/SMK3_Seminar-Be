@@ -12,11 +12,11 @@ class ReligionSeeder extends Seeder
     {
         $religions = [
             'Islam',
-            // 'Kristen',
-            // 'Katolik',
-            // 'Hindu',
-            // 'Budha',
-            // 'Konghucu',
+            'Kristen',
+            'Katolik',
+            'Hindu',
+            'Budha',
+            'Konghucu',
         ];
 
         foreach ($religions as $religion) {

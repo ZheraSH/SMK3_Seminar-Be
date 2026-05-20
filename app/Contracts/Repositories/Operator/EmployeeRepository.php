@@ -89,13 +89,6 @@ class EmployeeRepository extends BaseRepository implements EmployeeInterface
         return $this->model->count();
     }
 
-    /**
-     * Update employee image
-     *
-     * @param string $employeeId
-     * @param string $imagePath
-     * @return bool
-     */
     public function updateImage(string $employeeId, string $imagePath): bool
     {
         return $this->model->where('id', $employeeId)->update(['image' => $imagePath]);

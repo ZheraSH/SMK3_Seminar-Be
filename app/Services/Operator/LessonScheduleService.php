@@ -71,8 +71,7 @@ class LessonScheduleService
         return [
             'classroom' => $this->classroomRepository->show($classroomId),
             'day' => $day,
-            'schedules' => $this->lessonScheduleRepository
-                ->getLessonScheduleClassroomAndDay($classroomId, $day),
+            'schedules' => $this->lessonScheduleRepository->getLessonScheduleClassroomAndDay($classroomId, $day),
         ];
     }
 

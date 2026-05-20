@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Teacher;
 
+use App\Enums\StudentStatusEnum;
 use App\Traits\Resources\HasEnumLabelsTrait;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -32,7 +33,7 @@ class TeacherClassroomResource extends JsonResource
             ],
             'has_cross_checked' => (bool) ($schedule->has_cross_checked ?? false),
             'students' => [
-                'total' => $classroom->classroomStudents?->count() ?? 0,
+                'total' => $classroom->classroomStudents?->where('status', StudentStatusEnum::ACTIVE->value)->count() ?? 0,
             ],
         ];
     }
